@@ -1,0 +1,362 @@
+using System.Text.Json.Serialization;
+
+namespace QBittorrent.ApiClient.Models
+{
+    /// <summary>
+    /// Represents detailed properties of a torrent.
+    /// </summary>
+    public record TorrentProperties
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TorrentProperties" /> class.
+        /// </summary>
+        [JsonConstructor]
+        public TorrentProperties(
+            long additionDate,
+            string comment,
+            long completionDate,
+            string createdBy,
+            long creationDate,
+            long downloadLimit,
+            long downloadSpeed,
+            long downloadSpeedAverage,
+            long estimatedTimeOfArrival,
+            long lastSeen,
+            int connections,
+            int connectionsLimit,
+            int peers,
+            int peersTotal,
+            int pieceSize,
+            int piecesHave,
+            int piecesNum,
+            int reannounce,
+            string savePath,
+            int seedingTime,
+            int seeds,
+            int seedsTotal,
+            float shareRatio,
+            int timeElapsed,
+            long totalDownloaded,
+            long totalDownloadedSession,
+            long totalSize,
+            long totalUploaded,
+            long totalUploadedSession,
+            long totalWasted,
+            long uploadLimit,
+            long uploadSpeed,
+            long uploadSpeedAverage,
+            string infoHashV1,
+            string infoHashV2,
+            string? hash = null,
+            string? name = null,
+            string? downloadPath = null,
+            float? popularity = null,
+            float? progress = null,
+            bool? isPrivate = null,
+            bool? @private = null,
+            bool? hasMetadata = null)
+        {
+            AdditionDate = additionDate;
+            Comment = comment;
+            CompletionDate = completionDate;
+            CreatedBy = createdBy;
+            CreationDate = creationDate;
+            DownloadLimit = downloadLimit;
+            DownloadSpeed = downloadSpeed;
+            DownloadSpeedAverage = downloadSpeedAverage;
+            EstimatedTimeOfArrival = estimatedTimeOfArrival;
+            LastSeen = lastSeen;
+            Connections = connections;
+            ConnectionsLimit = connectionsLimit;
+            Peers = peers;
+            PeersTotal = peersTotal;
+            PieceSize = pieceSize;
+            PiecesHave = piecesHave;
+            PiecesNum = piecesNum;
+            Reannounce = reannounce;
+            SavePath = savePath;
+            SeedingTime = seedingTime;
+            Seeds = seeds;
+            SeedsTotal = seedsTotal;
+            ShareRatio = shareRatio;
+            TimeElapsed = timeElapsed;
+            TotalDownloaded = totalDownloaded;
+            TotalDownloadedSession = totalDownloadedSession;
+            TotalSize = totalSize;
+            TotalUploaded = totalUploaded;
+            TotalUploadedSession = totalUploadedSession;
+            TotalWasted = totalWasted;
+            UploadLimit = uploadLimit;
+            UploadSpeed = uploadSpeed;
+            UploadSpeedAverage = uploadSpeedAverage;
+            InfoHashV1 = infoHashV1;
+            InfoHashV2 = infoHashV2;
+            Hash = hash;
+            Name = name;
+            DownloadPath = downloadPath;
+            Popularity = popularity;
+            Progress = progress;
+            IsPrivate = isPrivate;
+            Private = @private;
+            HasMetadata = hasMetadata;
+        }
+
+        /// <summary>
+        /// Gets the addition date.
+        /// </summary>
+        [JsonPropertyName("addition_date")]
+        public long AdditionDate { get; }
+
+        /// <summary>
+        /// Gets the comment.
+        /// </summary>
+        [JsonPropertyName("comment")]
+        public string Comment { get; }
+
+        /// <summary>
+        /// Gets the completion date.
+        /// </summary>
+        [JsonPropertyName("completion_date")]
+        public long CompletionDate { get; }
+
+        /// <summary>
+        /// Gets the created by.
+        /// </summary>
+        [JsonPropertyName("created_by")]
+        public string CreatedBy { get; }
+
+        /// <summary>
+        /// Gets the creation date.
+        /// </summary>
+        [JsonPropertyName("creation_date")]
+        public long CreationDate { get; }
+
+        /// <summary>
+        /// Gets the download limit.
+        /// </summary>
+        [JsonPropertyName("dl_limit")]
+        public long DownloadLimit { get; }
+
+        /// <summary>
+        /// Gets the download speed.
+        /// </summary>
+        [JsonPropertyName("dl_speed")]
+        public long DownloadSpeed { get; }
+
+        /// <summary>
+        /// Gets the download speed average.
+        /// </summary>
+        [JsonPropertyName("dl_speed_avg")]
+        public long DownloadSpeedAverage { get; }
+
+        /// <summary>
+        /// Gets the estimated time of arrival.
+        /// </summary>
+        [JsonPropertyName("eta")]
+        public long EstimatedTimeOfArrival { get; }
+
+        /// <summary>
+        /// Gets the last seen.
+        /// </summary>
+        [JsonPropertyName("last_seen")]
+        public long LastSeen { get; }
+
+        /// <summary>
+        /// Gets the connections.
+        /// </summary>
+        [JsonPropertyName("nb_connections")]
+        public int Connections { get; }
+
+        /// <summary>
+        /// Gets the connections limit.
+        /// </summary>
+        [JsonPropertyName("nb_connections_limit")]
+        public int ConnectionsLimit { get; }
+
+        /// <summary>
+        /// Gets the number of peers.
+        /// </summary>
+        [JsonPropertyName("peers")]
+        public int Peers { get; }
+
+        /// <summary>
+        /// Gets the peers total.
+        /// </summary>
+        [JsonPropertyName("peers_total")]
+        public int PeersTotal { get; }
+
+        /// <summary>
+        /// Gets the piece size.
+        /// </summary>
+        [JsonPropertyName("piece_size")]
+        public int PieceSize { get; }
+
+        /// <summary>
+        /// Gets the pieces have.
+        /// </summary>
+        [JsonPropertyName("pieces_have")]
+        public int PiecesHave { get; }
+
+        /// <summary>
+        /// Gets the pieces num.
+        /// </summary>
+        [JsonPropertyName("pieces_num")]
+        public int PiecesNum { get; }
+
+        /// <summary>
+        /// Gets the reannounce.
+        /// </summary>
+        [JsonPropertyName("reannounce")]
+        public int Reannounce { get; }
+
+        /// <summary>
+        /// Gets the save path.
+        /// </summary>
+        [JsonPropertyName("save_path")]
+        public string SavePath { get; }
+
+        /// <summary>
+        /// Gets the download path.
+        /// </summary>
+        [JsonPropertyName("download_path")]
+        public string? DownloadPath { get; }
+
+        /// <summary>
+        /// Gets the seeding time.
+        /// </summary>
+        [JsonPropertyName("seeding_time")]
+        public int SeedingTime { get; }
+
+        /// <summary>
+        /// Gets the number of seeds.
+        /// </summary>
+        [JsonPropertyName("seeds")]
+        public int Seeds { get; }
+
+        /// <summary>
+        /// Gets the seeds total.
+        /// </summary>
+        [JsonPropertyName("seeds_total")]
+        public int SeedsTotal { get; }
+
+        /// <summary>
+        /// Gets the share ratio.
+        /// </summary>
+        [JsonPropertyName("share_ratio")]
+        public float ShareRatio { get; }
+
+        /// <summary>
+        /// Gets the popularity.
+        /// </summary>
+        [JsonPropertyName("popularity")]
+        public float? Popularity { get; }
+
+        /// <summary>
+        /// Gets the progress.
+        /// </summary>
+        [JsonPropertyName("progress")]
+        public float? Progress { get; }
+
+        /// <summary>
+        /// Gets the time elapsed.
+        /// </summary>
+        [JsonPropertyName("time_elapsed")]
+        public int TimeElapsed { get; }
+
+        /// <summary>
+        /// Gets the total downloaded.
+        /// </summary>
+        [JsonPropertyName("total_downloaded")]
+        public long TotalDownloaded { get; }
+
+        /// <summary>
+        /// Gets the total amount downloaded in the current session.
+        /// </summary>
+        [JsonPropertyName("total_downloaded_session")]
+        public long TotalDownloadedSession { get; }
+
+        /// <summary>
+        /// Gets the total size.
+        /// </summary>
+        [JsonPropertyName("total_size")]
+        public long TotalSize { get; }
+
+        /// <summary>
+        /// Gets the total uploaded.
+        /// </summary>
+        [JsonPropertyName("total_uploaded")]
+        public long TotalUploaded { get; }
+
+        /// <summary>
+        /// Gets the total amount uploaded in the current session.
+        /// </summary>
+        [JsonPropertyName("total_uploaded_session")]
+        public long TotalUploadedSession { get; }
+
+        /// <summary>
+        /// Gets the total wasted.
+        /// </summary>
+        [JsonPropertyName("total_wasted")]
+        public long TotalWasted { get; }
+
+        /// <summary>
+        /// Gets the upload limit.
+        /// </summary>
+        [JsonPropertyName("up_limit")]
+        public long UploadLimit { get; }
+
+        /// <summary>
+        /// Gets the upload speed.
+        /// </summary>
+        [JsonPropertyName("up_speed")]
+        public long UploadSpeed { get; }
+
+        /// <summary>
+        /// Gets the upload speed average.
+        /// </summary>
+        [JsonPropertyName("up_speed_avg")]
+        public long UploadSpeedAverage { get; }
+
+        /// <summary>
+        /// Gets the v1 info hash.
+        /// </summary>
+        [JsonPropertyName("infohash_v1")]
+        public string InfoHashV1 { get; }
+
+        /// <summary>
+        /// Gets the v2 info hash.
+        /// </summary>
+        [JsonPropertyName("infohash_v2")]
+        public string InfoHashV2 { get; }
+
+        /// <summary>
+        /// Gets the torrent hash.
+        /// </summary>
+        [JsonPropertyName("hash")]
+        public string? Hash { get; }
+
+        /// <summary>
+        /// Gets the display name.
+        /// </summary>
+        [JsonPropertyName("name")]
+        public string? Name { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the torrent is private.
+        /// </summary>
+        [JsonPropertyName("is_private")]
+        public bool? IsPrivate { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the torrent is private.
+        /// </summary>
+        [JsonPropertyName("private")]
+        public bool? Private { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether torrent metadata is available.
+        /// </summary>
+        [JsonPropertyName("has_metadata")]
+        public bool? HasMetadata { get; }
+    }
+}

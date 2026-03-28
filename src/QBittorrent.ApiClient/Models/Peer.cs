@@ -1,0 +1,154 @@
+﻿using System.Text.Json.Serialization;
+
+namespace QBittorrent.ApiClient.Models
+{
+    /// <summary>
+    /// Represents a peer connected to a torrent.
+    /// </summary>
+    public record Peer
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Peer" /> class.
+        /// </summary>
+        [JsonConstructor]
+        public Peer(
+            string? client,
+            string? connection,
+            string? country,
+            string? countryCode,
+            long? downloadSpeed,
+            long? downloaded,
+            string? files,
+            string? flags,
+            string? flagsDescription,
+            string? iPAddress,
+            string? i2pDestination,
+            string? clientId,
+            int? port,
+            float? progress,
+            float? relevance,
+            long? uploadSpeed,
+            long? uploaded)
+        {
+            Client = client;
+            Connection = connection;
+            Country = country;
+            CountryCode = countryCode;
+            DownloadSpeed = downloadSpeed;
+            Downloaded = downloaded;
+            Files = files;
+            Flags = flags;
+            FlagsDescription = flagsDescription;
+            IPAddress = iPAddress;
+            I2pDestination = i2pDestination;
+            ClientId = clientId;
+            Port = port;
+            Progress = progress;
+            Relevance = relevance;
+            UploadSpeed = uploadSpeed;
+            Uploaded = uploaded;
+        }
+
+        /// <summary>
+        /// Gets the client.
+        /// </summary>
+        [JsonPropertyName("client")]
+        public string? Client { get; }
+
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
+        [JsonPropertyName("connection")]
+        public string? Connection { get; }
+
+        /// <summary>
+        /// Gets the country.
+        /// </summary>
+        [JsonPropertyName("country")]
+        public string? Country { get; }
+
+        /// <summary>
+        /// Gets the country code.
+        /// </summary>
+        [JsonPropertyName("country_code")]
+        public string? CountryCode { get; }
+
+        /// <summary>
+        /// Gets the download speed.
+        /// </summary>
+        [JsonPropertyName("dl_speed")]
+        public long? DownloadSpeed { get; }
+
+        /// <summary>
+        /// Gets the downloaded.
+        /// </summary>
+        [JsonPropertyName("downloaded")]
+        public long? Downloaded { get; }
+
+        /// <summary>
+        /// Gets the files.
+        /// </summary>
+        [JsonPropertyName("files")]
+        public string? Files { get; }
+
+        /// <summary>
+        /// Gets the flags.
+        /// </summary>
+        [JsonPropertyName("flags")]
+        public string? Flags { get; }
+
+        /// <summary>
+        /// Gets the flags description.
+        /// </summary>
+        [JsonPropertyName("flags_desc")]
+        public string? FlagsDescription { get; }
+
+        /// <summary>
+        /// Gets the ip address.
+        /// </summary>
+        [JsonPropertyName("ip")]
+        public string? IPAddress { get; }
+
+        /// <summary>
+        /// Gets the I2P destination.
+        /// </summary>
+        [JsonPropertyName("i2p_dest")]
+        public string? I2pDestination { get; }
+
+        /// <summary>
+        /// Gets the client ID.
+        /// </summary>
+        [JsonPropertyName("peer_id_client")]
+        public string? ClientId { get; }
+
+        /// <summary>
+        /// Gets the port.
+        /// </summary>
+        [JsonPropertyName("port")]
+        public int? Port { get; }
+
+        /// <summary>
+        /// Gets the progress.
+        /// </summary>
+        [JsonPropertyName("progress")]
+        public float? Progress { get; }
+
+        /// <summary>
+        /// Gets the relevance.
+        /// </summary>
+        [JsonPropertyName("relevance")]
+        public float? Relevance { get; }
+
+        /// <summary>
+        /// Gets the upload speed.
+        /// </summary>
+        [JsonPropertyName("up_speed")]
+        public long? UploadSpeed { get; }
+
+        /// <summary>
+        /// Gets the uploaded.
+        /// </summary>
+        [JsonPropertyName("uploaded")]
+        public long? Uploaded { get; }
+    }
+}
