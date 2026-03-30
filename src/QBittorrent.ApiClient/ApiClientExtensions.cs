@@ -16,7 +16,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> StopTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).StopTorrentsAsync(all: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).StopTorrentsAsync(GetTorrentSelector(hash, nameof(hash)), cancellationToken);
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> StopTorrentsAsync(this IApiClient apiClient, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).StopTorrentsAsync(all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).StopTorrentsAsync(GetTorrentSelector(hashes, nameof(hashes)), cancellationToken);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> StopAllTorrentsAsync(this IApiClient apiClient, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).StopTorrentsAsync(all: true, cancellationToken: cancellationToken);
+            return GetRequiredApiClient(apiClient).StopTorrentsAsync(TorrentSelector.AllTorrents(), cancellationToken);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> StartTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).StartTorrentsAsync(all: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).StartTorrentsAsync(GetTorrentSelector(hash, nameof(hash)), cancellationToken);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> StartTorrentsAsync(this IApiClient apiClient, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).StartTorrentsAsync(all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).StartTorrentsAsync(GetTorrentSelector(hashes, nameof(hashes)), cancellationToken);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> StartAllTorrentsAsync(this IApiClient apiClient, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).StartTorrentsAsync(all: true, cancellationToken: cancellationToken);
+            return GetRequiredApiClient(apiClient).StartTorrentsAsync(TorrentSelector.AllTorrents(), cancellationToken);
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> DeleteTorrentAsync(this IApiClient apiClient, string hash, bool deleteFiles, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).DeleteTorrentsAsync(all: null, deleteFiles: deleteFiles, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).DeleteTorrentsAsync(GetTorrentSelector(hash, nameof(hash)), deleteFiles, cancellationToken);
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> DeleteTorrentsAsync(this IApiClient apiClient, IEnumerable<string> hashes, bool deleteFiles, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).DeleteTorrentsAsync(all: null, deleteFiles: deleteFiles, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).DeleteTorrentsAsync(GetTorrentSelector(hashes, nameof(hashes)), deleteFiles, cancellationToken);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> DeleteAllTorrentsAsync(this IApiClient apiClient, bool deleteFiles, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).DeleteTorrentsAsync(all: true, deleteFiles: deleteFiles, cancellationToken: cancellationToken);
+            return GetRequiredApiClient(apiClient).DeleteTorrentsAsync(TorrentSelector.AllTorrents(), deleteFiles, cancellationToken);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that returns the matching torrent, or <see langword="null" /> when no torrent matches.</returns>
         public static async Task<ApiResult<Torrent?>> GetTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
-            var torrents = await GetRequiredApiClient(apiClient).GetTorrentListAsync(cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            var torrents = await GetRequiredApiClient(apiClient).GetTorrentListAsync(cancellationToken: cancellationToken, selector: GetTorrentSelector(hash, nameof(hash)));
             if (!torrents.TryGetValue(out var torrentList))
             {
                 return torrents.Failure.ToResult<Torrent?>();
@@ -148,7 +148,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> SetTorrentCategoryAsync(this IApiClient apiClient, string category, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(GetRequiredString(category, nameof(category)), all: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(GetTorrentSelector(hash, nameof(hash)), GetRequiredString(category, nameof(category)), cancellationToken);
         }
 
         /// <summary>
@@ -161,7 +161,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> SetTorrentCategoryAsync(this IApiClient apiClient, string category, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(GetRequiredString(category, nameof(category)), all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(GetTorrentSelector(hashes, nameof(hashes)), GetRequiredString(category, nameof(category)), cancellationToken);
         }
 
         /// <summary>
@@ -173,7 +173,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> RemoveTorrentCategoryAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(string.Empty, all: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(GetTorrentSelector(hash, nameof(hash)), string.Empty, cancellationToken);
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> RemoveTorrentCategoryAsync(this IApiClient apiClient, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(string.Empty, all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).SetTorrentCategoryAsync(GetTorrentSelector(hashes, nameof(hashes)), string.Empty, cancellationToken);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> RemoveTorrentTagsAsync(this IApiClient apiClient, IEnumerable<string> tags, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).RemoveTorrentTagsAsync(GetRequiredStrings(tags, nameof(tags)), all: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).RemoveTorrentTagsAsync(GetTorrentSelector(hash, nameof(hash)), GetRequiredStrings(tags, nameof(tags)), cancellationToken);
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> RemoveTorrentTagsAsync(this IApiClient apiClient, IEnumerable<string> tags, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).RemoveTorrentTagsAsync(GetRequiredStrings(tags, nameof(tags)), all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).RemoveTorrentTagsAsync(GetTorrentSelector(hashes, nameof(hashes)), GetRequiredStrings(tags, nameof(tags)), cancellationToken);
         }
 
         /// <summary>
@@ -225,10 +225,9 @@ namespace QBittorrent.ApiClient
         public static Task<ApiResult> RemoveTorrentTagAsync(this IApiClient apiClient, string tag, string hash, CancellationToken cancellationToken = default)
         {
             return GetRequiredApiClient(apiClient).RemoveTorrentTagsAsync(
+                GetTorrentSelector(hash, nameof(hash)),
                 [GetRequiredString(tag, nameof(tag))],
-                all: null,
-                cancellationToken: cancellationToken,
-                hashes: [GetRequiredString(hash, nameof(hash))]);
+                cancellationToken);
         }
 
         /// <summary>
@@ -241,7 +240,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> RemoveTorrentTagAsync(this IApiClient apiClient, string tag, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).RemoveTorrentTagsAsync([GetRequiredString(tag, nameof(tag))], all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).RemoveTorrentTagsAsync(GetTorrentSelector(hashes, nameof(hashes)), [GetRequiredString(tag, nameof(tag))], cancellationToken);
         }
 
         /// <summary>
@@ -254,7 +253,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> AddTorrentTagsAsync(this IApiClient apiClient, IEnumerable<string> tags, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).AddTorrentTagsAsync(GetRequiredStrings(tags, nameof(tags)), all: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).AddTorrentTagsAsync(GetTorrentSelector(hash, nameof(hash)), GetRequiredStrings(tags, nameof(tags)), cancellationToken);
         }
 
         /// <summary>
@@ -267,7 +266,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> AddTorrentTagsAsync(this IApiClient apiClient, IEnumerable<string> tags, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).AddTorrentTagsAsync(GetRequiredStrings(tags, nameof(tags)), all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).AddTorrentTagsAsync(GetTorrentSelector(hashes, nameof(hashes)), GetRequiredStrings(tags, nameof(tags)), cancellationToken);
         }
 
         /// <summary>
@@ -281,10 +280,9 @@ namespace QBittorrent.ApiClient
         public static Task<ApiResult> AddTorrentTagAsync(this IApiClient apiClient, string tag, string hash, CancellationToken cancellationToken = default)
         {
             return GetRequiredApiClient(apiClient).AddTorrentTagsAsync(
+                GetTorrentSelector(hash, nameof(hash)),
                 [GetRequiredString(tag, nameof(tag))],
-                all: null,
-                cancellationToken: cancellationToken,
-                hashes: [GetRequiredString(hash, nameof(hash))]);
+                cancellationToken);
         }
 
         /// <summary>
@@ -297,7 +295,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> AddTorrentTagAsync(this IApiClient apiClient, string tag, IEnumerable<string> hashes, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).AddTorrentTagsAsync([GetRequiredString(tag, nameof(tag))], all: null, cancellationToken: cancellationToken, hashes: GetRequiredStrings(hashes, nameof(hashes)));
+            return GetRequiredApiClient(apiClient).AddTorrentTagsAsync(GetTorrentSelector(hashes, nameof(hashes)), [GetRequiredString(tag, nameof(tag))], cancellationToken);
         }
 
         /// <summary>
@@ -309,7 +307,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> RecheckTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).RecheckTorrentsAsync(all: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).RecheckTorrentsAsync(GetTorrentSelector(hash, nameof(hash)), cancellationToken);
         }
 
         /// <summary>
@@ -321,7 +319,7 @@ namespace QBittorrent.ApiClient
         /// <returns>A task that represents the asynchronous operation.</returns>
         public static Task<ApiResult> ReannounceTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
-            return GetRequiredApiClient(apiClient).ReannounceTorrentsAsync(all: null, trackers: null, cancellationToken: cancellationToken, hashes: [GetRequiredString(hash, nameof(hash))]);
+            return GetRequiredApiClient(apiClient).ReannounceTorrentsAsync(GetTorrentSelector(hash, nameof(hash)), cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -349,7 +347,7 @@ namespace QBittorrent.ApiClient
 
             var unusedCategories = categoryDictionary.Values.Select(v => v.Name).Except(selectedCategories).Where(v => v is not null).Select(v => v!).ToArray();
 
-            var removeResult = await validatedApiClient.RemoveCategoriesAsync(cancellationToken, unusedCategories);
+            var removeResult = await validatedApiClient.RemoveCategoriesAsync(unusedCategories, cancellationToken);
             if (!removeResult.IsSuccess)
             {
                 return removeResult.Failure.ToResult<IEnumerable<string>>();
@@ -383,7 +381,7 @@ namespace QBittorrent.ApiClient
 
             var unusedTags = tagList.Except(selectedTags).ToArray();
 
-            var deleteResult = await validatedApiClient.DeleteTagsAsync(cancellationToken, unusedTags);
+            var deleteResult = await validatedApiClient.DeleteTagsAsync(unusedTags, cancellationToken);
             if (!deleteResult.IsSuccess)
             {
                 return deleteResult.Failure.ToResult<IEnumerable<string>>();
@@ -411,6 +409,16 @@ namespace QBittorrent.ApiClient
             return values.Select(
                     value => value ?? throw new ArgumentException("Collection items cannot be null.", paramName))
                 .ToArray();
+        }
+
+        private static TorrentSelector GetTorrentSelector(string hash, string paramName)
+        {
+            return TorrentSelector.FromHash(GetRequiredString(hash, paramName));
+        }
+
+        private static TorrentSelector GetTorrentSelector(IEnumerable<string> hashes, string paramName)
+        {
+            return TorrentSelector.FromHashes(GetRequiredStrings(hashes, paramName));
         }
     }
 }

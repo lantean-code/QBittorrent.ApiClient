@@ -26,7 +26,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.IncreaseTorrentPriorityAsync(all: false, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.IncreaseTorrentPriorityAsync(TorrentSelector.FromHashes(["h1", "h2"]), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.DecreaseTorrentPriorityAsync(true, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.DecreaseTorrentPriorityAsync(TorrentSelector.AllTorrents(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.MaxTorrentPriorityAsync(all: false, hashes: ["h"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.MaxTorrentPriorityAsync(TorrentSelector.FromHash("h"), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.MinTorrentPriorityAsync(all: false, hashes: ["h1", "h2", "h3"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.MinTorrentPriorityAsync(TorrentSelector.FromHashes(["h1", "h2", "h3"]), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("{\"h1\":1000,\"h2\":0}")
             });
 
-            var result = (await _target.GetTorrentDownloadLimitAsync(all: false, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.GetTorrentDownloadLimitAsync(TorrentSelector.FromHashes(["h1", "h2"]), cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();
             result.Count.Should().Be(2);
@@ -106,7 +106,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("oops")
             });
 
-            var result = await _target.GetTorrentDownloadLimitAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.GetTorrentDownloadLimitAsync(TorrentSelector.AllTorrents(), cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.UnexpectedResponse,
@@ -124,7 +124,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentDownloadLimitAsync(500, all: false, hashes: ["h", "i"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentDownloadLimitAsync(TorrentSelector.FromHashes(["h", "i"]), 500, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -162,13 +162,12 @@ namespace QBittorrent.ApiClient.Test
             };
 
             (await _target.SetTorrentShareLimitAsync(
+                TorrentSelector.FromHashes(["h1", "h2"]),
                 ratioLimit: 1.5f,
                 seedingTimeLimit: 2.25f,
                 inactiveSeedingTimeLimit: 0.75f,
                 shareLimitAction: ShareLimitAction.Remove,
-                all: false,
-                hashes: new[] { "h1", "h2" }
-            , cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+                cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]
@@ -194,7 +193,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            (await _target.SetTorrentShareLimitAsync(1, 2, 3, shareLimitAction: ShareLimitAction.Remove, all: true, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            (await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: ShareLimitAction.Remove, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]
@@ -218,7 +217,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.SetTorrentShareLimitAsync(1, 2, 3, shareLimitAction: null, all: true, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: null, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
             failure.UserMessage.Should().Be("qBittorrent Web API 2.15.2 requires shareLimitAction when setting share limits.");
@@ -246,7 +245,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.SetTorrentShareLimitAsync(1, 2, 3, shareLimitAction: ShareLimitAction.Remove, all: true, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: ShareLimitAction.Remove, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.ServerError,
@@ -264,7 +263,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("{\"x\":10}")
             });
 
-            var result = (await _target.GetTorrentUploadLimitAsync(all: false, hashes: ["x"], cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.GetTorrentUploadLimitAsync(TorrentSelector.FromHash("x"), cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();
             result.Count.Should().Be(1);
@@ -279,7 +278,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("bad")
             });
 
-            var result = await _target.GetTorrentUploadLimitAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.GetTorrentUploadLimitAsync(TorrentSelector.AllTorrents(), cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.UnexpectedResponse,
@@ -297,7 +296,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentUploadLimitAsync(42, all: false, hashes: ["h1"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentUploadLimitAsync(TorrentSelector.FromHash("h1"), 42, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)

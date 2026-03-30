@@ -223,10 +223,10 @@ namespace QBittorrent.ApiClient
         /// <param name="isPrivate">Whether to filter by private torrents.</param>
         /// <param name="includeFiles">Whether to include files in the serialized torrent payload.</param>
         /// <param name="includeTrackers">Whether to include trackers in the serialized torrent payload.</param>
-        /// <param name="hashes">The optional torrent hashes to filter by.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="selector">The torrent selection to filter by.</param>
         /// <returns>A result with the matching torrents.</returns>
-        Task<ApiResult<IReadOnlyList<Torrent>>> GetTorrentListAsync(string? filter = null, string? category = null, string? tag = null, string? sort = null, bool? reverse = null, int? limit = null, int? offset = null, bool? isPrivate = null, bool? includeFiles = null, bool? includeTrackers = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult<IReadOnlyList<Torrent>>> GetTorrentListAsync(string? filter = null, string? category = null, string? tag = null, string? sort = null, bool? reverse = null, int? limit = null, int? offset = null, bool? isPrivate = null, bool? includeFiles = null, bool? includeTrackers = null, CancellationToken cancellationToken = default, TorrentSelector? selector = null);
 
         /// <summary>Gets the total torrent count.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -278,7 +278,7 @@ namespace QBittorrent.ApiClient
         /// <param name="indexes">The optional file indexes to return.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the torrent files.</returns>
-        Task<ApiResult<IReadOnlyList<FileData>>> GetTorrentContentsAsync(string hash, CancellationToken cancellationToken = default, params int[] indexes);
+        Task<ApiResult<IReadOnlyList<FileData>>> GetTorrentContentsAsync(string hash, IEnumerable<int>? indexes = null, CancellationToken cancellationToken = default);
 
         /// <summary>Gets the piece states for a torrent.</summary>
         /// <param name="hash">The torrent hash.</param>
@@ -293,41 +293,36 @@ namespace QBittorrent.ApiClient
         Task<ApiResult<IReadOnlyList<string>>> GetTorrentPieceHashesAsync(string hash, CancellationToken cancellationToken = default);
 
         /// <summary>Starts one or more torrents.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to start when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> StartTorrentsAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> StartTorrentsAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Stops one or more torrents.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to stop when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> StopTorrentsAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> StopTorrentsAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Deletes one or more torrents.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="deleteFiles">Whether to also delete the torrent content.</param>
-        /// <param name="hashes">The torrent hashes to delete when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> DeleteTorrentsAsync(bool? all = null, bool deleteFiles = false, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> DeleteTorrentsAsync(TorrentSelector selector, bool deleteFiles = false, CancellationToken cancellationToken = default);
 
         /// <summary>Forces one or more torrents to recheck their data.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to recheck when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> RecheckTorrentsAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> RecheckTorrentsAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Forces one or more torrents to reannounce.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="trackers">The optional tracker URLs to reannounce against.</param>
-        /// <param name="hashes">The torrent hashes to reannounce when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> ReannounceTorrentsAsync(bool? all = null, IEnumerable<string>? trackers = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> ReannounceTorrentsAsync(TorrentSelector selector, IEnumerable<string>? trackers = null, CancellationToken cancellationToken = default);
 
         /// <summary>Adds one or more torrents.</summary>
         /// <param name="addTorrentParams">The torrent-add parameters.</param>
@@ -336,12 +331,11 @@ namespace QBittorrent.ApiClient
         Task<ApiResult<AddTorrentResult>> AddTorrentAsync(AddTorrentParams addTorrentParams, CancellationToken cancellationToken = default);
 
         /// <summary>Adds one or more trackers to one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="urls">The tracker URLs to add.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> AddTrackersToTorrentAsync(IEnumerable<string> urls, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> AddTrackersToTorrentAsync(TorrentSelector selector, IEnumerable<string> urls, CancellationToken cancellationToken = default);
 
         /// <summary>Edits a tracker entry for a torrent.</summary>
         /// <param name="hash">The torrent hash.</param>
@@ -353,47 +347,42 @@ namespace QBittorrent.ApiClient
         Task<ApiResult> EditTrackerAsync(string hash, string url, string? newUrl = null, int? tier = null, CancellationToken cancellationToken = default);
 
         /// <summary>Removes one or more trackers from one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="urls">The tracker URLs to remove.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> RemoveTrackersAsync(IEnumerable<string> urls, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> RemoveTrackersAsync(TorrentSelector selector, IEnumerable<string> urls, CancellationToken cancellationToken = default);
 
         /// <summary>Adds peers to one or more torrents.</summary>
-        /// <param name="hashes">The torrent hashes to update.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="peers">The peers to connect to.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> AddPeersAsync(IEnumerable<string> hashes, IEnumerable<PeerId> peers, CancellationToken cancellationToken = default);
+        Task<ApiResult> AddPeersAsync(TorrentSelector selector, IEnumerable<PeerId> peers, CancellationToken cancellationToken = default);
 
         /// <summary>Moves one or more torrents up in the queue.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to reprioritize when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> IncreaseTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> IncreaseTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Moves one or more torrents down in the queue.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to reprioritize when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> DecreaseTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> DecreaseTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Moves one or more torrents to the top of the queue.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to reprioritize when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> MaxTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> MaxTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Moves one or more torrents to the bottom of the queue.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to reprioritize when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> MinTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> MinTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Sets the priority for one or more files within a torrent.</summary>
         /// <param name="hash">The torrent hash.</param>
@@ -404,82 +393,75 @@ namespace QBittorrent.ApiClient
         Task<ApiResult> SetFilePriorityAsync(string hash, IEnumerable<int> id, Priority priority, CancellationToken cancellationToken = default);
 
         /// <summary>Gets per-torrent download limits.</summary>
-        /// <param name="all">When <see langword="true" />, includes all torrents.</param>
-        /// <param name="hashes">The torrent hashes to query when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the per-torrent download limits.</returns>
-        Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentDownloadLimitAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentDownloadLimitAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Sets per-torrent download limits.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="limit">The limit in bytes per second.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentDownloadLimitAsync(long limit, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetTorrentDownloadLimitAsync(TorrentSelector selector, long limit, CancellationToken cancellationToken = default);
 
         /// <summary>Sets per-torrent share limits.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="ratioLimit">The ratio limit.</param>
         /// <param name="seedingTimeLimit">The seeding-time limit.</param>
         /// <param name="inactiveSeedingTimeLimit">The inactive-seeding-time limit.</param>
         /// <param name="shareLimitAction">The action to take when limits are reached.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentShareLimitAsync(float ratioLimit, float seedingTimeLimit, float inactiveSeedingTimeLimit, ShareLimitAction? shareLimitAction = null, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetTorrentShareLimitAsync(TorrentSelector selector, float ratioLimit, float seedingTimeLimit, float inactiveSeedingTimeLimit, ShareLimitAction? shareLimitAction = null, CancellationToken cancellationToken = default);
 
         /// <summary>Gets per-torrent upload limits.</summary>
-        /// <param name="all">When <see langword="true" />, includes all torrents.</param>
-        /// <param name="hashes">The torrent hashes to query when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the per-torrent upload limits.</returns>
-        Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentUploadLimitAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentUploadLimitAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Sets per-torrent upload limits.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="limit">The limit in bytes per second.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentUploadLimitAsync(long limit, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetTorrentUploadLimitAsync(TorrentSelector selector, long limit, CancellationToken cancellationToken = default);
 
         /// <summary>Moves one or more torrents to a new save location.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="location">The new save location.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentLocationAsync(string location, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetTorrentLocationAsync(TorrentSelector selector, string location, CancellationToken cancellationToken = default);
 
         /// <summary>Sets the save path for one or more torrents.</summary>
-        /// <param name="hashes">The torrent hashes to update.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="path">The new save path.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentSavePathAsync(IEnumerable<string> hashes, string path, CancellationToken cancellationToken = default);
+        Task<ApiResult> SetTorrentSavePathAsync(TorrentSelector selector, string path, CancellationToken cancellationToken = default);
 
         /// <summary>Sets the download path for one or more torrents.</summary>
-        /// <param name="hashes">The torrent hashes to update.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="path">The new download path, or <see langword="null" /> to clear it.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentDownloadPathAsync(IEnumerable<string> hashes, string? path, CancellationToken cancellationToken = default);
+        Task<ApiResult> SetTorrentDownloadPathAsync(TorrentSelector selector, string? path, CancellationToken cancellationToken = default);
 
         /// <summary>Renames a torrent.</summary>
-        /// <param name="name">The new torrent name.</param>
         /// <param name="hash">The torrent hash.</param>
+        /// <param name="name">The new torrent name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentNameAsync(string name, string hash, CancellationToken cancellationToken = default);
+        Task<ApiResult> SetTorrentNameAsync(string hash, string name, CancellationToken cancellationToken = default);
 
         /// <summary>Sets the category for one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="category">The category to assign.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentCategoryAsync(string category, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetTorrentCategoryAsync(TorrentSelector selector, string category, CancellationToken cancellationToken = default);
 
         /// <summary>Gets all torrent categories.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -506,31 +488,28 @@ namespace QBittorrent.ApiClient
         /// <param name="categories">The categories to remove.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> RemoveCategoriesAsync(CancellationToken cancellationToken = default, params string[] categories);
+        Task<ApiResult> RemoveCategoriesAsync(IEnumerable<string> categories, CancellationToken cancellationToken = default);
 
         /// <summary>Adds tags to one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="tags">The tags to add.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> AddTorrentTagsAsync(IEnumerable<string> tags, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> AddTorrentTagsAsync(TorrentSelector selector, IEnumerable<string> tags, CancellationToken cancellationToken = default);
 
         /// <summary>Replaces the tags on one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="tags">The tags to assign.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentTagsAsync(IEnumerable<string> tags, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetTorrentTagsAsync(TorrentSelector selector, IEnumerable<string> tags, CancellationToken cancellationToken = default);
 
         /// <summary>Removes tags from one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="tags">The tags to remove.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> RemoveTorrentTagsAsync(IEnumerable<string> tags, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> RemoveTorrentTagsAsync(TorrentSelector selector, IEnumerable<string> tags, CancellationToken cancellationToken = default);
 
         /// <summary>Gets all defined torrent tags.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -547,45 +526,40 @@ namespace QBittorrent.ApiClient
         /// <param name="tags">The tags to delete.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> DeleteTagsAsync(CancellationToken cancellationToken = default, params string[] tags);
+        Task<ApiResult> DeleteTagsAsync(IEnumerable<string> tags, CancellationToken cancellationToken = default);
 
         /// <summary>Sets automatic torrent management on one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="enable">Whether automatic torrent management should be enabled.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetAutomaticTorrentManagementAsync(bool enable, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetAutomaticTorrentManagementAsync(TorrentSelector selector, bool enable, CancellationToken cancellationToken = default);
 
         /// <summary>Toggles sequential download on one or more torrents.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> ToggleSequentialDownloadAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> ToggleSequentialDownloadAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Toggles first-and-last-piece priority on one or more torrents.</summary>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetFirstLastPiecePriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetFirstLastPiecePriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default);
 
         /// <summary>Sets force-start mode on one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="value">Whether force-start should be enabled.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetForceStartAsync(bool value, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetForceStartAsync(TorrentSelector selector, bool value, CancellationToken cancellationToken = default);
 
         /// <summary>Sets super-seeding mode on one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
         /// <param name="value">Whether super-seeding should be enabled.</param>
-        /// <param name="all">When <see langword="true" />, applies the action to all torrents.</param>
-        /// <param name="hashes">The torrent hashes to update when <paramref name="all" /> is not <see langword="true" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetSuperSeedingAsync(bool value, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes);
+        Task<ApiResult> SetSuperSeedingAsync(TorrentSelector selector, bool value, CancellationToken cancellationToken = default);
 
         /// <summary>Renames a file inside a torrent.</summary>
         /// <param name="hash">The torrent hash.</param>
@@ -789,25 +763,25 @@ namespace QBittorrent.ApiClient
         /// <param name="sources">The plugin sources to install.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> InstallSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] sources);
+        Task<ApiResult> InstallSearchPluginsAsync(IEnumerable<string> sources, CancellationToken cancellationToken = default);
 
         /// <summary>Uninstalls one or more search plugins.</summary>
         /// <param name="names">The plugin names to uninstall.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> UninstallSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] names);
+        Task<ApiResult> UninstallSearchPluginsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default);
 
         /// <summary>Enables one or more search plugins.</summary>
         /// <param name="names">The plugin names to enable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> EnableSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] names);
+        Task<ApiResult> EnableSearchPluginsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default);
 
         /// <summary>Disables one or more search plugins.</summary>
         /// <param name="names">The plugin names to disable.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> DisableSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] names);
+        Task<ApiResult> DisableSearchPluginsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default);
 
         /// <summary>Downloads a search result into qBittorrent.</summary>
         /// <param name="pluginName">The search plugin name.</param>

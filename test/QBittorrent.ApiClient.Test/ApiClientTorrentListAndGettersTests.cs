@@ -73,7 +73,7 @@ namespace QBittorrent.ApiClient.Test
                 isPrivate: true,
                 includeFiles: false,
                 includeTrackers: true,
-                hashes: ["a", "b", "c"]
+                selector: TorrentSelector.FromHashes(["a", "b", "c"])
             , cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();

@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using QBittorrent.ApiClient.Models;
 using System.Net;
 
 namespace QBittorrent.ApiClient.Test
@@ -106,17 +107,17 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_NoArgs_WHEN_StopTorrents_THEN_ShouldPOSTWithEmptyHashesValue()
+        public async Task GIVEN_Hash_WHEN_StopTorrents_THEN_ShouldPOSTWithHashValue()
         {
             _handler.Responder = async (req, ct) =>
             {
                 req.RequestUri!.ToString().Should().Be("http://localhost/torrents/stop");
                 var body = await req.Content!.ReadAsStringAsync(ct);
-                body.Should().Be("hashes=");
+                body.Should().Be("hashes=h1");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.StopTorrentsAsync(cancellationToken: TestContext.Current.CancellationToken);
+            await _target.StopTorrentsAsync(TorrentSelector.FromHash("h1"), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -129,7 +130,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.StopTorrentsAsync(all: true, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.StopTorrentsAsync(TorrentSelector.AllTorrents(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -143,7 +144,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.StartTorrentsAsync(all: false, hashes: ["a", "b", "c"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.StartTorrentsAsync(TorrentSelector.FromHashes(["a", "b", "c"]), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -157,7 +158,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.DeleteTorrentsAsync(all: false, deleteFiles: true, hashes: ["a", "b"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.DeleteTorrentsAsync(TorrentSelector.FromHashes(["a", "b"]), true, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -170,18 +171,18 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.DeleteTorrentsAsync(true, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.DeleteTorrentsAsync(TorrentSelector.AllTorrents(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
-        public async Task GIVEN_NonSuccess_WHEN_DeleteTorrents_THEN_ShouldThrow()
+        public async Task GIVEN_NonSuccess_WHEN_DeleteTorrents_THEN_ShouldReturnFailure()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
             {
                 Content = new StringContent("bad")
             });
 
-            var result = await _target.DeleteTorrentsAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.DeleteTorrentsAsync(TorrentSelector.FromHash("h1"), cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadRequest, userMessage: "bad");
         }
@@ -197,7 +198,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.RecheckTorrentsAsync(all: false, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.RecheckTorrentsAsync(TorrentSelector.FromHashes(["h1", "h2"]), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -211,7 +212,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.ReannounceTorrentsAsync(true, trackers: null, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.ReannounceTorrentsAsync(TorrentSelector.AllTorrents(), trackers: null, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -225,18 +226,18 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.ReannounceTorrentsAsync(all: false, trackers: new[] { "http://t1", "http://t2" }, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.ReannounceTorrentsAsync(TorrentSelector.FromHashes(["h1", "h2"]), trackers: new[] { "http://t1", "http://t2" }, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
-        public async Task GIVEN_NonSuccess_WHEN_ReannounceTorrents_THEN_ShouldThrow()
+        public async Task GIVEN_NonSuccess_WHEN_ReannounceTorrents_THEN_ShouldReturnFailure()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Forbidden)
             {
                 Content = new StringContent("nope")
             });
 
-            var result = await _target.ReannounceTorrentsAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Forbidden, userMessage: "nope");
         }

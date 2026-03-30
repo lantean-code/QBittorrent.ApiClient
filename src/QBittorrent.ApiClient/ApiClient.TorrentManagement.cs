@@ -19,7 +19,7 @@ namespace QBittorrent.ApiClient
             bool? includeFiles = null,
             bool? includeTrackers = null,
             CancellationToken cancellationToken = default,
-            params string[] hashes)
+            TorrentSelector? selector = null)
         {
             var query = new QueryBuilder();
             if (filter is not null)
@@ -50,9 +50,9 @@ namespace QBittorrent.ApiClient
             {
                 query.Add("offset", offset.Value);
             }
-            if (hashes.Length > 0)
+            if (selector is not null && !selector.All)
             {
-                query.Add("hashes", string.Join('|', hashes));
+                query.Add("hashes", string.Join('|', selector.Hashes!));
             }
             if (isPrivate is not null)
             {
@@ -162,14 +162,16 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult<IReadOnlyList<FileData>>> GetTorrentContentsAsync(string hash, CancellationToken cancellationToken = default, params int[] indexes)
+        public Task<ApiResult<IReadOnlyList<FileData>>> GetTorrentContentsAsync(string hash, IEnumerable<int>? indexes = null, CancellationToken cancellationToken = default)
         {
+            var normalizedIndexes = indexes?.ToArray() ?? [];
             var query = new QueryBuilder();
             query.Add("hash", hash);
-            if (indexes.Length > 0)
+            if (normalizedIndexes.Length > 0)
             {
-                query.Add("indexes", string.Join('|', indexes));
+                query.Add("indexes", string.Join('|', normalizedIndexes));
             }
+
             return ExecuteAsync(
                 ct => _httpClient.GetAsync("torrents/files", query, ct),
                 GetJsonListAsync<FileData>,
@@ -192,10 +194,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> StopTorrentsAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> StopTorrentsAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -203,10 +205,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> StartTorrentsAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> StartTorrentsAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -214,10 +216,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> DeleteTorrentsAsync(bool? all = null, bool deleteFiles = false, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> DeleteTorrentsAsync(TorrentSelector selector, bool deleteFiles = false, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("deleteFiles", deleteFiles)
                 .ToFormUrlEncodedContent();
 
@@ -226,10 +228,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> RecheckTorrentsAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> RecheckTorrentsAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -237,10 +239,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> ReannounceTorrentsAsync(bool? all = null, IEnumerable<string>? trackers = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> ReannounceTorrentsAsync(TorrentSelector selector, IEnumerable<string>? trackers = null, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -453,15 +455,12 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<ApiResult> AddTrackersToTorrentAsync(IEnumerable<string> urls, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public async Task<ApiResult> AddTrackersToTorrentAsync(TorrentSelector selector, IEnumerable<string> urls, CancellationToken cancellationToken = default)
         {
-            var applyToAll = all is true;
-            var normalizedHashes = hashes ?? [];
+            ArgumentNullException.ThrowIfNull(selector);
 
-            if (!applyToAll && normalizedHashes.Length == 0)
-            {
-                throw new ArgumentException("Specify at least one torrent hash or set all=true.", nameof(hashes));
-            }
+            var applyToAll = selector.All;
+            var normalizedHashes = selector.Hashes ?? [];
 
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
             if (!profileResult.TryGetValue(out var profile))
@@ -479,7 +478,7 @@ namespace QBittorrent.ApiClient
                         $"qBittorrent Web API {profile.WebApiVersion} does not support adding trackers to all torrents in a single request.").ToResult();
                 }
 
-                if (normalizedHashes.Length > 1)
+                if (normalizedHashes.Count > 1)
                 {
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTrackersToTorrentAsync),
@@ -489,11 +488,7 @@ namespace QBittorrent.ApiClient
             }
 
             var content = new FormUrlEncodedBuilder()
-                .Add(
-                    "hash",
-                    applyToAll
-                        ? profile.TrackerAllValue
-                        : string.Join('|', normalizedHashes))
+                .AddTorrentSelector("hash", selector, profile.TrackerAllValue)
                 .Add("urls", string.Join('\n', urls))
                 .ToFormUrlEncodedContent();
 
@@ -558,15 +553,12 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<ApiResult> RemoveTrackersAsync(IEnumerable<string> urls, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public async Task<ApiResult> RemoveTrackersAsync(TorrentSelector selector, IEnumerable<string> urls, CancellationToken cancellationToken = default)
         {
-            var applyToAll = all is true;
-            var normalizedHashes = hashes ?? [];
+            ArgumentNullException.ThrowIfNull(selector);
 
-            if (!applyToAll && normalizedHashes.Length == 0)
-            {
-                throw new ArgumentException("Specify at least one torrent hash or set all=true.", nameof(hashes));
-            }
+            var applyToAll = selector.All;
+            var normalizedHashes = selector.Hashes ?? [];
 
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
             if (!profileResult.TryGetValue(out var profile))
@@ -574,7 +566,7 @@ namespace QBittorrent.ApiClient
                 return profileResult.Failure.ToResult();
             }
 
-            if (!profile.SupportsTrackerBatchOperations && (normalizedHashes.Length > 1))
+            if (!profile.SupportsTrackerBatchOperations && (normalizedHashes.Count > 1))
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(RemoveTrackersAsync),
@@ -583,11 +575,7 @@ namespace QBittorrent.ApiClient
             }
 
             var content = new FormUrlEncodedBuilder()
-                .Add(
-                    "hash",
-                    applyToAll
-                        ? profile.TrackerAllValue
-                        : string.Join('|', normalizedHashes))
+                .AddTorrentSelector("hash", selector, profile.TrackerAllValue)
                 .AddPipeSeparated("urls", urls)
                 .ToFormUrlEncodedContent();
 
@@ -596,10 +584,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> AddPeersAsync(IEnumerable<string> hashes, IEnumerable<PeerId> peers, CancellationToken cancellationToken = default)
+        public Task<ApiResult> AddPeersAsync(TorrentSelector selector, IEnumerable<PeerId> peers, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddPipeSeparated("hashes", hashes)
+                .AddTorrentSelector("hashes", selector)
                 .AddPipeSeparated("peers", peers)
                 .ToFormUrlEncodedContent();
 
@@ -608,10 +596,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> IncreaseTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> IncreaseTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -619,10 +607,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> DecreaseTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> DecreaseTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -630,10 +618,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> MaxTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> MaxTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -641,10 +629,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> MinTorrentPriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> MinTorrentPriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -665,10 +653,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentDownloadLimitAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentDownloadLimitAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -677,10 +665,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentDownloadLimitAsync(long limit, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetTorrentDownloadLimitAsync(TorrentSelector selector, long limit, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("limit", limit)
                 .ToFormUrlEncodedContent();
 
@@ -690,14 +678,15 @@ namespace QBittorrent.ApiClient
         }
 
         public async Task<ApiResult> SetTorrentShareLimitAsync(
+            TorrentSelector selector,
             float ratioLimit,
             float seedingTimeLimit,
             float inactiveSeedingTimeLimit,
             ShareLimitAction? shareLimitAction = null,
-            bool? all = null,
-            CancellationToken cancellationToken = default,
-            params string[] hashes)
+            CancellationToken cancellationToken = default)
         {
+            ArgumentNullException.ThrowIfNull(selector);
+
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
             if (!profileResult.TryGetValue(out var profile))
             {
@@ -713,7 +702,7 @@ namespace QBittorrent.ApiClient
             }
 
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("ratioLimit", ratioLimit)
                 .Add("seedingTimeLimit", seedingTimeLimit)
                 .Add("inactiveSeedingTimeLimit", inactiveSeedingTimeLimit);
@@ -730,10 +719,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentUploadLimitAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult<IReadOnlyDictionary<string, long>>> GetTorrentUploadLimitAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -742,10 +731,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentUploadLimitAsync(long limit, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetTorrentUploadLimitAsync(TorrentSelector selector, long limit, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("limit", limit)
                 .ToFormUrlEncodedContent();
 
@@ -754,10 +743,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentLocationAsync(string location, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetTorrentLocationAsync(TorrentSelector selector, string location, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("location", location)
                 .ToFormUrlEncodedContent();
 
@@ -766,18 +755,12 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentSavePathAsync(IEnumerable<string> hashes, string path, CancellationToken cancellationToken = default)
+        public Task<ApiResult> SetTorrentSavePathAsync(TorrentSelector selector, string path, CancellationToken cancellationToken = default)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
-            var hashArray = hashes?.Where(h => !string.IsNullOrWhiteSpace(h)).ToArray() ?? Array.Empty<string>();
-            if (hashArray.Length == 0)
-            {
-                throw new ArgumentException("Specify at least one torrent hash.", nameof(hashes));
-            }
-
             var content = new FormUrlEncodedBuilder()
-                .Add("id", string.Join('|', hashArray))
+                .AddTorrentSelector("id", selector)
                 .Add("path", path)
                 .ToFormUrlEncodedContent();
 
@@ -827,16 +810,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentDownloadPathAsync(IEnumerable<string> hashes, string? path, CancellationToken cancellationToken = default)
+        public Task<ApiResult> SetTorrentDownloadPathAsync(TorrentSelector selector, string? path, CancellationToken cancellationToken = default)
         {
-            var hashArray = hashes?.Where(h => !string.IsNullOrWhiteSpace(h)).ToArray() ?? Array.Empty<string>();
-            if (hashArray.Length == 0)
-            {
-                throw new ArgumentException("Specify at least one torrent hash.", nameof(hashes));
-            }
-
             var content = new FormUrlEncodedBuilder()
-                .Add("id", string.Join('|', hashArray))
+                .AddTorrentSelector("id", selector)
                 .Add("path", path ?? string.Empty)
                 .ToFormUrlEncodedContent();
 
@@ -886,7 +863,7 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentNameAsync(string name, string hash, CancellationToken cancellationToken = default)
+        public Task<ApiResult> SetTorrentNameAsync(string hash, string name, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
                 .Add("hash", hash)
@@ -898,10 +875,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentCategoryAsync(string category, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetTorrentCategoryAsync(TorrentSelector selector, string category, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("category", category)
                 .ToFormUrlEncodedContent();
 
@@ -958,7 +935,7 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> RemoveCategoriesAsync(CancellationToken cancellationToken = default, params string[] categories)
+        public Task<ApiResult> RemoveCategoriesAsync(IEnumerable<string> categories, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
                 .Add("categories", string.Join('\n', categories))
@@ -969,10 +946,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> AddTorrentTagsAsync(IEnumerable<string> tags, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> AddTorrentTagsAsync(TorrentSelector selector, IEnumerable<string> tags, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .AddCommaSeparated("tags", tags)
                 .ToFormUrlEncodedContent();
 
@@ -981,10 +958,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetTorrentTagsAsync(IEnumerable<string> tags, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetTorrentTagsAsync(TorrentSelector selector, IEnumerable<string> tags, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .AddCommaSeparated("tags", tags)
                 .ToFormUrlEncodedContent();
 
@@ -993,10 +970,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> RemoveTorrentTagsAsync(IEnumerable<string> tags, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> RemoveTorrentTagsAsync(TorrentSelector selector, IEnumerable<string> tags, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .AddCommaSeparated("tags", tags)
                 .ToFormUrlEncodedContent();
 
@@ -1024,7 +1001,7 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> DeleteTagsAsync(CancellationToken cancellationToken = default, params string[] tags)
+        public Task<ApiResult> DeleteTagsAsync(IEnumerable<string> tags, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
                 .AddCommaSeparated("tags", tags)
@@ -1035,10 +1012,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetAutomaticTorrentManagementAsync(bool enable, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetAutomaticTorrentManagementAsync(TorrentSelector selector, bool enable, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("enable", enable)
                 .ToFormUrlEncodedContent();
 
@@ -1047,10 +1024,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> ToggleSequentialDownloadAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> ToggleSequentialDownloadAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -1058,10 +1035,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetFirstLastPiecePriorityAsync(bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetFirstLastPiecePriorityAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(
@@ -1069,10 +1046,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetForceStartAsync(bool value, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetForceStartAsync(TorrentSelector selector, bool value, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("value", value)
                 .ToFormUrlEncodedContent();
 
@@ -1081,10 +1058,10 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> SetSuperSeedingAsync(bool value, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
+        public Task<ApiResult> SetSuperSeedingAsync(TorrentSelector selector, bool value, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-                .AddAllOrPipeSeparated("hashes", all, hashes)
+                .AddTorrentSelector("hashes", selector)
                 .Add("value", value)
                 .ToFormUrlEncodedContent();
 

@@ -31,7 +31,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentLocationAsync("/data/dl", all: false, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentLocationAsync(TorrentSelector.FromHashes(["h1", "h2"]), "/data/dl", cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("bad")
             });
 
-            var result = await _target.SetTorrentLocationAsync("/x", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentLocationAsync(TorrentSelector.AllTorrents(), "/x", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadRequest, userMessage: "bad");
         }
@@ -58,7 +58,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentNameAsync("My Torrent", "hx", cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentNameAsync("hx", "My Torrent", cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("exists")
             });
 
-            var result = await _target.SetTorrentNameAsync("n", "h", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentNameAsync("h", "n", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Conflict, userMessage: "exists");
         }
@@ -85,7 +85,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentSavePathAsync(new[] { "a", "b" }, "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentSavePathAsync(TorrentSelector.FromHashes(["a", "b"]), "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -96,7 +96,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("cannot write to directory")
             });
 
-            var result = await _target.SetTorrentSavePathAsync(new[] { "a" }, "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentSavePathAsync(TorrentSelector.FromHash("a"), "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.AccessDenied,
@@ -115,7 +115,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("create failed")
             });
 
-            var result = await _target.SetTorrentSavePathAsync(new[] { "a" }, "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentSavePathAsync(TorrentSelector.FromHash("a"), "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.Conflict,
@@ -131,7 +131,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict));
 
-            var result = await _target.SetTorrentSavePathAsync(new[] { "a" }, "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentSavePathAsync(TorrentSelector.FromHash("a"), "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.Conflict,
@@ -150,7 +150,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("permission denied")
             });
 
-            var result = await _target.SetTorrentSavePathAsync(new[] { "a" }, "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentSavePathAsync(TorrentSelector.FromHash("a"), "/mnt/saves", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.AuthenticationRequired,
@@ -161,7 +161,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_EmptyPath_WHEN_SetTorrentSavePath_THEN_ShouldThrowArgumentException()
         {
-            var action = async () => await _target.SetTorrentSavePathAsync(new[] { "a" }, string.Empty, cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentSavePathAsync(TorrentSelector.FromHash("a"), string.Empty, cancellationToken: TestContext.Current.CancellationToken);
 
             var exception = await action.Should().ThrowAsync<ArgumentException>();
             exception.Which.ParamName.Should().Be("path");
@@ -170,7 +170,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_EmptyHashes_WHEN_SetTorrentSavePath_THEN_ShouldThrowArgumentException()
         {
-            var action = async () => await _target.SetTorrentSavePathAsync(Array.Empty<string>(), "/path", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentSavePathAsync(TorrentSelector.FromHashes(Array.Empty<string>()), "/path", cancellationToken: TestContext.Current.CancellationToken);
 
             var exception = await action.Should().ThrowAsync<ArgumentException>();
             exception.Which.ParamName.Should().Be("hashes");
@@ -179,9 +179,9 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_NullHashes_WHEN_SetTorrentSavePath_THEN_ShouldThrowArgumentException()
         {
-            var action = async () => await _target.SetTorrentSavePathAsync(null!, "/path", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentSavePathAsync(TorrentSelector.FromHashes(null!), "/path", cancellationToken: TestContext.Current.CancellationToken);
 
-            var exception = await action.Should().ThrowAsync<ArgumentException>();
+            var exception = await action.Should().ThrowAsync<ArgumentNullException>();
             exception.Which.ParamName.Should().Be("hashes");
         }
 
@@ -196,7 +196,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentDownloadPathAsync(new[] { "a", "b" }, "temp", cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHashes(["a", "b"]), "temp", cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -210,7 +210,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentDownloadPathAsync(new[] { "a" }, null, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHash("a"), null, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -221,7 +221,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("cannot write to download path")
             });
 
-            var result = await _target.SetTorrentDownloadPathAsync(new[] { "a" }, "temp", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHash("a"), "temp", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.AccessDenied,
@@ -240,7 +240,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("download create failed")
             });
 
-            var result = await _target.SetTorrentDownloadPathAsync(new[] { "a" }, "temp", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHash("a"), "temp", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.Conflict,
@@ -256,7 +256,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict));
 
-            var result = await _target.SetTorrentDownloadPathAsync(new[] { "a" }, "temp", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHash("a"), "temp", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.Conflict,
@@ -275,7 +275,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("permission denied")
             });
 
-            var result = await _target.SetTorrentDownloadPathAsync(new[] { "a" }, "temp", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHash("a"), "temp", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.AuthenticationRequired,
@@ -286,7 +286,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_EmptyHashes_WHEN_SetTorrentDownloadPath_THEN_ShouldThrowArgumentException()
         {
-            var action = async () => await _target.SetTorrentDownloadPathAsync(Array.Empty<string>(), "temp", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHashes(Array.Empty<string>()), "temp", cancellationToken: TestContext.Current.CancellationToken);
 
             var exception = await action.Should().ThrowAsync<ArgumentException>();
             exception.Which.ParamName.Should().Be("hashes");
@@ -295,9 +295,9 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_NullHashes_WHEN_SetTorrentDownloadPath_THEN_ShouldThrowArgumentException()
         {
-            var action = async () => await _target.SetTorrentDownloadPathAsync(null!, "temp", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHashes(null!), "temp", cancellationToken: TestContext.Current.CancellationToken);
 
-            var exception = await action.Should().ThrowAsync<ArgumentException>();
+            var exception = await action.Should().ThrowAsync<ArgumentNullException>();
             exception.Which.ParamName.Should().Be("hashes");
         }
 
@@ -312,7 +312,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentCategoryAsync("Movies", all: false, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentCategoryAsync(TorrentSelector.FromHashes(["h1", "h2"]), "Movies", cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -323,7 +323,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("bad")
             });
 
-            var result = await _target.SetTorrentCategoryAsync("c", cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.SetTorrentCategoryAsync(TorrentSelector.AllTorrents(), "c", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadGateway, userMessage: "bad");
         }

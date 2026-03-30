@@ -1,3 +1,4 @@
+using QBittorrent.ApiClient.Models;
 using System.Globalization;
 
 namespace QBittorrent.ApiClient
@@ -34,14 +35,16 @@ namespace QBittorrent.ApiClient
             return builder.Add(key, value.ToInt32(CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture));
         }
 
-        public static FormUrlEncodedBuilder AddAllOrPipeSeparated(this FormUrlEncodedBuilder builder, string key, bool? all = null, params string[] values)
+        public static FormUrlEncodedBuilder AddTorrentSelector(this FormUrlEncodedBuilder builder, string key, TorrentSelector selector, string allValue = "all")
         {
-            if (all.GetValueOrDefault())
+            ArgumentNullException.ThrowIfNull(selector);
+
+            if (selector.All)
             {
-                return builder.Add(key, "all");
+                return builder.Add(key, allValue);
             }
 
-            return builder.Add(key, JoinWithInvariant(values, '|'));
+            return builder.Add(key, JoinWithInvariant(selector.Hashes!, '|'));
         }
 
         public static FormUrlEncodedBuilder AddPipeSeparated<T>(this FormUrlEncodedBuilder builder, string key, IEnumerable<T> values)

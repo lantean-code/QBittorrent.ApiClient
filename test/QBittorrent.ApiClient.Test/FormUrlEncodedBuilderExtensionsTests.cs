@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient.Test
 {
@@ -146,9 +147,9 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_AllTrue_WHEN_AddAllOrPipeSeparated_THEN_ShouldUseAllLiteral()
+        public async Task GIVEN_AllSelector_WHEN_AddTorrentSelector_THEN_ShouldUseAllLiteral()
         {
-            var returned = _target.AddAllOrPipeSeparated("list", all: true, "a", "b");
+            var returned = _target.AddTorrentSelector("list", TorrentSelector.AllTorrents());
 
             ReferenceEquals(_target, returned).Should().BeTrue();
 
@@ -162,9 +163,9 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_AllNullOrFalse_WHEN_AddAllOrPipeSeparated_THEN_ShouldJoinWithPipes()
+        public async Task GIVEN_HashSelector_WHEN_AddTorrentSelector_THEN_ShouldJoinWithPipes()
         {
-            _target.AddAllOrPipeSeparated("list", null, "a", "b c", "d|e");
+            _target.AddTorrentSelector("list", TorrentSelector.FromHashes(["a", "b c", "d|e"]));
 
             var parameters = _target.GetParameters();
             parameters.Count.Should().Be(1);
@@ -176,17 +177,32 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_NoValues_WHEN_AddAllOrPipeSeparatedWithFalse_THEN_ShouldYieldEmptyValue()
+        public async Task GIVEN_CustomAllValue_WHEN_AddTorrentSelector_THEN_ShouldUseProvidedLiteral()
         {
-            _target.AddAllOrPipeSeparated("list", false);
+            _target.AddTorrentSelector("list", TorrentSelector.AllTorrents(), "*");
 
             var parameters = _target.GetParameters();
             parameters.Count.Should().Be(1);
             parameters[0].Key.Should().Be("list");
-            parameters[0].Value.Should().Be(string.Empty);
+            parameters[0].Value.Should().Be("*");
 
             using var content = _target.ToFormUrlEncodedContent();
-            (await content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("list=");
+            (await content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("list=%2A");
+        }
+
+        [Fact]
+        public async Task GIVEN_NullSelector_WHEN_AddTorrentSelector_THEN_ShouldThrowArgumentNullException()
+        {
+            Func<FormUrlEncodedBuilder> action = () => _target.AddTorrentSelector("list", null!);
+
+            var exception = action.Should().Throw<ArgumentNullException>();
+            exception.Which.ParamName.Should().Be("selector");
+
+            var parameters = _target.GetParameters();
+            parameters.Should().BeEmpty();
+
+            using var content = _target.ToFormUrlEncodedContent();
+            (await content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().BeEmpty();
         }
 
         [Fact]

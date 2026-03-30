@@ -189,7 +189,7 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> InstallSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] sources)
+        public Task<ApiResult> InstallSearchPluginsAsync(IEnumerable<string> sources, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
                 .AddPipeSeparated("sources", sources)
@@ -198,7 +198,7 @@ namespace QBittorrent.ApiClient
             return ExecuteAsync(ct => _httpClient.PostAsync("search/installPlugin", content, ct), cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> UninstallSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] names)
+        public Task<ApiResult> UninstallSearchPluginsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
                 .AddPipeSeparated("names", names)
@@ -207,7 +207,7 @@ namespace QBittorrent.ApiClient
             return ExecuteAsync(ct => _httpClient.PostAsync("search/uninstallPlugin", content, ct), cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> EnableSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] names)
+        public Task<ApiResult> EnableSearchPluginsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
                .AddPipeSeparated("names", names)
@@ -217,11 +217,11 @@ namespace QBittorrent.ApiClient
             return ExecuteAsync(ct => _httpClient.PostAsync("search/enablePlugin", content, ct), cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> DisableSearchPluginsAsync(CancellationToken cancellationToken = default, params string[] names)
+        public Task<ApiResult> DisableSearchPluginsAsync(IEnumerable<string> names, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
-               .AddPipeSeparated("names", names)
-               .Add("enable", false)
+                .AddPipeSeparated("names", names)
+                .Add("enable", false)
                .ToFormUrlEncodedContent();
 
             return ExecuteAsync(ct => _httpClient.PostAsync("search/enablePlugin", content, ct), cancellationToken: cancellationToken);

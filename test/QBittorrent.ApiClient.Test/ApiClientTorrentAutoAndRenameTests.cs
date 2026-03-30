@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using QBittorrent.ApiClient.Models;
 using System.Net;
 
 namespace QBittorrent.ApiClient.Test
@@ -26,7 +27,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetAutomaticTorrentManagementAsync(true, all: false, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetAutomaticTorrentManagementAsync(TorrentSelector.FromHashes(["h1", "h2"]), true, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -39,7 +40,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.ToggleSequentialDownloadAsync(true, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.ToggleSequentialDownloadAsync(TorrentSelector.AllTorrents(), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -52,7 +53,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetFirstLastPiecePriorityAsync(all: false, hashes: ["h"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetFirstLastPiecePriorityAsync(TorrentSelector.FromHash("h"), cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -66,7 +67,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetForceStartAsync(true, all: false, hashes: ["h1", "h2"], cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetForceStartAsync(TorrentSelector.FromHashes(["h1", "h2"]), true, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -80,7 +81,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetSuperSeedingAsync(false, true, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetSuperSeedingAsync(TorrentSelector.AllTorrents(), false, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
