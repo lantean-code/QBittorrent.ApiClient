@@ -20,12 +20,7 @@ namespace QBittorrent.ApiClient.Converters
 
             if (reader.TokenType == JsonTokenType.Number)
             {
-                if (reader.TryGetSingle(out var value))
-                {
-                    return value;
-                }
-
-                return 0;
+                return reader.GetSingle();
             }
 
             return 0;

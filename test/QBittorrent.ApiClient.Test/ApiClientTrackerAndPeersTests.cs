@@ -82,6 +82,29 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_LegacyApiVersionAndNullAll_WHEN_AddTrackersToTorrent_THEN_ShouldPostSingleHashAndUrlList()
+        {
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                switch (request.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.11.4");
+
+                    case "/torrents/addTrackers":
+                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        body.Should().Be("hash=hash1&urls=udp%3A%2F%2Fa");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
+                }
+            };
+
+            (await _target.AddTrackersToTorrentAsync(new[] { "udp://a" }, all: null, hashes: ["hash1"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
         public async Task GIVEN_LegacyApiVersionAndAllTrue_WHEN_AddTrackersToTorrent_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var addTrackerRequestCount = 0;
@@ -184,6 +207,29 @@ namespace QBittorrent.ApiClient.Test
             };
 
             (await _target.AddTrackersToTorrentAsync(new[] { "udp://a" }, hashes: "hash1", cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersionAndMultipleHashes_WHEN_AddTrackersToTorrent_THEN_ShouldPostPipeSeparatedHashList()
+        {
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                switch (request.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+
+                    case "/torrents/addTrackers":
+                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        body.Should().Be("hash=hash1%7Chash2&urls=udp%3A%2F%2Fa");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
+                }
+            };
+
+            (await _target.AddTrackersToTorrentAsync(new[] { "udp://a" }, all: false, hashes: ["hash1", "hash2"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]
@@ -479,6 +525,52 @@ namespace QBittorrent.ApiClient.Test
             };
 
             (await _target.RemoveTrackersAsync(new[] { "udp://a" }, hashes: "hash1", cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersionAndNullAll_WHEN_RemoveTrackers_THEN_ShouldPostSingleHashAndUrlList()
+        {
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                switch (request.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.11.4");
+
+                    case "/torrents/removeTrackers":
+                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        body.Should().Be("hash=hash1&urls=udp%3A%2F%2Fa");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
+                }
+            };
+
+            (await _target.RemoveTrackersAsync(new[] { "udp://a" }, all: null, hashes: ["hash1"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersionAndMultipleHashes_WHEN_RemoveTrackers_THEN_ShouldPostPipeSeparatedHashList()
+        {
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                switch (request.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+
+                    case "/torrents/removeTrackers":
+                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        body.Should().Be("hash=hash1%7Chash2&urls=udp%3A%2F%2Fa");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
+                }
+            };
+
+            (await _target.RemoveTrackersAsync(new[] { "udp://a" }, all: false, hashes: ["hash1", "hash2"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]

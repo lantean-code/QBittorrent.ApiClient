@@ -204,19 +204,7 @@ namespace QBittorrent.ApiClient
                 {
                     return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
                 }
-                catch (NotSupportedException exception)
-                {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
-                }
                 catch (InvalidOperationException exception) when (exception.Message.StartsWith("Unable to deserialize response as ", StringComparison.Ordinal))
-                {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
-                }
-                catch (FormatException exception)
-                {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
-                }
-                catch (KeyNotFoundException exception)
                 {
                     return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
                 }

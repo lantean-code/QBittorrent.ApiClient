@@ -3,22 +3,31 @@ namespace QBittorrent.ApiClient.Models
     /// <summary>
     /// Represents a qBittorrent save-location selection.
     /// </summary>
-    public class SaveLocation
+    public sealed record SaveLocation
     {
-        /// <summary>
-        /// Gets or sets a value indicating whether the save location is the watched folder.
-        /// </summary>
-        public bool IsWatchedFolder { get; set; }
+        private static readonly SaveLocation _watchedFolder = new SaveLocation(SaveLocationKind.WatchedFolder, null);
+        private static readonly SaveLocation _defaultFolder = new SaveLocation(SaveLocationKind.DefaultFolder, null);
 
         /// <summary>
-        /// Gets or sets a value indicating whether the save location is the default folder.
+        /// Gets the save-location kind.
         /// </summary>
-        public bool IsDefaultFolder { get; set; }
+        public SaveLocationKind Kind { get; }
 
         /// <summary>
-        /// Gets or sets the save path.
+        /// Gets the save path.
         /// </summary>
-        public string? SavePath { get; set; }
+        public string? SavePath { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SaveLocation" /> class.
+        /// </summary>
+        /// <param name="kind">The save-location kind.</param>
+        /// <param name="savePath">The explicit save path.</param>
+        private SaveLocation(SaveLocationKind kind, string? savePath)
+        {
+            Kind = kind;
+            SavePath = savePath;
+        }
 
         /// <summary>
         /// Creates a <see cref="SaveLocation" /> from a qBittorrent save-location value.
@@ -48,17 +57,11 @@ namespace QBittorrent.ApiClient.Models
         {
             if (value == 0)
             {
-                return new SaveLocation
-                {
-                    IsWatchedFolder = true
-                };
+                return _watchedFolder;
             }
             else if (value == 1)
             {
-                return new SaveLocation
-                {
-                    IsDefaultFolder = true
-                };
+                return _defaultFolder;
             }
 
             throw new ArgumentOutOfRangeException(nameof(value));
@@ -76,26 +79,22 @@ namespace QBittorrent.ApiClient.Models
                 throw new ArgumentOutOfRangeException(nameof(value));
             }
 
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException("A custom save location must include a path.", nameof(value));
+            }
+
             if (value == "0")
             {
-                return new SaveLocation
-                {
-                    IsWatchedFolder = true
-                };
+                return _watchedFolder;
             }
             else if (value == "1")
             {
-                return new SaveLocation
-                {
-                    IsDefaultFolder = true
-                };
+                return _defaultFolder;
             }
             else
             {
-                return new SaveLocation
-                {
-                    SavePath = value
-                };
+                return new SaveLocation(SaveLocationKind.CustomPath, value);
             }
         }
 
@@ -105,20 +104,17 @@ namespace QBittorrent.ApiClient.Models
         /// <returns>The serialized save-location value.</returns>
         public object ToValue()
         {
-            if (IsWatchedFolder)
+            if (Kind == SaveLocationKind.WatchedFolder)
             {
                 return 0;
             }
-            else if (IsDefaultFolder)
+
+            if (Kind == SaveLocationKind.DefaultFolder)
             {
                 return 1;
             }
-            else if (SavePath is not null)
-            {
-                return SavePath;
-            }
 
-            throw new InvalidOperationException("Invalid value.");
+            return SavePath!;
         }
 
         /// <summary>

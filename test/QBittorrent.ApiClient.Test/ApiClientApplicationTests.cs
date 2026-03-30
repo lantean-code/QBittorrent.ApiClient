@@ -298,6 +298,18 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_MissingBaseAddress_WHEN_GetAPIVersion_THEN_ShouldReturnConfigurationFailure()
+        {
+            var target = new ApiClient(new HttpClient(_handler));
+
+            var result = await target.GetAPIVersionAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(
+                kind: ApiFailureKind.InvalidConfiguration,
+                userMessage: "HttpClient BaseAddress must be configured.");
+        }
+
+        [Fact]
         public async Task GIVEN_InvalidApiVersionResponse_WHEN_GetAPIVersionThenLoadClientData_THEN_ShouldNotCacheInvalidCompatibilityProfile()
         {
             var apiVersionRequestCount = 0;
@@ -869,10 +881,9 @@ namespace QBittorrent.ApiClient.Test
 
             result.UpLimit.Should().Be(10240);
             result.ScanDirs.Should().HaveCount(3);
-            result.ScanDirs["Watch"].IsWatchedFolder.Should().BeTrue();
-            result.ScanDirs["Watch"].IsDefaultFolder.Should().BeFalse();
-            result.ScanDirs["Default"].IsWatchedFolder.Should().BeFalse();
-            result.ScanDirs["Default"].IsDefaultFolder.Should().BeTrue();
+            result.ScanDirs["Watch"].Kind.Should().Be(SaveLocationKind.WatchedFolder);
+            result.ScanDirs["Default"].Kind.Should().Be(SaveLocationKind.DefaultFolder);
+            result.ScanDirs["Custom"].Kind.Should().Be(SaveLocationKind.CustomPath);
             result.ScanDirs["Custom"].SavePath.Should().Be("/downloads/custom");
         }
 

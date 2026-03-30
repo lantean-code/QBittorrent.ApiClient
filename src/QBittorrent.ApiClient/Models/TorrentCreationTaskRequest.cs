@@ -3,7 +3,7 @@ namespace QBittorrent.ApiClient.Models
     /// <summary>
     /// Represents a torrent-creation task request.
     /// </summary>
-    public class TorrentCreationTaskRequest
+    public record TorrentCreationTaskRequest
     {
         /// <summary>
         /// Gets or sets the source path.

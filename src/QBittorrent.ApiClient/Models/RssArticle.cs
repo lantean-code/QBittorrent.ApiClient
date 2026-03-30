@@ -1,11 +1,11 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
     /// Represents an article returned by an RSS feed.
     /// </summary>
-    public class RssArticle
+    public record RssArticle
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="RssArticle" /> class.

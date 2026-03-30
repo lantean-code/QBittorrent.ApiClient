@@ -23,17 +23,14 @@ namespace QBittorrent.ApiClient.Converters
 
         public override void Write(Utf8JsonWriter writer, SaveLocation value, JsonSerializerOptions options)
         {
-            if (value.IsWatchedFolder)
+            var serializedValue = value.ToValue();
+            if (serializedValue is int intValue)
             {
-                writer.WriteNumberValue(0);
+                writer.WriteNumberValue(intValue);
             }
-            else if (value.IsDefaultFolder)
+            else
             {
-                writer.WriteNumberValue(1);
-            }
-            else if (value.SavePath is not null)
-            {
-                writer.WriteStringValue(value.SavePath);
+                writer.WriteStringValue((string)serializedValue);
             }
         }
     }

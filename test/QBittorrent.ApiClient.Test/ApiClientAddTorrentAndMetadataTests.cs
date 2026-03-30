@@ -203,6 +203,23 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_UnreadableTorrentStream_WHEN_AddTorrent_THEN_ShouldThrowArgumentException()
+        {
+            var parameters = new AddTorrentParams
+            {
+                Torrents = new Dictionary<string, Stream>
+                {
+                    { "a.torrent", new UnreadableStream() }
+                }
+            };
+
+            var action = async () => await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken);
+
+            var exception = await action.Should().ThrowAsync<ArgumentException>();
+            exception.Which.ParamName.Should().Be("stream");
+        }
+
+        [Fact]
         public async Task GIVEN_ConflictAndEmptyMessage_WHEN_AddTorrent_THEN_ShouldThrowWithDefaultConflictMessage()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict)
@@ -499,6 +516,79 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(
                 kind: ApiFailureKind.InvalidConfiguration,
                 userMessage: "HttpClient BaseAddress must be configured.");
+        }
+
+        private sealed class UnreadableStream : Stream
+        {
+            public override bool CanRead
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            public override bool CanSeek
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            public override bool CanWrite
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            public override long Length
+            {
+                get
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
+            public override long Position
+            {
+                get
+                {
+                    throw new NotSupportedException();
+                }
+
+                set
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
+            public override void Flush()
+            {
+                throw new NotSupportedException();
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override void SetLength(long value)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override void Write(byte[] buffer, int offset, int count)
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }

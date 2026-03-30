@@ -455,7 +455,10 @@ namespace QBittorrent.ApiClient
 
         public async Task<ApiResult> AddTrackersToTorrentAsync(IEnumerable<string> urls, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
         {
-            if (all is not true && (hashes is null || hashes.Length == 0))
+            var applyToAll = all is true;
+            var normalizedHashes = hashes ?? [];
+
+            if (!applyToAll && normalizedHashes.Length == 0)
             {
                 throw new ArgumentException("Specify at least one torrent hash or set all=true.", nameof(hashes));
             }
@@ -468,7 +471,7 @@ namespace QBittorrent.ApiClient
 
             if (!profile.SupportsTrackerBatchOperations)
             {
-                if (all is true)
+                if (applyToAll)
                 {
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTrackersToTorrentAsync),
@@ -476,7 +479,7 @@ namespace QBittorrent.ApiClient
                         $"qBittorrent Web API {profile.WebApiVersion} does not support adding trackers to all torrents in a single request.").ToResult();
                 }
 
-                if ((hashes?.Length ?? 0) > 1)
+                if (normalizedHashes.Length > 1)
                 {
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTrackersToTorrentAsync),
@@ -488,9 +491,9 @@ namespace QBittorrent.ApiClient
             var content = new FormUrlEncodedBuilder()
                 .Add(
                     "hash",
-                    all is true
+                    applyToAll
                         ? profile.TrackerAllValue
-                        : string.Join('|', hashes ?? Array.Empty<string>()))
+                        : string.Join('|', normalizedHashes))
                 .Add("urls", string.Join('\n', urls))
                 .ToFormUrlEncodedContent();
 
@@ -557,7 +560,10 @@ namespace QBittorrent.ApiClient
 
         public async Task<ApiResult> RemoveTrackersAsync(IEnumerable<string> urls, bool? all = null, CancellationToken cancellationToken = default, params string[] hashes)
         {
-            if (all is not true && (hashes is null || hashes.Length == 0))
+            var applyToAll = all is true;
+            var normalizedHashes = hashes ?? [];
+
+            if (!applyToAll && normalizedHashes.Length == 0)
             {
                 throw new ArgumentException("Specify at least one torrent hash or set all=true.", nameof(hashes));
             }
@@ -568,7 +574,7 @@ namespace QBittorrent.ApiClient
                 return profileResult.Failure.ToResult();
             }
 
-            if (!profile.SupportsTrackerBatchOperations && ((hashes?.Length ?? 0) > 1))
+            if (!profile.SupportsTrackerBatchOperations && (normalizedHashes.Length > 1))
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(RemoveTrackersAsync),
@@ -579,9 +585,9 @@ namespace QBittorrent.ApiClient
             var content = new FormUrlEncodedBuilder()
                 .Add(
                     "hash",
-                    all is true
+                    applyToAll
                         ? profile.TrackerAllValue
-                        : string.Join('|', hashes ?? Array.Empty<string>()))
+                        : string.Join('|', normalizedHashes))
                 .AddPipeSeparated("urls", urls)
                 .ToFormUrlEncodedContent();
 

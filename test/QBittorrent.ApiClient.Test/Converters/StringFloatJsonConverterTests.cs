@@ -64,6 +64,18 @@ namespace QBittorrent.ApiClient.Test.Converters
         }
 
         [Fact]
+        public async Task GIVEN_VerySmallNumberToken_WHEN_Read_THEN_ShouldReturnZero()
+        {
+            var options = CreateOptions();
+            var json = "1e-5000";
+
+            var result = JsonSerializer.Deserialize<float>(json, options);
+
+            result.Should().Be(0f);
+            await Task.CompletedTask;
+        }
+
+        [Fact]
         public async Task GIVEN_NullToken_WHEN_Read_THEN_ShouldReturnZero()
         {
             var options = CreateOptions();
