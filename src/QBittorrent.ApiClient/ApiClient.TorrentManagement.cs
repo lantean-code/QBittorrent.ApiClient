@@ -18,8 +18,8 @@ namespace QBittorrent.ApiClient
             bool? isPrivate = null,
             bool? includeFiles = null,
             bool? includeTrackers = null,
-            CancellationToken cancellationToken = default,
-            TorrentSelector? selector = null)
+            TorrentSelector? selector = null,
+            CancellationToken cancellationToken = default)
         {
             var query = new QueryBuilder();
             if (filter is not null)

@@ -223,10 +223,10 @@ namespace QBittorrent.ApiClient
         /// <param name="isPrivate">Whether to filter by private torrents.</param>
         /// <param name="includeFiles">Whether to include files in the serialized torrent payload.</param>
         /// <param name="includeTrackers">Whether to include trackers in the serialized torrent payload.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="selector">The torrent selection to filter by.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the matching torrents.</returns>
-        Task<ApiResult<IReadOnlyList<Torrent>>> GetTorrentListAsync(string? filter = null, string? category = null, string? tag = null, string? sort = null, bool? reverse = null, int? limit = null, int? offset = null, bool? isPrivate = null, bool? includeFiles = null, bool? includeTrackers = null, CancellationToken cancellationToken = default, TorrentSelector? selector = null);
+        Task<ApiResult<IReadOnlyList<Torrent>>> GetTorrentListAsync(string? filter = null, string? category = null, string? tag = null, string? sort = null, bool? reverse = null, int? limit = null, int? offset = null, bool? isPrivate = null, bool? includeFiles = null, bool? includeTrackers = null, TorrentSelector? selector = null, CancellationToken cancellationToken = default);
 
         /// <summary>Gets the total torrent count.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>

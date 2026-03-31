@@ -193,7 +193,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_HashAndNoMatchingTorrent_WHEN_GetTorrent_THEN_ShouldReturnNull()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash"))))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
 
             var result = (await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
@@ -211,7 +211,7 @@ namespace QBittorrent.ApiClient.Test
             };
 
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash"))))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent> { expectedTorrent }));
 
             var result = (await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
@@ -224,7 +224,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_GetTorrentListFailure_WHEN_GetTorrent_THEN_ShouldReturnFailure()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash"))))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(ApiResult<IReadOnlyList<Torrent>>.FailureResult(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
@@ -423,7 +423,7 @@ namespace QBittorrent.ApiClient.Test
             };
 
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(torrents));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
@@ -442,7 +442,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_TorrentListFailure_WHEN_RemoveUnusedCategories_THEN_ShouldReturnFailure()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(ApiResult<IReadOnlyList<Torrent>>.FailureResult(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
@@ -459,7 +459,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_CategoriesFailure_WHEN_RemoveUnusedCategories_THEN_ShouldReturnFailure()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
@@ -479,7 +479,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_RemoveCategoriesFailure_WHEN_RemoveUnusedCategories_THEN_ShouldReturnFailure()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
@@ -519,7 +519,7 @@ namespace QBittorrent.ApiClient.Test
             };
 
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(torrents));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
@@ -538,7 +538,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_TorrentListFailure_WHEN_RemoveUnusedTags_THEN_ShouldReturnFailure()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(ApiResult<IReadOnlyList<Torrent>>.FailureResult(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
@@ -555,7 +555,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_TagsFailure_WHEN_RemoveUnusedTags_THEN_ShouldReturnFailure()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
@@ -575,7 +575,7 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_DeleteTagsFailure_WHEN_RemoveUnusedTags_THEN_ShouldReturnFailure()
         {
             Mock.Get(_target)
-                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<CancellationToken>(), It.Is<TorrentSelector?>(selector => selector == null)))
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
