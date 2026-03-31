@@ -36,6 +36,16 @@ namespace QBittorrent.ApiClient
         }
 
         /// <summary>
+        /// Creates a successful result.
+        /// </summary>
+        /// <param name="value">The returned value.</param>
+        /// <returns>The successful result.</returns>
+        public static ApiResult<T> Success<T>(T value)
+        {
+            return ApiResult<T>.Success(value);
+        }
+
+        /// <summary>
         /// Creates a failed result.
         /// </summary>
         /// <param name="failure">The failure to return.</param>
@@ -66,7 +76,7 @@ namespace QBittorrent.ApiClient
     /// <typeparam name="T">The value type.</typeparam>
     public sealed class ApiResult<T>
     {
-        private ApiResult(T? value, ApiFailure? failure)
+        internal ApiResult(T? value, ApiFailure? failure)
         {
             Value = value;
             Failure = failure;

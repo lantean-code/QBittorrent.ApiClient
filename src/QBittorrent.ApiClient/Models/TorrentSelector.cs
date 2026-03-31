@@ -67,6 +67,54 @@ namespace QBittorrent.ApiClient.Models
             return new TorrentSelector(false, normalizedHashes);
         }
 
+        /// <inheritdoc />
+        public bool Equals(TorrentSelector? other)
+        {
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (All != other.All)
+            {
+                return false;
+            }
+
+            if (Hashes is null && other.Hashes is null)
+            {
+                return true;
+            }
+
+            if (Hashes is null || other.Hashes is null)
+            {
+                return false;
+            }
+
+            return Hashes.SequenceEqual(other.Hashes, StringComparer.Ordinal);
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            var hashCode = new HashCode();
+            hashCode.Add(All);
+
+            if (Hashes is not null)
+            {
+                foreach (var hash in Hashes)
+                {
+                    hashCode.Add(hash, StringComparer.Ordinal);
+                }
+            }
+
+            return hashCode.ToHashCode();
+        }
+
         private static string NormalizeHash(string hash)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(hash);

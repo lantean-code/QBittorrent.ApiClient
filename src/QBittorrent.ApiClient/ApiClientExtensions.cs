@@ -17,8 +17,8 @@ namespace QBittorrent.ApiClient
         public static async Task<ApiResult<Torrent?>> GetTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(apiClient);
-            var selector = TorrentSelector.FromHash(hash);
-            var torrents = await apiClient.GetTorrentListAsync(selector: selector, cancellationToken: cancellationToken);
+
+            var torrents = await apiClient.GetTorrentListAsync(selector: TorrentSelector.FromHash(hash), cancellationToken: cancellationToken);
             if (!torrents.TryGetValue(out var torrentList))
             {
                 return torrents.Failure.ToResult<Torrent?>();
