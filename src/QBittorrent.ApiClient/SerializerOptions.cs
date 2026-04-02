@@ -20,8 +20,6 @@ namespace QBittorrent.ApiClient
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
-            options.Converters.Add(new StringFloatJsonConverter());
-            options.Converters.Add(new NullableStringFloatJsonConverter());
             options.Converters.Add(new DirectoryContentEntryTypeJsonConverter());
             options.Converters.Add(new SaveLocationJsonConverter());
 

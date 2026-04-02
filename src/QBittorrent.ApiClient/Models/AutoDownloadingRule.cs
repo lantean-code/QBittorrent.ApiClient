@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -105,7 +105,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets or sets the torrent content layout.
         /// </summary>
         [JsonPropertyName("torrentContentLayout")]
-        public string? TorrentContentLayout { get; set; }
+        public TorrentContentLayout? TorrentContentLayout { get; set; }
 
         /// <summary>
         /// Gets or sets the torrent params.

@@ -185,7 +185,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.Hash.Should().Be("hash1");
             torrent.Name.Should().Be("TorrentName");
             torrent.Size.Should().Be(12345);
-            torrent.Progress.Should().Be(0.5f);
+            torrent.Progress.Should().Be(0.5);
             torrent.DownloadSpeed.Should().Be(10);
             torrent.UploadSpeed.Should().Be(11);
             torrent.Priority.Should().Be(2);
@@ -193,10 +193,10 @@ namespace QBittorrent.ApiClient.Test
             torrent.NumberComplete.Should().Be(4);
             torrent.NumberLeeches.Should().Be(5);
             torrent.NumberIncomplete.Should().Be(6);
-            torrent.Ratio.Should().Be(0.7f);
-            torrent.Popularity.Should().Be(0.8f);
+            torrent.Ratio.Should().Be(0.7);
+            torrent.Popularity.Should().Be(0.8);
             torrent.EstimatedTimeOfArrival.Should().Be(120);
-            torrent.State.Should().Be("downloading");
+            torrent.State.Should().Be(TorrentState.Downloading);
             torrent.Category.Should().Be("Movies");
             torrent.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
             torrent.SavePath.Should().Be("/downloads");
@@ -217,10 +217,10 @@ namespace QBittorrent.ApiClient.Test
             torrent.Completed.Should().Be(107);
             torrent.ConnectionsCount.Should().Be(108);
             torrent.ConnectionsLimit.Should().Be(109);
-            torrent.MaxRatio.Should().Be(1.5f);
+            torrent.MaxRatio.Should().Be(1.5);
             torrent.MaxSeedingTime.Should().Be(110);
             torrent.MaxInactiveSeedingTime.Should().Be(111);
-            torrent.RatioLimit.Should().Be(1.7f);
+            torrent.RatioLimit.Should().Be(1.7);
             torrent.SeedingTimeLimit.Should().Be(112);
             torrent.InactiveSeedingTimeLimit.Should().Be(113);
             torrent.ShareLimitAction.Should().Be(ShareLimitAction.Remove);
@@ -230,7 +230,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.AutomaticTorrentManagement.Should().BeTrue();
             torrent.TimeActive.Should().Be(117);
             torrent.SeedingTime.Should().Be(118);
-            torrent.Availability.Should().Be(0.9f);
+            torrent.Availability.Should().Be(0.9);
             torrent.Reannounce.Should().Be(119);
             torrent.Comment.Should().Be("Comment");
             torrent.HasMetadata.Should().BeTrue();
@@ -248,7 +248,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.Trackers![0].Url.Should().Be("udp://tracker");
 
             result.ServerState.Should().NotBeNull();
-            result.ServerState!.ConnectionStatus.Should().Be("connected");
+            result.ServerState!.ConnectionStatus.Should().Be(ConnectionStatus.Connected);
             result.ServerState.DHTNodes.Should().Be(12);
             result.ServerState.DownloadInfoData.Should().Be(13);
             result.ServerState.DownloadInfoSpeed.Should().Be(14);
@@ -262,11 +262,11 @@ namespace QBittorrent.ApiClient.Test
             result.ServerState.AllTimeUploaded.Should().Be(1001);
             result.ServerState.AverageTimeQueue.Should().Be(4);
             result.ServerState.FreeSpaceOnDisk.Should().Be(2000);
-            result.ServerState.GlobalRatio.Should().Be(1.3f);
+            result.ServerState.GlobalRatio.Should().Be(1.3);
             result.ServerState.QueuedIOJobs.Should().Be(5);
             result.ServerState.Queuing.Should().BeTrue();
-            result.ServerState.ReadCacheHits.Should().Be(0.4f);
-            result.ServerState.ReadCacheOverload.Should().Be(0.5f);
+            result.ServerState.ReadCacheHits.Should().Be(0.4);
+            result.ServerState.ReadCacheOverload.Should().Be(0.5);
             result.ServerState.RefreshInterval.Should().Be(1500);
             result.ServerState.TotalBuffersSize.Should().Be(50);
             result.ServerState.TotalPeerConnections.Should().Be(51);
@@ -274,7 +274,69 @@ namespace QBittorrent.ApiClient.Test
             result.ServerState.TotalWastedSession.Should().Be(53);
             result.ServerState.UseAltSpeedLimits.Should().BeFalse();
             result.ServerState.UseSubcategories.Should().BeTrue();
-            result.ServerState.WriteCacheOverload.Should().Be(0.6f);
+            result.ServerState.WriteCacheOverload.Should().Be(0.6);
+        }
+
+        [Fact]
+        public async Task GIVEN_MainDataWithStringRatiosAndLargeCounters_WHEN_GetMainData_THEN_ShouldPreserveRangeAndParseStrings()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.ToString().Should().Be("http://localhost/sync/maindata?rid=1");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        {
+                            "rid": 1,
+                            "server_state":
+                            {
+                                "connection_status": "connected",
+                                "dht_nodes": 3000000000,
+                                "dl_info_data": 13,
+                                "dl_info_speed": 14,
+                                "dl_rate_limit": 2147483647,
+                                "up_info_data": 16,
+                                "up_info_speed": 17,
+                                "up_rate_limit": 2147483646,
+                                "alltime_dl": 1000,
+                                "alltime_ul": 1001,
+                                "average_time_queue": 3000000001,
+                                "free_space_on_disk": 2000,
+                                "global_ratio": "1.23456789012345",
+                                "queued_io_jobs": 3000000002,
+                                "queueing": true,
+                                "read_cache_hits": "2.34567890123456",
+                                "read_cache_overload": "-",
+                                "refresh_interval": 1500,
+                                "total_buffers_size": 3000000003,
+                                "total_peer_connections": 3000000004,
+                                "total_queued_size": 3000000005,
+                                "total_wasted_session": 53,
+                                "use_alt_speed_limits": false,
+                                "use_subcategories": true,
+                                "write_cache_overload": "3.45678901234567"
+                            }
+                        }
+                        """)
+                });
+            };
+
+            var result = (await _target.GetMainDataAsync(1, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.ServerState.Should().NotBeNull();
+            result.ServerState!.DHTNodes.Should().Be(3000000000);
+            result.ServerState.DownloadRateLimit.Should().Be(2147483647);
+            result.ServerState.UploadRateLimit.Should().Be(2147483646);
+            result.ServerState.AverageTimeQueue.Should().Be(3000000001);
+            result.ServerState.GlobalRatio.Should().Be(1.23456789012345);
+            result.ServerState.QueuedIOJobs.Should().Be(3000000002);
+            result.ServerState.ReadCacheHits.Should().Be(2.34567890123456);
+            result.ServerState.ReadCacheOverload.Should().BeNull();
+            result.ServerState.TotalBuffersSize.Should().Be(3000000003);
+            result.ServerState.TotalPeerConnections.Should().Be(3000000004);
+            result.ServerState.TotalQueuedSize.Should().Be(3000000005);
+            result.ServerState.WriteCacheOverload.Should().Be(3.45678901234567);
         }
 
         [Fact]
@@ -320,7 +382,7 @@ namespace QBittorrent.ApiClient.Test
                                 "peer1":
                                 {
                                     "client": "Client",
-                                    "connection": "Connection",
+                                    "connection": "BT",
                                     "country": "Country",
                                     "country_code": "US",
                                     "dl_speed": 100,
@@ -355,7 +417,7 @@ namespace QBittorrent.ApiClient.Test
             result.Peers.Should().ContainKey("peer1");
             var peer = result.Peers!["peer1"];
             peer.Client.Should().Be("Client");
-            peer.Connection.Should().Be("Connection");
+            peer.Connection.Should().Be(PeerConnectionType.Bittorrent);
             peer.Country.Should().Be("Country");
             peer.CountryCode.Should().Be("US");
             peer.DownloadSpeed.Should().Be(100);
@@ -367,10 +429,48 @@ namespace QBittorrent.ApiClient.Test
             peer.I2pDestination.Should().Be("Destination");
             peer.ClientId.Should().Be("ClientId");
             peer.Port.Should().Be(6881);
-            peer.Progress.Should().Be(0.5f);
-            peer.Relevance.Should().Be(0.7f);
+            peer.Progress.Should().Be(0.5);
+            peer.Relevance.Should().Be(0.7);
             peer.UploadSpeed.Should().Be(200);
             peer.Uploaded.Should().Be(201);
+        }
+
+        [Fact]
+        public async Task GIVEN_TorrentPeersDataWithPreciseValues_WHEN_GetTorrentPeersData_THEN_ShouldPreservePrecision()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.ToString().Should().Be("http://localhost/sync/torrentPeers?hash=abcdef&rid=8");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        {
+                            "peers":
+                            {
+                                "peer1":
+                                {
+                                    "dl_speed": 2147483647,
+                                    "downloaded": 101,
+                                    "progress": 0.1234567890123456,
+                                    "relevance": 0.2345678901234567,
+                                    "up_speed": 2147483646,
+                                    "uploaded": 201
+                                }
+                            },
+                            "rid": 8
+                        }
+                        """)
+                });
+            };
+
+            var result = (await _target.GetTorrentPeersDataAsync("abcdef", 8, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            var peer = result.Peers!["peer1"];
+            peer.DownloadSpeed.Should().Be(2147483647);
+            peer.Progress.Should().Be(0.1234567890123456);
+            peer.Relevance.Should().Be(0.2345678901234567);
+            peer.UploadSpeed.Should().Be(2147483646);
         }
 
         [Fact]

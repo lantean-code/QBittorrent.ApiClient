@@ -55,7 +55,7 @@ namespace QBittorrent.ApiClient.Test
 
             var result = (await _target.GetGlobalTransferStatisticsAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
-            result.ConnectionStatus.Should().Be("connected");
+            result.ConnectionStatus.Should().Be(ConnectionStatus.Connected);
             result.DHTNodes.Should().Be(10);
             result.DownloadInfoData.Should().Be(11);
             result.DownloadInfoSpeed.Should().Be(12);

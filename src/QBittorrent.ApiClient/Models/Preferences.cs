@@ -30,7 +30,7 @@ namespace QBittorrent.ApiClient.Models
             bool anonymousMode,
             string appInstanceName,
             int asyncIoThreads,
-            int autoDeleteMode,
+            AutoDeleteMode autoDeleteMode,
             bool autoTmmEnabled,
             bool autorunEnabled,
             bool autorunOnTorrentAddedEnabled,
@@ -40,7 +40,7 @@ namespace QBittorrent.ApiClient.Models
             string bannedIPs,
             int bdecodeDepthLimit,
             int bdecodeTokenLimit,
-            int bittorrentProtocol,
+            BittorrentProtocol bittorrentProtocol,
             bool blockPeersOnPrivilegedPorts,
             string bypassAuthSubnetWhitelist,
             bool bypassAuthSubnetWhitelistEnabled,
@@ -55,16 +55,16 @@ namespace QBittorrent.ApiClient.Models
             string dhtBootstrapNodes,
             int diskCache,
             int diskCacheTtl,
-            int diskIoReadMode,
-            int diskIoType,
-            int diskIoWriteMode,
+            DiskIoReadMode diskIoReadMode,
+            DiskIoType diskIoType,
+            DiskIoWriteMode diskIoWriteMode,
             int diskQueueSize,
             int dlLimit,
             bool dontCountSlowTorrents,
             string dyndnsDomain,
             bool dyndnsEnabled,
             string dyndnsPassword,
-            int dyndnsService,
+            DyndnsService dyndnsService,
             string dyndnsUsername,
             int embeddedTrackerPort,
             bool embeddedTrackerPortForwarding,
@@ -73,7 +73,7 @@ namespace QBittorrent.ApiClient.Models
             bool enableMultiConnectionsFromSameIp,
             bool enablePieceExtentAffinity,
             bool enableUploadSuggestions,
-            int encryption,
+            EncryptionMode encryption,
             string excludedFileNames,
             bool excludedFileNamesEnabled,
             string exportDir,
@@ -127,8 +127,8 @@ namespace QBittorrent.ApiClient.Models
             int maxConnecPerTorrent,
             int maxInactiveSeedingTime,
             bool maxInactiveSeedingTimeEnabled,
-            float maxRatio,
-            int maxRatioAct,
+            double maxRatio,
+            MaxRatioAction maxRatioAct,
             bool maxRatioEnabled,
             int maxSeedingTime,
             bool maxSeedingTimeEnabled,
@@ -154,7 +154,7 @@ namespace QBittorrent.ApiClient.Models
             bool proxyPeerConnections,
             int proxyPort,
             bool proxyRss,
-            string proxyType,
+            ProxyType proxyType,
             string proxyUsername,
             string pythonExecutablePath,
             bool queueingEnabled,
@@ -164,7 +164,7 @@ namespace QBittorrent.ApiClient.Models
             int refreshInterval,
             int requestQueueSize,
             bool resolvePeerCountries,
-            string resumeDataStorageType,
+            ResumeDataStorageType resumeDataStorageType,
             bool rssAutoDownloadingEnabled,
             long rssFetchDelay,
             bool rssDownloadRepackProperEpisodes,
@@ -181,7 +181,7 @@ namespace QBittorrent.ApiClient.Models
             int scheduleFromMin,
             int scheduleToHour,
             int scheduleToMin,
-            int schedulerDays,
+            SchedulerDays schedulerDays,
             bool schedulerEnabled,
             int sendBufferLowWatermark,
             int sendBufferWatermark,
@@ -197,20 +197,20 @@ namespace QBittorrent.ApiClient.Models
             string tempPath,
             bool tempPathEnabled,
             bool torrentChangedTmmEnabled,
-            string torrentContentLayout,
-            string torrentContentRemoveOption,
+            TorrentContentLayout torrentContentLayout,
+            TorrentContentRemoveOption torrentContentRemoveOption,
             int torrentFileSizeLimit,
-            string torrentStopCondition,
+            StopCondition torrentStopCondition,
             int upLimit,
-            int uploadChokingAlgorithm,
-            int uploadSlotsBehavior,
+            UploadChokingAlgorithm uploadChokingAlgorithm,
+            UploadSlotsBehavior uploadSlotsBehavior,
             bool upnp,
             int upnpLeaseDuration,
             bool useCategoryPathsInManualMode,
             bool useHttps,
             bool ignoreSslErrors,
             bool useSubcategories,
-            int utpTcpMixedMode,
+            UtpTcpMixedMode utpTcpMixedMode,
             bool validateHttpsTrackerCertificate,
             string webUiAddress,
             string webUiApiKey,
@@ -505,13 +505,13 @@ namespace QBittorrent.ApiClient.Models
         public string AddTrackersUrlList { get; }
 
         /// <summary>
-        /// Gets the alternative download limit.
+        /// Gets the alternative download limit in bytes per second.
         /// </summary>
         [JsonPropertyName("alt_dl_limit")]
         public int AltDlLimit { get; }
 
         /// <summary>
-        /// Gets the alternative upload limit.
+        /// Gets the alternative upload limit in bytes per second.
         /// </summary>
         [JsonPropertyName("alt_up_limit")]
         public int AltUpLimit { get; }
@@ -535,7 +535,7 @@ namespace QBittorrent.ApiClient.Models
         public string AnnounceIp { get; }
 
         /// <summary>
-        /// Gets the announce port.
+        /// Gets the announce port number.
         /// </summary>
         [JsonPropertyName("announce_port")]
         public int AnnouncePort { get; }
@@ -571,10 +571,10 @@ namespace QBittorrent.ApiClient.Models
         public int AsyncIoThreads { get; }
 
         /// <summary>
-        /// Gets the auto delete mode.
+        /// Gets the torrent file auto-delete mode: <c>0</c> for never, <c>1</c> for if added, or <c>2</c> for always.
         /// </summary>
         [JsonPropertyName("auto_delete_mode")]
-        public int AutoDeleteMode { get; }
+        public AutoDeleteMode AutoDeleteMode { get; }
 
         /// <summary>
         /// Gets a value indicating whether automatic torrent management is enabled.
@@ -631,10 +631,10 @@ namespace QBittorrent.ApiClient.Models
         public int BdecodeTokenLimit { get; }
 
         /// <summary>
-        /// Gets the BitTorrent protocol mode.
+        /// Gets the peer connection protocol mode: <c>0</c> for TCP and uTP, <c>1</c> for TCP only, or <c>2</c> for uTP only.
         /// </summary>
         [JsonPropertyName("bittorrent_protocol")]
-        public int BittorrentProtocol { get; }
+        public BittorrentProtocol BittorrentProtocol { get; }
 
         /// <summary>
         /// Gets a value indicating whether peers on privileged ports are blocked.
@@ -667,13 +667,13 @@ namespace QBittorrent.ApiClient.Models
         public bool CategoryChangedTmmEnabled { get; }
 
         /// <summary>
-        /// Gets the checking memory use.
+        /// Gets the outstanding memory when checking torrents in MiB.
         /// </summary>
         [JsonPropertyName("checking_memory_use")]
         public int CheckingMemoryUse { get; }
 
         /// <summary>
-        /// Gets the connection speed.
+        /// Gets the outgoing connection rate limit in connections per second.
         /// </summary>
         [JsonPropertyName("connection_speed")]
         public int ConnectionSpeed { get; }
@@ -709,43 +709,43 @@ namespace QBittorrent.ApiClient.Models
         public string DhtBootstrapNodes { get; }
 
         /// <summary>
-        /// Gets the disk cache.
+        /// Gets the disk cache size in MiB.
         /// </summary>
         [JsonPropertyName("disk_cache")]
         public int DiskCache { get; }
 
         /// <summary>
-        /// Gets the disk cache ttl.
+        /// Gets the disk cache expiry interval in seconds.
         /// </summary>
         [JsonPropertyName("disk_cache_ttl")]
         public int DiskCacheTtl { get; }
 
         /// <summary>
-        /// Gets the disk io read mode.
+        /// Gets the disk I/O read mode: <c>0</c> for disable OS cache or <c>1</c> for enable OS cache.
         /// </summary>
         [JsonPropertyName("disk_io_read_mode")]
-        public int DiskIoReadMode { get; }
+        public DiskIoReadMode DiskIoReadMode { get; }
 
         /// <summary>
-        /// Gets the disk io type.
+        /// Gets the disk I/O type: <c>0</c> for default, <c>1</c> for memory mapped files, <c>2</c> for POSIX-compliant, or <c>3</c> for simple pread/pwrite.
         /// </summary>
         [JsonPropertyName("disk_io_type")]
-        public int DiskIoType { get; }
+        public DiskIoType DiskIoType { get; }
 
         /// <summary>
-        /// Gets the disk io write mode.
+        /// Gets the disk I/O write mode: <c>0</c> for disable OS cache, <c>1</c> for enable OS cache, or <c>2</c> for write-through when supported by the upstream build.
         /// </summary>
         [JsonPropertyName("disk_io_write_mode")]
-        public int DiskIoWriteMode { get; }
+        public DiskIoWriteMode DiskIoWriteMode { get; }
 
         /// <summary>
-        /// Gets the disk queue size.
+        /// Gets the disk queue size in bytes.
         /// </summary>
         [JsonPropertyName("disk_queue_size")]
         public int DiskQueueSize { get; }
 
         /// <summary>
-        /// Gets the download limit.
+        /// Gets the download limit in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_limit")]
         public int DlLimit { get; }
@@ -775,10 +775,10 @@ namespace QBittorrent.ApiClient.Models
         public string DyndnsPassword { get; }
 
         /// <summary>
-        /// Gets the dyndns service.
+        /// Gets the dynamic DNS service selector: <c>0</c> for DynDNS or <c>1</c> for No-IP.
         /// </summary>
         [JsonPropertyName("dyndns_service")]
-        public int DyndnsService { get; }
+        public DyndnsService DyndnsService { get; }
 
         /// <summary>
         /// Gets the dyndns username.
@@ -787,7 +787,7 @@ namespace QBittorrent.ApiClient.Models
         public string DyndnsUsername { get; }
 
         /// <summary>
-        /// Gets the embedded tracker port.
+        /// Gets the embedded tracker port number.
         /// </summary>
         [JsonPropertyName("embedded_tracker_port")]
         public int EmbeddedTrackerPort { get; }
@@ -829,10 +829,10 @@ namespace QBittorrent.ApiClient.Models
         public bool EnableUploadSuggestions { get; }
 
         /// <summary>
-        /// Gets the encryption.
+        /// Gets the encryption mode: <c>0</c> for allow encryption, <c>1</c> for require encryption, or <c>2</c> for disable encryption.
         /// </summary>
         [JsonPropertyName("encryption")]
-        public int Encryption { get; }
+        public EncryptionMode Encryption { get; }
 
         /// <summary>
         /// Gets the excluded file names.
@@ -859,13 +859,13 @@ namespace QBittorrent.ApiClient.Models
         public string ExportDirFin { get; }
 
         /// <summary>
-        /// Gets the file log age.
+        /// Gets the backup log retention age in the units selected by <see cref="FileLogAgeType" />.
         /// </summary>
         [JsonPropertyName("file_log_age")]
         public int FileLogAge { get; }
 
         /// <summary>
-        /// Gets the file log age type.
+        /// Gets the backup log retention unit selector: <c>0</c> for days, <c>1</c> for months, or <c>2</c> for years.
         /// </summary>
         [JsonPropertyName("file_log_age_type")]
         public int FileLogAgeType { get; }
@@ -889,7 +889,7 @@ namespace QBittorrent.ApiClient.Models
         public bool FileLogEnabled { get; }
 
         /// <summary>
-        /// Gets the file log max size.
+        /// Gets the log file backup threshold in KiB.
         /// </summary>
         [JsonPropertyName("file_log_max_size")]
         public int FileLogMaxSize { get; }
@@ -955,7 +955,7 @@ namespace QBittorrent.ApiClient.Models
         public int I2pOutboundQuantity { get; }
 
         /// <summary>
-        /// Gets the I2P port.
+        /// Gets the I2P port number.
         /// </summary>
         [JsonPropertyName("i2p_port")]
         public int I2pPort { get; }
@@ -1015,7 +1015,7 @@ namespace QBittorrent.ApiClient.Models
         public bool LimitUtpRate { get; }
 
         /// <summary>
-        /// Gets the listen port.
+        /// Gets the listen port number.
         /// </summary>
         [JsonPropertyName("listen_port")]
         public int ListenPort { get; }
@@ -1027,7 +1027,7 @@ namespace QBittorrent.ApiClient.Models
         public bool SslEnabled { get; }
 
         /// <summary>
-        /// Gets the SSL listen port.
+        /// Gets the SSL listen port number.
         /// </summary>
         [JsonPropertyName("ssl_listen_port")]
         public int SslListenPort { get; }
@@ -1099,31 +1099,31 @@ namespace QBittorrent.ApiClient.Models
         public bool MarkOfTheWeb { get; }
 
         /// <summary>
-        /// Gets the max active checking torrents.
+        /// Gets the maximum active checking torrent count.
         /// </summary>
         [JsonPropertyName("max_active_checking_torrents")]
         public int MaxActiveCheckingTorrents { get; }
 
         /// <summary>
-        /// Gets the max active downloads.
+        /// Gets the maximum active download count.
         /// </summary>
         [JsonPropertyName("max_active_downloads")]
         public int MaxActiveDownloads { get; }
 
         /// <summary>
-        /// Gets the max active torrents.
+        /// Gets the maximum active torrent count.
         /// </summary>
         [JsonPropertyName("max_active_torrents")]
         public int MaxActiveTorrents { get; }
 
         /// <summary>
-        /// Gets the max active uploads.
+        /// Gets the maximum active upload count.
         /// </summary>
         [JsonPropertyName("max_active_uploads")]
         public int MaxActiveUploads { get; }
 
         /// <summary>
-        /// Gets the max concurrent HTTP announces.
+        /// Gets the maximum concurrent HTTP announce count.
         /// </summary>
         [JsonPropertyName("max_concurrent_http_announces")]
         public int MaxConcurrentHttpAnnounces { get; }
@@ -1141,7 +1141,7 @@ namespace QBittorrent.ApiClient.Models
         public int MaxConnecPerTorrent { get; }
 
         /// <summary>
-        /// Gets the max inactive seeding time.
+        /// Gets the max inactive seeding time in minutes.
         /// </summary>
         [JsonPropertyName("max_inactive_seeding_time")]
         public int MaxInactiveSeedingTime { get; }
@@ -1153,16 +1153,16 @@ namespace QBittorrent.ApiClient.Models
         public bool MaxInactiveSeedingTimeEnabled { get; }
 
         /// <summary>
-        /// Gets the max ratio.
+        /// Gets the max ratio as a unitless ratio value.
         /// </summary>
         [JsonPropertyName("max_ratio")]
-        public float MaxRatio { get; }
+        public double MaxRatio { get; }
 
         /// <summary>
-        /// Gets the maximum ratio action.
+        /// Gets the share-limit action: <c>0</c> for stop torrent, <c>1</c> for remove torrent, <c>2</c> for enable super seeding, or <c>3</c> for remove torrent and its files.
         /// </summary>
         [JsonPropertyName("max_ratio_act")]
-        public int MaxRatioAct { get; }
+        public MaxRatioAction MaxRatioAct { get; }
 
         /// <summary>
         /// Gets a value indicating whether the maximum ratio is enabled.
@@ -1171,7 +1171,7 @@ namespace QBittorrent.ApiClient.Models
         public bool MaxRatioEnabled { get; }
 
         /// <summary>
-        /// Gets the max seeding time.
+        /// Gets the max seeding time in minutes.
         /// </summary>
         [JsonPropertyName("max_seeding_time")]
         public int MaxSeedingTime { get; }
@@ -1183,19 +1183,19 @@ namespace QBittorrent.ApiClient.Models
         public bool MaxSeedingTimeEnabled { get; }
 
         /// <summary>
-        /// Gets the max uploads.
+        /// Gets the maximum upload slot count.
         /// </summary>
         [JsonPropertyName("max_uploads")]
         public int MaxUploads { get; }
 
         /// <summary>
-        /// Gets the max uploads per torrent.
+        /// Gets the maximum upload slot count per torrent.
         /// </summary>
         [JsonPropertyName("max_uploads_per_torrent")]
         public int MaxUploadsPerTorrent { get; }
 
         /// <summary>
-        /// Gets the memory working set limit.
+        /// Gets the memory working set limit in MiB.
         /// </summary>
         [JsonPropertyName("memory_working_set_limit")]
         public int MemoryWorkingSetLimit { get; }
@@ -1207,13 +1207,13 @@ namespace QBittorrent.ApiClient.Models
         public bool MergeTrackers { get; }
 
         /// <summary>
-        /// Gets the outgoing ports max.
+        /// Gets the maximum outgoing port number.
         /// </summary>
         [JsonPropertyName("outgoing_ports_max")]
         public int OutgoingPortsMax { get; }
 
         /// <summary>
-        /// Gets the outgoing ports min.
+        /// Gets the minimum outgoing port number.
         /// </summary>
         [JsonPropertyName("outgoing_ports_min")]
         public int OutgoingPortsMin { get; }
@@ -1225,19 +1225,19 @@ namespace QBittorrent.ApiClient.Models
         public int PeerTos { get; }
 
         /// <summary>
-        /// Gets the peer turnover.
+        /// Gets the peer turnover disconnect percentage.
         /// </summary>
         [JsonPropertyName("peer_turnover")]
         public int PeerTurnover { get; }
 
         /// <summary>
-        /// Gets the peer turnover cutoff.
+        /// Gets the peer turnover threshold percentage.
         /// </summary>
         [JsonPropertyName("peer_turnover_cutoff")]
         public int PeerTurnoverCutoff { get; }
 
         /// <summary>
-        /// Gets the peer turnover interval.
+        /// Gets the peer turnover disconnect interval in seconds.
         /// </summary>
         [JsonPropertyName("peer_turnover_interval")]
         public int PeerTurnoverInterval { get; }
@@ -1303,7 +1303,7 @@ namespace QBittorrent.ApiClient.Models
         public bool ProxyPeerConnections { get; }
 
         /// <summary>
-        /// Gets the proxy port.
+        /// Gets the proxy port number.
         /// </summary>
         [JsonPropertyName("proxy_port")]
         public int ProxyPort { get; }
@@ -1318,7 +1318,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the proxy type.
         /// </summary>
         [JsonPropertyName("proxy_type")]
-        public string ProxyType { get; }
+        public ProxyType ProxyType { get; }
 
         /// <summary>
         /// Gets the proxy username.
@@ -1357,13 +1357,13 @@ namespace QBittorrent.ApiClient.Models
         public bool RecheckCompletedTorrents { get; }
 
         /// <summary>
-        /// Gets the refresh interval.
+        /// Gets the refresh interval in milliseconds.
         /// </summary>
         [JsonPropertyName("refresh_interval")]
         public int RefreshInterval { get; }
 
         /// <summary>
-        /// Gets the request queue size.
+        /// Gets the maximum outstanding request count to a single peer.
         /// </summary>
         [JsonPropertyName("request_queue_size")]
         public int RequestQueueSize { get; }
@@ -1378,7 +1378,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the resume data storage type.
         /// </summary>
         [JsonPropertyName("resume_data_storage_type")]
-        public string ResumeDataStorageType { get; }
+        public ResumeDataStorageType ResumeDataStorageType { get; }
 
         /// <summary>
         /// Gets a value indicating whether RSS auto downloading is enabled.
@@ -1393,7 +1393,7 @@ namespace QBittorrent.ApiClient.Models
         public bool RssDownloadRepackProperEpisodes { get; }
 
         /// <summary>
-        /// Gets the RSS fetch delay.
+        /// Gets the same-host RSS request delay in seconds.
         /// </summary>
         [JsonPropertyName("rss_fetch_delay")]
         public long RssFetchDelay { get; }
@@ -1411,7 +1411,7 @@ namespace QBittorrent.ApiClient.Models
         public bool RssProcessingEnabled { get; }
 
         /// <summary>
-        /// Gets the RSS refresh interval.
+        /// Gets the RSS refresh interval in minutes.
         /// </summary>
         [JsonPropertyName("rss_refresh_interval")]
         public int RssRefreshInterval { get; }
@@ -1435,13 +1435,13 @@ namespace QBittorrent.ApiClient.Models
         public bool SavePathChangedTmmEnabled { get; }
 
         /// <summary>
-        /// Gets the save resume data interval.
+        /// Gets the save resume data interval in minutes.
         /// </summary>
         [JsonPropertyName("save_resume_data_interval")]
         public int SaveResumeDataInterval { get; }
 
         /// <summary>
-        /// Gets the save statistics interval.
+        /// Gets the save statistics interval in minutes.
         /// </summary>
         [JsonPropertyName("save_statistics_interval")]
         public int SaveStatisticsInterval { get; }
@@ -1453,34 +1453,34 @@ namespace QBittorrent.ApiClient.Models
         public Dictionary<string, SaveLocation> ScanDirs { get; }
 
         /// <summary>
-        /// Gets the schedule from hour.
+        /// Gets the scheduled start hour in 24-hour time.
         /// </summary>
         [JsonPropertyName("schedule_from_hour")]
         public int ScheduleFromHour { get; }
 
         /// <summary>
-        /// Gets the schedule from min.
+        /// Gets the scheduled start minute.
         /// </summary>
         [JsonPropertyName("schedule_from_min")]
         public int ScheduleFromMin { get; }
 
         /// <summary>
-        /// Gets the schedule to hour.
+        /// Gets the scheduled end hour in 24-hour time.
         /// </summary>
         [JsonPropertyName("schedule_to_hour")]
         public int ScheduleToHour { get; }
 
         /// <summary>
-        /// Gets the schedule to min.
+        /// Gets the scheduled end minute.
         /// </summary>
         [JsonPropertyName("schedule_to_min")]
         public int ScheduleToMin { get; }
 
         /// <summary>
-        /// Gets the scheduler days.
+        /// Gets the scheduler day selection: <c>0</c> for every day, <c>1</c> for weekdays, <c>2</c> for weekends, <c>3</c> for Monday, <c>4</c> for Tuesday, <c>5</c> for Wednesday, <c>6</c> for Thursday, <c>7</c> for Friday, <c>8</c> for Saturday, or <c>9</c> for Sunday.
         /// </summary>
         [JsonPropertyName("scheduler_days")]
-        public int SchedulerDays { get; }
+        public SchedulerDays SchedulerDays { get; }
 
         /// <summary>
         /// Gets a value indicating whether scheduled alternative speed limits are enabled.
@@ -1489,55 +1489,55 @@ namespace QBittorrent.ApiClient.Models
         public bool SchedulerEnabled { get; }
 
         /// <summary>
-        /// Gets the send buffer low watermark.
+        /// Gets the send buffer low watermark in KiB.
         /// </summary>
         [JsonPropertyName("send_buffer_low_watermark")]
         public int SendBufferLowWatermark { get; }
 
         /// <summary>
-        /// Gets the send buffer watermark.
+        /// Gets the send buffer watermark in KiB.
         /// </summary>
         [JsonPropertyName("send_buffer_watermark")]
         public int SendBufferWatermark { get; }
 
         /// <summary>
-        /// Gets the send buffer watermark factor.
+        /// Gets the send buffer watermark factor as a percentage.
         /// </summary>
         [JsonPropertyName("send_buffer_watermark_factor")]
         public int SendBufferWatermarkFactor { get; }
 
         /// <summary>
-        /// Gets the slow torrent download rate threshold.
+        /// Gets the slow torrent download rate threshold in KiB/s.
         /// </summary>
         [JsonPropertyName("slow_torrent_dl_rate_threshold")]
         public int SlowTorrentDlRateThreshold { get; }
 
         /// <summary>
-        /// Gets the slow torrent inactive timer.
+        /// Gets the slow torrent inactivity timer in seconds.
         /// </summary>
         [JsonPropertyName("slow_torrent_inactive_timer")]
         public int SlowTorrentInactiveTimer { get; }
 
         /// <summary>
-        /// Gets the slow torrent ul rate threshold.
+        /// Gets the slow torrent upload rate threshold in KiB/s.
         /// </summary>
         [JsonPropertyName("slow_torrent_ul_rate_threshold")]
         public int SlowTorrentUlRateThreshold { get; }
 
         /// <summary>
-        /// Gets the socket backlog size.
+        /// Gets the socket backlog size as a connection count.
         /// </summary>
         [JsonPropertyName("socket_backlog_size")]
         public int SocketBacklogSize { get; }
 
         /// <summary>
-        /// Gets the socket receive buffer size.
+        /// Gets the socket receive buffer size in bytes. A value of <c>0</c> uses the system default.
         /// </summary>
         [JsonPropertyName("socket_receive_buffer_size")]
         public int SocketReceiveBufferSize { get; }
 
         /// <summary>
-        /// Gets the socket send buffer size.
+        /// Gets the socket send buffer size in bytes. A value of <c>0</c> uses the system default.
         /// </summary>
         [JsonPropertyName("socket_send_buffer_size")]
         public int SocketSendBufferSize { get; }
@@ -1549,7 +1549,7 @@ namespace QBittorrent.ApiClient.Models
         public bool SsrfMitigation { get; }
 
         /// <summary>
-        /// Gets the stop tracker timeout.
+        /// Gets the stop tracker timeout in seconds.
         /// </summary>
         [JsonPropertyName("stop_tracker_timeout")]
         public int StopTrackerTimeout { get; }
@@ -1576,16 +1576,16 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the torrent content layout.
         /// </summary>
         [JsonPropertyName("torrent_content_layout")]
-        public string TorrentContentLayout { get; }
+        public TorrentContentLayout TorrentContentLayout { get; }
 
         /// <summary>
         /// Gets the torrent content remove option.
         /// </summary>
         [JsonPropertyName("torrent_content_remove_option")]
-        public string TorrentContentRemoveOption { get; }
+        public TorrentContentRemoveOption TorrentContentRemoveOption { get; }
 
         /// <summary>
-        /// Gets the torrent file size limit.
+        /// Gets the torrent file size limit in bytes.
         /// </summary>
         [JsonPropertyName("torrent_file_size_limit")]
         public int TorrentFileSizeLimit { get; }
@@ -1594,25 +1594,25 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the torrent stop condition.
         /// </summary>
         [JsonPropertyName("torrent_stop_condition")]
-        public string TorrentStopCondition { get; }
+        public StopCondition TorrentStopCondition { get; }
 
         /// <summary>
-        /// Gets the upload limit.
+        /// Gets the upload limit in bytes per second.
         /// </summary>
         [JsonPropertyName("up_limit")]
         public int UpLimit { get; }
 
         /// <summary>
-        /// Gets the upload choking algorithm.
+        /// Gets the upload choking algorithm: <c>0</c> for round-robin, <c>1</c> for fastest upload, or <c>2</c> for anti-leech.
         /// </summary>
         [JsonPropertyName("upload_choking_algorithm")]
-        public int UploadChokingAlgorithm { get; }
+        public UploadChokingAlgorithm UploadChokingAlgorithm { get; }
 
         /// <summary>
-        /// Gets the upload slots behavior.
+        /// Gets the upload slots behavior: <c>0</c> for fixed slots or <c>1</c> for upload-rate-based slots.
         /// </summary>
         [JsonPropertyName("upload_slots_behavior")]
-        public int UploadSlotsBehavior { get; }
+        public UploadSlotsBehavior UploadSlotsBehavior { get; }
 
         /// <summary>
         /// Gets a value indicating whether UPnP is enabled.
@@ -1621,7 +1621,7 @@ namespace QBittorrent.ApiClient.Models
         public bool Upnp { get; }
 
         /// <summary>
-        /// Gets the UPnP lease duration.
+        /// Gets the UPnP lease duration in seconds. A value of <c>0</c> requests a permanent lease.
         /// </summary>
         [JsonPropertyName("upnp_lease_duration")]
         public int UpnpLeaseDuration { get; }
@@ -1651,10 +1651,10 @@ namespace QBittorrent.ApiClient.Models
         public bool UseSubcategories { get; }
 
         /// <summary>
-        /// Gets the uTP/TCP mixed mode.
+        /// Gets the uTP/TCP mixed mode algorithm: <c>0</c> for prefer TCP or <c>1</c> for peer proportional.
         /// </summary>
         [JsonPropertyName("utp_tcp_mixed_mode")]
-        public int UtpTcpMixedMode { get; }
+        public UtpTcpMixedMode UtpTcpMixedMode { get; }
 
         /// <summary>
         /// Gets a value indicating whether HTTPS tracker certificates are validated.
@@ -1675,7 +1675,7 @@ namespace QBittorrent.ApiClient.Models
         public string WebUiApiKey { get; }
 
         /// <summary>
-        /// Gets the Web UI ban duration.
+        /// Gets the Web UI ban duration in seconds.
         /// </summary>
         [JsonPropertyName("web_ui_ban_duration")]
         public int WebUiBanDuration { get; }
@@ -1723,13 +1723,13 @@ namespace QBittorrent.ApiClient.Models
         public string WebUiHttpsKeyPath { get; }
 
         /// <summary>
-        /// Gets the Web UI max auth fail count.
+        /// Gets the maximum failed Web UI authentication attempt count before a ban is applied.
         /// </summary>
         [JsonPropertyName("web_ui_max_auth_fail_count")]
         public int WebUiMaxAuthFailCount { get; }
 
         /// <summary>
-        /// Gets the Web UI port.
+        /// Gets the Web UI port number.
         /// </summary>
         [JsonPropertyName("web_ui_port")]
         public int WebUiPort { get; }
@@ -1753,7 +1753,7 @@ namespace QBittorrent.ApiClient.Models
         public bool WebUiSecureCookieEnabled { get; }
 
         /// <summary>
-        /// Gets the Web UI session timeout.
+        /// Gets the Web UI session timeout in seconds.
         /// </summary>
         [JsonPropertyName("web_ui_session_timeout")]
         public int WebUiSessionTimeout { get; }

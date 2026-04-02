@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -14,7 +14,6 @@ namespace QBittorrent.ApiClient.Models
         {
             Category = "";
             DownloadPath = "";
-            OperatingMode = "";
             SavePath = "";
             Tags = [];
         }
@@ -26,7 +25,7 @@ namespace QBittorrent.ApiClient.Models
         public string Category { get; set; }
 
         /// <summary>
-        /// Gets or sets the download limit.
+        /// Gets or sets the download rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("download_limit")]
         public int? DownloadLimit { get; set; }
@@ -38,7 +37,7 @@ namespace QBittorrent.ApiClient.Models
         public string DownloadPath { get; set; }
 
         /// <summary>
-        /// Gets or sets the inactive seeding time limit.
+        /// Gets or sets the inactive seeding time limit in minutes.
         /// </summary>
         [JsonPropertyName("inactive_seeding_time_limit")]
         public int? InactiveSeedingTimeLimit { get; set; }
@@ -47,13 +46,13 @@ namespace QBittorrent.ApiClient.Models
         /// Gets or sets the operating mode.
         /// </summary>
         [JsonPropertyName("operating_mode")]
-        public string OperatingMode { get; set; }
+        public TorrentOperatingMode OperatingMode { get; set; }
 
         /// <summary>
-        /// Gets or sets the ratio limit.
+        /// Gets or sets the share ratio limit as a unitless ratio value.
         /// </summary>
         [JsonPropertyName("ratio_limit")]
-        public int? RatioLimit { get; set; }
+        public double? RatioLimit { get; set; }
 
         /// <summary>
         /// Gets or sets the save path.
@@ -62,7 +61,7 @@ namespace QBittorrent.ApiClient.Models
         public string SavePath { get; set; }
 
         /// <summary>
-        /// Gets or sets the seeding time limit.
+        /// Gets or sets the seeding time limit in minutes.
         /// </summary>
         [JsonPropertyName("seeding_time_limit")]
         public int? SeedingTimeLimit { get; set; }
@@ -86,7 +85,7 @@ namespace QBittorrent.ApiClient.Models
         public IReadOnlyList<string> Tags { get; set; }
 
         /// <summary>
-        /// Gets or sets the upload limit.
+        /// Gets or sets the upload rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("upload_limit")]
         public int? UploadLimit { get; set; }
@@ -101,6 +100,6 @@ namespace QBittorrent.ApiClient.Models
         /// Gets or sets the content layout.
         /// </summary>
         [JsonPropertyName("content_layout")]
-        public string? ContentLayout { get; set; }
+        public TorrentContentLayout? ContentLayout { get; set; }
     }
 }

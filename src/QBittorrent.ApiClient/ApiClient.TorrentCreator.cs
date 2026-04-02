@@ -49,9 +49,14 @@ namespace QBittorrent.ApiClient
             {
                 builder.Add("urlSeeds", string.Join('|', request.UrlSeeds));
             }
-            if (!string.IsNullOrWhiteSpace(request.Format))
+            if (request.Format.HasValue)
             {
-                builder.Add("format", request.Format!);
+                builder.Add("format", request.Format.Value switch
+                {
+                    TorrentFormat.V1 => "v1",
+                    TorrentFormat.V2 => "v2",
+                    _ => "hybrid"
+                });
             }
             if (request.OptimizeAlignment.HasValue)
             {

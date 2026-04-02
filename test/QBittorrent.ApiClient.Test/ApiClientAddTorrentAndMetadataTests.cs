@@ -134,7 +134,7 @@ namespace QBittorrent.ApiClient.Test
                 RenameTorrent = "renamed",
                 UploadLimit = 123,
                 DownloadLimit = 456,
-                RatioLimit = 1.5f,
+                RatioLimit = 1.5,
                 SeedingTimeLimit = 90,
                 InactiveSeedingTimeLimit = 30,
                 ShareLimitAction = ShareLimitAction.Remove,
@@ -150,6 +150,37 @@ namespace QBittorrent.ApiClient.Test
             };
 
             var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GIVEN_PreciseRatioLimit_WHEN_AddTorrent_THEN_ShouldSerializeInvariantDouble()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                req.Method.Should().Be(HttpMethod.Post);
+                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/add");
+                req.Content.Should().BeOfType<MultipartFormDataContent>();
+
+                var ratioLimitPart = (req.Content as MultipartFormDataContent)!
+                    .Single(part => part.Headers.ContentDisposition!.Name == "ratioLimit");
+
+                (await ratioLimitPart.ReadAsStringAsync(ct)).Should().Be("1.23456789012345");
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{}")
+                };
+            };
+
+            var parameters = new AddTorrentParams
+            {
+                Urls = new[] { "u" },
+                RatioLimit = 1.23456789012345
+            };
+
+            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();
         }

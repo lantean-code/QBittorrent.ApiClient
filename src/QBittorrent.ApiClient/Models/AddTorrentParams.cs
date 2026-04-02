@@ -71,27 +71,27 @@ namespace QBittorrent.ApiClient.Models
         public string? RenameTorrent { get; set; }
 
         /// <summary>
-        /// Gets or sets the upload limit.
+        /// Gets or sets the upload rate limit in bytes per second.
         /// </summary>
-        public long? UploadLimit { get; set; }
+        public int? UploadLimit { get; set; }
 
         /// <summary>
-        /// Gets or sets the download limit.
+        /// Gets or sets the download rate limit in bytes per second.
         /// </summary>
-        public long? DownloadLimit { get; set; }
+        public int? DownloadLimit { get; set; }
 
         /// <summary>
-        /// Gets or sets the ratio limit.
+        /// Gets or sets the share ratio limit as a unitless ratio value.
         /// </summary>
-        public float? RatioLimit { get; set; }
+        public double? RatioLimit { get; set; }
 
         /// <summary>
-        /// Gets or sets the seeding time limit.
+        /// Gets or sets the seeding time limit in minutes.
         /// </summary>
         public int? SeedingTimeLimit { get; set; }
 
         /// <summary>
-        /// Gets or sets the inactive seeding time limit.
+        /// Gets or sets the inactive seeding time limit in minutes.
         /// </summary>
         public int? InactiveSeedingTimeLimit { get; set; }
 

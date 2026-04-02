@@ -10,7 +10,7 @@ namespace QBittorrent.ApiClient.Test
         {
             var target = new UpdatePreferences
             {
-                MaxRatio = 1.5f,
+                MaxRatio = 1.5,
                 MaxRatioEnabled = true
             };
 

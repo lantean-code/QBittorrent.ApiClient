@@ -17,8 +17,8 @@ namespace QBittorrent.ApiClient.Models
             long completionDate,
             string createdBy,
             long creationDate,
-            long downloadLimit,
-            long downloadSpeed,
+            int downloadLimit,
+            int downloadSpeed,
             long downloadSpeedAverage,
             long estimatedTimeOfArrival,
             long lastSeen,
@@ -26,32 +26,33 @@ namespace QBittorrent.ApiClient.Models
             int connectionsLimit,
             int peers,
             int peersTotal,
-            int pieceSize,
+            long pieceSize,
             int piecesHave,
             int piecesNum,
-            int reannounce,
+            long reannounce,
             string savePath,
-            int seedingTime,
+            long seedingTime,
             int seeds,
             int seedsTotal,
-            float shareRatio,
-            int timeElapsed,
+            double shareRatio,
+            long timeElapsed,
             long totalDownloaded,
             long totalDownloadedSession,
             long totalSize,
             long totalUploaded,
             long totalUploadedSession,
             long totalWasted,
-            long uploadLimit,
-            long uploadSpeed,
+            int uploadLimit,
+            int uploadSpeed,
             long uploadSpeedAverage,
             string infoHashV1,
             string infoHashV2,
             string? hash = null,
             string? name = null,
             string? downloadPath = null,
-            float? popularity = null,
-            float? progress = null,
+            double? popularity = null,
+            double? progress = null,
+            double? availability = null,
             bool? isPrivate = null,
             bool? @private = null,
             bool? hasMetadata = null)
@@ -96,13 +97,14 @@ namespace QBittorrent.ApiClient.Models
             DownloadPath = downloadPath;
             Popularity = popularity;
             Progress = progress;
+            Availability = availability;
             IsPrivate = isPrivate;
             Private = @private;
             HasMetadata = hasMetadata;
         }
 
         /// <summary>
-        /// Gets the addition date.
+        /// Gets the addition time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("addition_date")]
         public long AdditionDate { get; }
@@ -114,7 +116,7 @@ namespace QBittorrent.ApiClient.Models
         public string Comment { get; }
 
         /// <summary>
-        /// Gets the completion date.
+        /// Gets the completion time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("completion_date")]
         public long CompletionDate { get; }
@@ -126,37 +128,37 @@ namespace QBittorrent.ApiClient.Models
         public string CreatedBy { get; }
 
         /// <summary>
-        /// Gets the creation date.
+        /// Gets the creation time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("creation_date")]
         public long CreationDate { get; }
 
         /// <summary>
-        /// Gets the download limit.
+        /// Gets the download rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_limit")]
-        public long DownloadLimit { get; }
+        public int DownloadLimit { get; }
 
         /// <summary>
-        /// Gets the download speed.
+        /// Gets the current download speed in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_speed")]
-        public long DownloadSpeed { get; }
+        public int DownloadSpeed { get; }
 
         /// <summary>
-        /// Gets the download speed average.
+        /// Gets the average download speed in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_speed_avg")]
         public long DownloadSpeedAverage { get; }
 
         /// <summary>
-        /// Gets the estimated time of arrival.
+        /// Gets the estimated time remaining in seconds.
         /// </summary>
         [JsonPropertyName("eta")]
         public long EstimatedTimeOfArrival { get; }
 
         /// <summary>
-        /// Gets the last seen.
+        /// Gets the last-seen time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("last_seen")]
         public long LastSeen { get; }
@@ -186,10 +188,10 @@ namespace QBittorrent.ApiClient.Models
         public int PeersTotal { get; }
 
         /// <summary>
-        /// Gets the piece size.
+        /// Gets the piece size in bytes.
         /// </summary>
         [JsonPropertyName("piece_size")]
-        public int PieceSize { get; }
+        public long PieceSize { get; }
 
         /// <summary>
         /// Gets the pieces have.
@@ -204,10 +206,10 @@ namespace QBittorrent.ApiClient.Models
         public int PiecesNum { get; }
 
         /// <summary>
-        /// Gets the reannounce.
+        /// Gets the time until the next tracker reannounce in seconds.
         /// </summary>
         [JsonPropertyName("reannounce")]
-        public int Reannounce { get; }
+        public long Reannounce { get; }
 
         /// <summary>
         /// Gets the save path.
@@ -222,10 +224,10 @@ namespace QBittorrent.ApiClient.Models
         public string? DownloadPath { get; }
 
         /// <summary>
-        /// Gets the seeding time.
+        /// Gets the seeding time in seconds.
         /// </summary>
         [JsonPropertyName("seeding_time")]
-        public int SeedingTime { get; }
+        public long SeedingTime { get; }
 
         /// <summary>
         /// Gets the number of seeds.
@@ -240,79 +242,85 @@ namespace QBittorrent.ApiClient.Models
         public int SeedsTotal { get; }
 
         /// <summary>
-        /// Gets the share ratio.
+        /// Gets the share ratio as a unitless ratio value.
         /// </summary>
         [JsonPropertyName("share_ratio")]
-        public float ShareRatio { get; }
+        public double ShareRatio { get; }
 
         /// <summary>
-        /// Gets the popularity.
+        /// Gets the popularity value reported by qBittorrent in distributed copies.
         /// </summary>
         [JsonPropertyName("popularity")]
-        public float? Popularity { get; }
+        public double? Popularity { get; }
 
         /// <summary>
-        /// Gets the progress.
+        /// Gets the torrent completion fraction from 0.0 to 1.0.
         /// </summary>
         [JsonPropertyName("progress")]
-        public float? Progress { get; }
+        public double? Progress { get; }
 
         /// <summary>
-        /// Gets the time elapsed.
+        /// Gets the availability reported by qBittorrent in distributed copies.
+        /// </summary>
+        [JsonPropertyName("availability")]
+        public double? Availability { get; }
+
+        /// <summary>
+        /// Gets the elapsed time in seconds.
         /// </summary>
         [JsonPropertyName("time_elapsed")]
-        public int TimeElapsed { get; }
+        public long TimeElapsed { get; }
 
         /// <summary>
-        /// Gets the total downloaded.
+        /// Gets the total downloaded amount in bytes.
         /// </summary>
         [JsonPropertyName("total_downloaded")]
         public long TotalDownloaded { get; }
 
         /// <summary>
-        /// Gets the total amount downloaded in the current session.
+        /// Gets the total amount downloaded in the current session in bytes.
         /// </summary>
         [JsonPropertyName("total_downloaded_session")]
         public long TotalDownloadedSession { get; }
 
         /// <summary>
-        /// Gets the total size.
+        /// Gets the total size in bytes.
         /// </summary>
         [JsonPropertyName("total_size")]
         public long TotalSize { get; }
 
         /// <summary>
-        /// Gets the total uploaded.
+        /// Gets the total uploaded amount in bytes.
         /// </summary>
         [JsonPropertyName("total_uploaded")]
         public long TotalUploaded { get; }
 
         /// <summary>
-        /// Gets the total amount uploaded in the current session.
+        /// Gets the total amount uploaded in the current session in bytes.
         /// </summary>
         [JsonPropertyName("total_uploaded_session")]
         public long TotalUploadedSession { get; }
 
         /// <summary>
-        /// Gets the total wasted.
+        /// Gets the total wasted amount in bytes.
         /// </summary>
         [JsonPropertyName("total_wasted")]
         public long TotalWasted { get; }
 
         /// <summary>
-        /// Gets the upload limit.
+        /// Gets the upload rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("up_limit")]
-        public long UploadLimit { get; }
+        public int UploadLimit { get; }
 
         /// <summary>
-        /// Gets the upload speed.
+        /// Gets the current upload speed in bytes per second.
         /// </summary>
         [JsonPropertyName("up_speed")]
-        public long UploadSpeed { get; }
+        public int UploadSpeed { get; }
 
         /// <summary>
-        /// Gets the upload speed average.
+        /// Gets the average upload speed in bytes per second.
         /// </summary>
         [JsonPropertyName("up_speed_avg")]
         public long UploadSpeedAverage { get; }

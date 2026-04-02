@@ -1,3 +1,4 @@
+using QBittorrent.ApiClient.Converters;
 using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
@@ -14,29 +15,29 @@ namespace QBittorrent.ApiClient.Models
         public ServerState(
             long? allTimeDownloaded,
             long? allTimeUploaded,
-            int? averageTimeQueue,
-            string? connectionStatus,
-            int? dHTNodes,
+            long? averageTimeQueue,
+            ConnectionStatus? connectionStatus,
+            long? dHTNodes,
             long? downloadInfoData,
             long? downloadInfoSpeed,
-            long? downloadRateLimit,
+            int? downloadRateLimit,
             long? freeSpaceOnDisk,
-            float? globalRatio,
-            int? queuedIOJobs,
+            double? globalRatio,
+            long? queuedIOJobs,
             bool? queuing,
-            float? readCacheHits,
-            float? readCacheOverload,
+            double? readCacheHits,
+            double? readCacheOverload,
             int? refreshInterval,
-            int? totalBuffersSize,
-            int? totalPeerConnections,
-            int? totalQueuedSize,
+            long? totalBuffersSize,
+            long? totalPeerConnections,
+            long? totalQueuedSize,
             long? totalWastedSession,
             long? uploadInfoData,
             long? uploadInfoSpeed,
-            long? uploadRateLimit,
+            int? uploadRateLimit,
             bool? useAltSpeedLimits,
             bool? useSubcategories,
-            float? writeCacheOverload,
+            double? writeCacheOverload,
             string? lastExternalAddressV4 = null,
             string? lastExternalAddressV6 = null) : base(connectionStatus, dHTNodes, downloadInfoData, downloadInfoSpeed, downloadRateLimit, uploadInfoData, uploadInfoSpeed, uploadRateLimit, lastExternalAddressV4, lastExternalAddressV6)
         {
@@ -60,40 +61,41 @@ namespace QBittorrent.ApiClient.Models
         }
 
         /// <summary>
-        /// Gets the all time downloaded.
+        /// Gets the all-time downloaded total in bytes.
         /// </summary>
         [JsonPropertyName("alltime_dl")]
         public long? AllTimeDownloaded { get; }
 
         /// <summary>
-        /// Gets the all time uploaded.
+        /// Gets the all-time uploaded total in bytes.
         /// </summary>
         [JsonPropertyName("alltime_ul")]
         public long? AllTimeUploaded { get; }
 
         /// <summary>
-        /// Gets the average time queue.
+        /// Gets the average queued I/O job time in milliseconds.
         /// </summary>
         [JsonPropertyName("average_time_queue")]
-        public int? AverageTimeQueue { get; }
+        public long? AverageTimeQueue { get; }
 
         /// <summary>
-        /// Gets the free space on disk.
+        /// Gets the free space on disk in bytes.
         /// </summary>
         [JsonPropertyName("free_space_on_disk")]
         public long? FreeSpaceOnDisk { get; }
 
         /// <summary>
-        /// Gets the global ratio.
+        /// Gets the global share ratio as a unitless ratio value.
         /// </summary>
+        [JsonConverter(typeof(NullableStringDoubleJsonConverter))]
         [JsonPropertyName("global_ratio")]
-        public float? GlobalRatio { get; }
+        public double? GlobalRatio { get; }
 
         /// <summary>
-        /// Gets the queued io jobs.
+        /// Gets the number of queued I/O jobs.
         /// </summary>
         [JsonPropertyName("queued_io_jobs")]
-        public int? QueuedIOJobs { get; }
+        public long? QueuedIOJobs { get; }
 
         /// <summary>
         /// Gets a value indicating whether torrent queueing is enabled.
@@ -102,43 +104,45 @@ namespace QBittorrent.ApiClient.Models
         public bool? Queuing { get; }
 
         /// <summary>
-        /// Gets the read cache hits.
+        /// Gets the read cache hit rate as a percentage.
         /// </summary>
+        [JsonConverter(typeof(NullableStringDoubleJsonConverter))]
         [JsonPropertyName("read_cache_hits")]
-        public float? ReadCacheHits { get; }
+        public double? ReadCacheHits { get; }
 
         /// <summary>
-        /// Gets the read cache overload.
+        /// Gets the read cache overload as a percentage.
         /// </summary>
+        [JsonConverter(typeof(NullableStringDoubleJsonConverter))]
         [JsonPropertyName("read_cache_overload")]
-        public float? ReadCacheOverload { get; }
+        public double? ReadCacheOverload { get; }
 
         /// <summary>
-        /// Gets the refresh interval.
+        /// Gets the sync refresh interval in milliseconds.
         /// </summary>
         [JsonPropertyName("refresh_interval")]
         public int? RefreshInterval { get; }
 
         /// <summary>
-        /// Gets the total buffers size.
+        /// Gets the total buffer size in bytes.
         /// </summary>
         [JsonPropertyName("total_buffers_size")]
-        public int? TotalBuffersSize { get; }
+        public long? TotalBuffersSize { get; }
 
         /// <summary>
-        /// Gets the total peer connections.
+        /// Gets the total number of peer connections.
         /// </summary>
         [JsonPropertyName("total_peer_connections")]
-        public int? TotalPeerConnections { get; }
+        public long? TotalPeerConnections { get; }
 
         /// <summary>
-        /// Gets the total queued size.
+        /// Gets the total queued size in bytes.
         /// </summary>
         [JsonPropertyName("total_queued_size")]
-        public int? TotalQueuedSize { get; }
+        public long? TotalQueuedSize { get; }
 
         /// <summary>
-        /// Gets the total wasted session.
+        /// Gets the total wasted data for the current session in bytes.
         /// </summary>
         [JsonPropertyName("total_wasted_session")]
         public long? TotalWastedSession { get; }
@@ -156,9 +160,10 @@ namespace QBittorrent.ApiClient.Models
         public bool? UseSubcategories { get; }
 
         /// <summary>
-        /// Gets the write cache overload.
+        /// Gets the write cache overload as a percentage.
         /// </summary>
+        [JsonConverter(typeof(NullableStringDoubleJsonConverter))]
         [JsonPropertyName("write_cache_overload")]
-        public float? WriteCacheOverload { get; }
+        public double? WriteCacheOverload { get; }
     }
 }

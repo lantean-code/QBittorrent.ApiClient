@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -38,7 +38,7 @@ namespace QBittorrent.ApiClient.Models
         public string IPAddress { get; }
 
         /// <summary>
-        /// Gets the timestamp.
+        /// Gets the event time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("timestamp")]
         public long Timestamp { get; }

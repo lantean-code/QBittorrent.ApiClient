@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -46,7 +46,7 @@ namespace QBittorrent.ApiClient.Models
         public string FileName { get; set; }
 
         /// <summary>
-        /// Gets or sets the file size.
+        /// Gets or sets the file size in bytes.
         /// </summary>
         [JsonPropertyName("fileSize")]
         public long FileSize { get; set; }
@@ -82,7 +82,7 @@ namespace QBittorrent.ApiClient.Models
         public string EngineName { get; set; }
 
         /// <summary>
-        /// Gets or sets the published on.
+        /// Gets or sets the publication time as a Unix timestamp in seconds when available.
         /// </summary>
         [JsonPropertyName("pubDate")]
         public long? PublishedOn { get; set; }

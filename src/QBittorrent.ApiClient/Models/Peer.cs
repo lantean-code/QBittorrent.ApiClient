@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -13,10 +13,10 @@ namespace QBittorrent.ApiClient.Models
         [JsonConstructor]
         public Peer(
             string? client,
-            string? connection,
+            PeerConnectionType? connection,
             string? country,
             string? countryCode,
-            long? downloadSpeed,
+            int? downloadSpeed,
             long? downloaded,
             string? files,
             string? flags,
@@ -25,9 +25,9 @@ namespace QBittorrent.ApiClient.Models
             string? i2pDestination,
             string? clientId,
             int? port,
-            float? progress,
-            float? relevance,
-            long? uploadSpeed,
+            double? progress,
+            double? relevance,
+            int? uploadSpeed,
             long? uploaded)
         {
             Client = client;
@@ -59,7 +59,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the connection.
         /// </summary>
         [JsonPropertyName("connection")]
-        public string? Connection { get; }
+        public PeerConnectionType? Connection { get; }
 
         /// <summary>
         /// Gets the country.
@@ -74,13 +74,13 @@ namespace QBittorrent.ApiClient.Models
         public string? CountryCode { get; }
 
         /// <summary>
-        /// Gets the download speed.
+        /// Gets the current download speed in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_speed")]
-        public long? DownloadSpeed { get; }
+        public int? DownloadSpeed { get; }
 
         /// <summary>
-        /// Gets the downloaded.
+        /// Gets the downloaded byte count.
         /// </summary>
         [JsonPropertyName("downloaded")]
         public long? Downloaded { get; }
@@ -122,31 +122,31 @@ namespace QBittorrent.ApiClient.Models
         public string? ClientId { get; }
 
         /// <summary>
-        /// Gets the port.
+        /// Gets the peer port number.
         /// </summary>
         [JsonPropertyName("port")]
         public int? Port { get; }
 
         /// <summary>
-        /// Gets the progress.
+        /// Gets the peer completion fraction from 0.0 to 1.0.
         /// </summary>
         [JsonPropertyName("progress")]
-        public float? Progress { get; }
+        public double? Progress { get; }
 
         /// <summary>
-        /// Gets the relevance.
+        /// Gets the peer relevance fraction from 0.0 to 1.0.
         /// </summary>
         [JsonPropertyName("relevance")]
-        public float? Relevance { get; }
+        public double? Relevance { get; }
 
         /// <summary>
-        /// Gets the upload speed.
+        /// Gets the current upload speed in bytes per second.
         /// </summary>
         [JsonPropertyName("up_speed")]
-        public long? UploadSpeed { get; }
+        public int? UploadSpeed { get; }
 
         /// <summary>
-        /// Gets the uploaded.
+        /// Gets the uploaded byte count.
         /// </summary>
         [JsonPropertyName("uploaded")]
         public long? Uploaded { get; }

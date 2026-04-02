@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
     /// Specifies how qBittorrent should lay out torrent content on disk.
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<TorrentContentLayout>))]
     public enum TorrentContentLayout
     {
         /// <summary>

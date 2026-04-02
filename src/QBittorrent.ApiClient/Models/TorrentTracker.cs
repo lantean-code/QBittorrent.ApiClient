@@ -86,13 +86,13 @@ namespace QBittorrent.ApiClient.Models
         public string Message { get; }
 
         /// <summary>
-        /// Gets the next announce time.
+        /// Gets the time until the next announce in seconds when available.
         /// </summary>
         [JsonPropertyName("next_announce")]
         public long? NextAnnounce { get; }
 
         /// <summary>
-        /// Gets the minimum announce interval.
+        /// Gets the minimum announce interval in seconds when available.
         /// </summary>
         [JsonPropertyName("min_announce")]
         public long? MinAnnounce { get; }

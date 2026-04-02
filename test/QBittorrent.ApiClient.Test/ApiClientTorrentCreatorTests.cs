@@ -107,12 +107,44 @@ namespace QBittorrent.ApiClient.Test
                 Source = "mysrc",
                 Trackers = new[] { "t1", "t2" },
                 UrlSeeds = new[] { "u1", "u2" },
-                Format = "v2",
+                Format = TorrentFormat.V2,
                 OptimizeAlignment = true,
                 PaddedFileSizeLimit = 4096
             };
 
             var id = (await _target.AddTorrentCreationTaskAsync(request, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            id.Should().Be("task-123");
+        }
+
+        [Theory]
+        [InlineData(TorrentFormat.V1, "v1")]
+        [InlineData(TorrentFormat.Hybrid, "hybrid")]
+        public async Task GIVEN_FormatVariant_WHEN_AddTorrentCreationTask_THEN_ShouldSerializeExpectedFormatValue(TorrentFormat format, string expectedValue)
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                var form = await req.Content!.ReadAsStringAsync(ct);
+                var parts = form.Split('&')
+                    .Select(p => p.Split('='))
+                    .ToDictionary(a => a[0], a => Uri.UnescapeDataString(a.Length > 1 ? a[1] : string.Empty));
+
+                parts.Should().ContainKey("sourcePath");
+                parts["sourcePath"].Should().Be("/src");
+                parts.Should().ContainKey("format");
+                parts["format"].Should().Be(expectedValue);
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"taskID\":\"task-123\"}")
+                };
+            };
+
+            var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            {
+                SourcePath = "/src",
+                Format = format
+            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             id.Should().Be("task-123");
         }
@@ -249,7 +281,7 @@ namespace QBittorrent.ApiClient.Test
                                 "timeStarted": "2024-01-01 00:01",
                                 "timeFinished": "2024-01-01 00:02",
                                 "errorMessage": "ErrorMessage",
-                                "progress": 0.75
+                                "progress": 75
                             }
                         ]
                         """)
@@ -264,10 +296,10 @@ namespace QBittorrent.ApiClient.Test
             list[0].PieceSize.Should().Be(512);
             list[0].Private.Should().BeTrue();
             list[0].TimeAdded.Should().Be("2024-01-01 00:00");
-            list[0].Format.Should().Be("v2");
+            list[0].Format.Should().Be(TorrentFormat.V2);
             list[0].OptimizeAlignment.Should().BeFalse();
             list[0].PaddedFileSizeLimit.Should().Be(4096);
-            list[0].Status.Should().Be("Running");
+            list[0].Status.Should().Be(TorrentCreationTaskStatusKind.Running);
             list[0].Comment.Should().Be("Comment");
             list[0].TorrentFilePath.Should().Be("/output.torrent");
             list[0].Source.Should().Be("Source");
@@ -276,7 +308,7 @@ namespace QBittorrent.ApiClient.Test
             list[0].TimeStarted.Should().Be("2024-01-01 00:01");
             list[0].TimeFinished.Should().Be("2024-01-01 00:02");
             list[0].ErrorMessage.Should().Be("ErrorMessage");
-            list[0].Progress.Should().Be(0.75);
+            list[0].Progress.Should().Be(75);
         }
 
         [Fact]

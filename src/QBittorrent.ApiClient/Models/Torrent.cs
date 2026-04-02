@@ -19,18 +19,18 @@ namespace QBittorrent.ApiClient.Models
             string? name = null,
             string? magnetUri = null,
             long? size = null,
-            float? progress = null,
-            long? downloadSpeed = null,
-            long? uploadSpeed = null,
+            double? progress = null,
+            int? downloadSpeed = null,
+            int? uploadSpeed = null,
             int? priority = null,
             int? numberSeeds = null,
             int? numberComplete = null,
             int? numberLeeches = null,
             int? numberIncomplete = null,
-            float? ratio = null,
-            float? popularity = null,
+            double? ratio = null,
+            double? popularity = null,
             long? estimatedTimeOfArrival = null,
-            string? state = null,
+            TorrentState? state = null,
             bool? sequentialDownload = null,
             bool? firstLastPiecePriority = null,
             string? category = null,
@@ -45,8 +45,8 @@ namespace QBittorrent.ApiClient.Models
             long? completionOn = null,
             string? tracker = null,
             int? trackersCount = null,
-            long? downloadLimit = null,
-            long? uploadLimit = null,
+            int? downloadLimit = null,
+            int? uploadLimit = null,
             long? downloaded = null,
             long? uploaded = null,
             long? downloadedSession = null,
@@ -55,20 +55,20 @@ namespace QBittorrent.ApiClient.Models
             long? completed = null,
             int? connectionsCount = null,
             int? connectionsLimit = null,
-            float? maxRatio = null,
+            double? maxRatio = null,
             int? maxSeedingTime = null,
-            float? maxInactiveSeedingTime = null,
-            float? ratioLimit = null,
+            int? maxInactiveSeedingTime = null,
+            double? ratioLimit = null,
             int? seedingTimeLimit = null,
-            float? inactiveSeedingTimeLimit = null,
+            int? inactiveSeedingTimeLimit = null,
             ShareLimitAction? shareLimitAction = null,
             long? seenComplete = null,
             long? lastActivity = null,
             long? totalSize = null,
             bool? automaticTorrentManagement = null,
-            int? timeActive = null,
+            long? timeActive = null,
             long? seedingTime = null,
-            float? availability = null,
+            double? availability = null,
             long? reannounce = null,
             string? comment = null,
             bool? hasMetadata = null,
@@ -193,22 +193,22 @@ namespace QBittorrent.ApiClient.Models
         public long? Size { get; }
 
         /// <summary>
-        /// Gets the torrent progress.
+        /// Gets the torrent completion fraction from 0.0 to 1.0.
         /// </summary>
         [JsonPropertyName("progress")]
-        public float? Progress { get; }
+        public double? Progress { get; }
 
         /// <summary>
-        /// Gets the download speed.
+        /// Gets the current download speed in bytes per second.
         /// </summary>
         [JsonPropertyName("dlspeed")]
-        public long? DownloadSpeed { get; }
+        public int? DownloadSpeed { get; }
 
         /// <summary>
-        /// Gets the upload speed.
+        /// Gets the current upload speed in bytes per second.
         /// </summary>
         [JsonPropertyName("upspeed")]
-        public long? UploadSpeed { get; }
+        public int? UploadSpeed { get; }
 
         /// <summary>
         /// Gets the torrent priority.
@@ -241,19 +241,19 @@ namespace QBittorrent.ApiClient.Models
         public int? NumberIncomplete { get; }
 
         /// <summary>
-        /// Gets the share ratio.
+        /// Gets the share ratio as a unitless ratio value.
         /// </summary>
         [JsonPropertyName("ratio")]
-        public float? Ratio { get; }
+        public double? Ratio { get; }
 
         /// <summary>
-        /// Gets the swarm popularity.
+        /// Gets the swarm popularity value reported by qBittorrent in distributed copies.
         /// </summary>
         [JsonPropertyName("popularity")]
-        public float? Popularity { get; }
+        public double? Popularity { get; }
 
         /// <summary>
-        /// Gets the estimated time remaining.
+        /// Gets the estimated time remaining in seconds.
         /// </summary>
         [JsonPropertyName("eta")]
         public long? EstimatedTimeOfArrival { get; }
@@ -262,7 +262,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the torrent state.
         /// </summary>
         [JsonPropertyName("state")]
-        public string? State { get; }
+        public TorrentState? State { get; }
 
         /// <summary>
         /// Gets a value indicating whether sequential download is enabled.
@@ -326,13 +326,13 @@ namespace QBittorrent.ApiClient.Models
         public string? RootPath { get; }
 
         /// <summary>
-        /// Gets the added-on timestamp.
+        /// Gets the added-on time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("added_on")]
         public long? AddedOn { get; }
 
         /// <summary>
-        /// Gets the completion timestamp.
+        /// Gets the completion time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("completion_on")]
         public long? CompletionOn { get; }
@@ -344,22 +344,22 @@ namespace QBittorrent.ApiClient.Models
         public string? Tracker { get; }
 
         /// <summary>
-        /// Gets the trackers count.
+        /// Gets the number of trackers.
         /// </summary>
         [JsonPropertyName("trackers_count")]
         public int? TrackersCount { get; }
 
         /// <summary>
-        /// Gets the download limit.
+        /// Gets the download rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_limit")]
-        public long? DownloadLimit { get; }
+        public int? DownloadLimit { get; }
 
         /// <summary>
-        /// Gets the upload limit.
+        /// Gets the upload rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("up_limit")]
-        public long? UploadLimit { get; }
+        public int? UploadLimit { get; }
 
         /// <summary>
         /// Gets the downloaded byte count.
@@ -398,52 +398,52 @@ namespace QBittorrent.ApiClient.Models
         public long? Completed { get; }
 
         /// <summary>
-        /// Gets the connections count.
+        /// Gets the number of active connections.
         /// </summary>
         [JsonPropertyName("connections_count")]
         public int? ConnectionsCount { get; }
 
         /// <summary>
-        /// Gets the connections limit.
+        /// Gets the connection limit as a count of peers.
         /// </summary>
         [JsonPropertyName("connections_limit")]
         public int? ConnectionsLimit { get; }
 
         /// <summary>
-        /// Gets the max ratio.
+        /// Gets the maximum share ratio as a unitless ratio value.
         /// </summary>
         [JsonPropertyName("max_ratio")]
-        public float? MaxRatio { get; }
+        public double? MaxRatio { get; }
 
         /// <summary>
-        /// Gets the max seeding time.
+        /// Gets the maximum seeding time in minutes.
         /// </summary>
         [JsonPropertyName("max_seeding_time")]
         public int? MaxSeedingTime { get; }
 
         /// <summary>
-        /// Gets the max inactive seeding time.
+        /// Gets the maximum inactive seeding time in minutes.
         /// </summary>
         [JsonPropertyName("max_inactive_seeding_time")]
-        public float? MaxInactiveSeedingTime { get; }
+        public int? MaxInactiveSeedingTime { get; }
 
         /// <summary>
-        /// Gets the ratio limit.
+        /// Gets the share ratio limit as a unitless ratio value.
         /// </summary>
         [JsonPropertyName("ratio_limit")]
-        public float? RatioLimit { get; }
+        public double? RatioLimit { get; }
 
         /// <summary>
-        /// Gets the seeding time limit.
+        /// Gets the seeding time limit in minutes.
         /// </summary>
         [JsonPropertyName("seeding_time_limit")]
         public int? SeedingTimeLimit { get; }
 
         /// <summary>
-        /// Gets the inactive seeding time limit.
+        /// Gets the inactive seeding time limit in minutes.
         /// </summary>
         [JsonPropertyName("inactive_seeding_time_limit")]
-        public float? InactiveSeedingTimeLimit { get; }
+        public int? InactiveSeedingTimeLimit { get; }
 
         /// <summary>
         /// Gets the share limit action.
@@ -453,13 +453,13 @@ namespace QBittorrent.ApiClient.Models
         public ShareLimitAction? ShareLimitAction { get; }
 
         /// <summary>
-        /// Gets the seen complete.
+        /// Gets the last seen-complete time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("seen_complete")]
         public long? SeenComplete { get; }
 
         /// <summary>
-        /// Gets the last activity.
+        /// Gets the last activity time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("last_activity")]
         public long? LastActivity { get; }
@@ -477,25 +477,25 @@ namespace QBittorrent.ApiClient.Models
         public bool? AutomaticTorrentManagement { get; }
 
         /// <summary>
-        /// Gets the time active.
+        /// Gets the active time in seconds.
         /// </summary>
         [JsonPropertyName("time_active")]
-        public int? TimeActive { get; }
+        public long? TimeActive { get; }
 
         /// <summary>
-        /// Gets the seeding time.
+        /// Gets the seeding time in seconds.
         /// </summary>
         [JsonPropertyName("seeding_time")]
         public long? SeedingTime { get; }
 
         /// <summary>
-        /// Gets the availability reported by qBittorrent.
+        /// Gets the availability reported by qBittorrent in distributed copies.
         /// </summary>
         [JsonPropertyName("availability")]
-        public float? Availability { get; }
+        public double? Availability { get; }
 
         /// <summary>
-        /// Gets the time until the next tracker reannounce.
+        /// Gets the time until the next tracker reannounce in seconds.
         /// </summary>
         [JsonPropertyName("reannounce")]
         public long? Reannounce { get; }
@@ -519,7 +519,7 @@ namespace QBittorrent.ApiClient.Models
         public string? CreatedBy { get; }
 
         /// <summary>
-        /// Gets the torrent creation date.
+        /// Gets the torrent creation time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("creation_date")]
         public long? CreationDate { get; }

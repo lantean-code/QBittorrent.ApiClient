@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
     /// Specifies when qBittorrent should stop a torrent after it is added.
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter<StopCondition>))]
     public enum StopCondition
     {
         /// <summary>

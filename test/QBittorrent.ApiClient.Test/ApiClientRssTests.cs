@@ -484,6 +484,67 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_RuleWithRatioLimit_WHEN_SetRssAutoDownloadingRule_THEN_ShouldSerializeRatioLimitAsJsonNumber()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                req.Method.Should().Be(HttpMethod.Post);
+                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
+
+                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var json = decoded.Substring("ruleName=r1&ruleDef=".Length);
+
+                json.Should().Contain("\"ratio_limit\":1.23456789012345");
+                json.Should().NotContain("\"ratio_limit\":\"1.23456789012345\"");
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            var rule = new AutoDownloadingRule
+            {
+                TorrentParams = new TorrentParams
+                {
+                    RatioLimit = 1.23456789012345
+                }
+            };
+
+            (await _target.SetRssAutoDownloadingRuleAsync("r1", rule, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_RuleWithEnumBackedTorrentParams_WHEN_SetRssAutoDownloadingRule_THEN_ShouldSerializeEnumValuesAsStrings()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                req.Method.Should().Be(HttpMethod.Post);
+                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
+
+                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var json = decoded.Substring("ruleName=r1&ruleDef=".Length);
+
+                json.Should().Contain("\"torrentContentLayout\":\"Subfolder\"");
+                json.Should().Contain("\"operating_mode\":\"Forced\"");
+                json.Should().Contain("\"content_layout\":\"NoSubfolder\"");
+                json.Should().NotContain("\"operating_mode\":1");
+                json.Should().NotContain("\"content_layout\":2");
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            var rule = new AutoDownloadingRule
+            {
+                TorrentContentLayout = TorrentContentLayout.Subfolder,
+                TorrentParams = new TorrentParams
+                {
+                    OperatingMode = TorrentOperatingMode.Forced,
+                    ContentLayout = TorrentContentLayout.NoSubfolder
+                }
+            };
+
+            (await _target.SetRssAutoDownloadingRuleAsync("r1", rule, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
         public async Task GIVEN_RuleNames_WHEN_RenameRssAutoDownloadingRule_THEN_ShouldPOSTBothNames()
         {
             _handler.Responder = async (req, ct) =>

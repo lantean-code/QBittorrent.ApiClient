@@ -24,6 +24,11 @@ namespace QBittorrent.ApiClient
             content.AddString(name, value.ToString(CultureInfo.InvariantCulture));
         }
 
+        public static void AddString(this MultipartFormDataContent content, string name, double value)
+        {
+            content.AddString(name, value.ToString(CultureInfo.InvariantCulture));
+        }
+
         public static void AddString(this MultipartFormDataContent content, string name, float value)
         {
             content.AddString(name, value.ToString(CultureInfo.InvariantCulture));

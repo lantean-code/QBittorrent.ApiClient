@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -11,7 +11,7 @@ namespace QBittorrent.ApiClient.Models
         /// Initializes a new instance of the <see cref="SearchStatus" /> class.
         /// </summary>
         [JsonConstructor]
-        public SearchStatus(int id, string status, int total)
+        public SearchStatus(int id, SearchJobStatus status, int total)
         {
             Id = id;
             Status = status;
@@ -25,10 +25,10 @@ namespace QBittorrent.ApiClient.Models
         public int Id { get; }
 
         /// <summary>
-        /// Gets the tracker status.
+        /// Gets the search job status.
         /// </summary>
         [JsonPropertyName("status")]
-        public string Status { get; }
+        public SearchJobStatus Status { get; }
 
         /// <summary>
         /// Gets the total.

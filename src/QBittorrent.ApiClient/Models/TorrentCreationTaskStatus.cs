@@ -17,10 +17,10 @@ namespace QBittorrent.ApiClient.Models
             int? pieceSize,
             bool? @private,
             string? timeAdded,
-            string? format,
+            TorrentFormat? format,
             bool? optimizeAlignment,
             int? paddedFileSizeLimit,
-            string? status,
+            TorrentCreationTaskStatusKind? status,
             string? comment,
             string? torrentFilePath,
             string? source,
@@ -29,7 +29,7 @@ namespace QBittorrent.ApiClient.Models
             string? timeStarted,
             string? timeFinished,
             string? errorMessage,
-            double? progress)
+            int? progress)
         {
             TaskId = taskID;
             SourcePath = sourcePath;
@@ -64,7 +64,7 @@ namespace QBittorrent.ApiClient.Models
         public string? SourcePath { get; }
 
         /// <summary>
-        /// Gets the piece size.
+        /// Gets the piece size in bytes.
         /// </summary>
         [JsonPropertyName("pieceSize")]
         public int? PieceSize { get; }
@@ -85,7 +85,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the format.
         /// </summary>
         [JsonPropertyName("format")]
-        public string? Format { get; }
+        public TorrentFormat? Format { get; }
 
         /// <summary>
         /// Gets a value indicating whether alignment optimization is enabled.
@@ -94,16 +94,16 @@ namespace QBittorrent.ApiClient.Models
         public bool? OptimizeAlignment { get; }
 
         /// <summary>
-        /// Gets the padded file size limit.
+        /// Gets the padded file size limit in bytes.
         /// </summary>
         [JsonPropertyName("paddedFileSizeLimit")]
         public int? PaddedFileSizeLimit { get; }
 
         /// <summary>
-        /// Gets the tracker status.
+        /// Gets the torrent-creation task status.
         /// </summary>
         [JsonPropertyName("status")]
-        public string? Status { get; }
+        public TorrentCreationTaskStatusKind? Status { get; }
 
         /// <summary>
         /// Gets the comment.
@@ -154,9 +154,9 @@ namespace QBittorrent.ApiClient.Models
         public string? ErrorMessage { get; }
 
         /// <summary>
-        /// Gets the progress.
+        /// Gets the creation progress as a percentage from 0 to 100.
         /// </summary>
         [JsonPropertyName("progress")]
-        public double? Progress { get; }
+        public int? Progress { get; }
     }
 }

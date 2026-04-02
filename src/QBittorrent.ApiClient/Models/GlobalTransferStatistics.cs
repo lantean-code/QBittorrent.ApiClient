@@ -12,14 +12,14 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonConstructor]
         public GlobalTransferStatistics(
-            string? connectionStatus,
-            int? dHTNodes,
+            ConnectionStatus? connectionStatus,
+            long? dHTNodes,
             long? downloadInfoData,
             long? downloadInfoSpeed,
-            long? downloadRateLimit,
+            int? downloadRateLimit,
             long? uploadInfoData,
             long? uploadInfoSpeed,
-            long? uploadRateLimit,
+            int? uploadRateLimit,
             string? lastExternalAddressV4 = null,
             string? lastExternalAddressV6 = null)
         {
@@ -39,49 +39,49 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the connection status.
         /// </summary>
         [JsonPropertyName("connection_status")]
-        public string? ConnectionStatus { get; }
+        public ConnectionStatus? ConnectionStatus { get; }
 
         /// <summary>
-        /// Gets the dht nodes.
+        /// Gets the number of DHT nodes.
         /// </summary>
         [JsonPropertyName("dht_nodes")]
-        public int? DHTNodes { get; }
+        public long? DHTNodes { get; }
 
         /// <summary>
-        /// Gets the download info data.
+        /// Gets the downloaded data total in bytes.
         /// </summary>
         [JsonPropertyName("dl_info_data")]
         public long? DownloadInfoData { get; }
 
         /// <summary>
-        /// Gets the download info speed.
+        /// Gets the current download speed in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_info_speed")]
         public long? DownloadInfoSpeed { get; }
 
         /// <summary>
-        /// Gets the download rate limit.
+        /// Gets the download rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("dl_rate_limit")]
-        public long? DownloadRateLimit { get; }
+        public int? DownloadRateLimit { get; }
 
         /// <summary>
-        /// Gets the upload info data.
+        /// Gets the uploaded data total in bytes.
         /// </summary>
         [JsonPropertyName("up_info_data")]
         public long? UploadInfoData { get; }
 
         /// <summary>
-        /// Gets the upload info speed.
+        /// Gets the current upload speed in bytes per second.
         /// </summary>
         [JsonPropertyName("up_info_speed")]
         public long? UploadInfoSpeed { get; }
 
         /// <summary>
-        /// Gets the upload rate limit.
+        /// Gets the upload rate limit in bytes per second.
         /// </summary>
         [JsonPropertyName("up_rate_limit")]
-        public long? UploadRateLimit { get; }
+        public int? UploadRateLimit { get; }
 
         /// <summary>
         /// Gets the last external address v 4.

@@ -966,6 +966,56 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_PreferencesWithEnumBackedFields_WHEN_GetApplicationPreferences_THEN_ShouldMapEnumValues()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""
+                    {
+                        "up_limit": 10240,
+                        "auto_delete_mode": 2,
+                        "bittorrent_protocol": 1,
+                        "disk_io_read_mode": 0,
+                        "disk_io_type": 3,
+                        "disk_io_write_mode": 1,
+                        "dyndns_service": 1,
+                        "encryption": 2,
+                        "max_ratio_act": 3,
+                        "proxy_type": "SOCKS5",
+                        "resume_data_storage_type": "SQLite",
+                        "scheduler_days": 2,
+                        "torrent_content_layout": "NoSubfolder",
+                        "torrent_content_remove_option": "MoveToTrash",
+                        "torrent_stop_condition": "FilesChecked",
+                        "upload_slots_behavior": 1,
+                        "upload_choking_algorithm": 2,
+                        "utp_tcp_mixed_mode": 1
+                    }
+                    """)
+            });
+
+            var result = (await _target.GetApplicationPreferencesAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.AutoDeleteMode.Should().Be(AutoDeleteMode.Always);
+            result.BittorrentProtocol.Should().Be(BittorrentProtocol.TcpOnly);
+            result.DiskIoReadMode.Should().Be(DiskIoReadMode.DisableOsCache);
+            result.DiskIoType.Should().Be(DiskIoType.SimplePreadPwrite);
+            result.DiskIoWriteMode.Should().Be(DiskIoWriteMode.EnableOsCache);
+            result.DyndnsService.Should().Be(DyndnsService.NoIp);
+            result.Encryption.Should().Be(EncryptionMode.DisableEncryption);
+            result.MaxRatioAct.Should().Be(MaxRatioAction.RemoveTorrentAndFiles);
+            result.ProxyType.Should().Be(ProxyType.Socks5);
+            result.ResumeDataStorageType.Should().Be(ResumeDataStorageType.Sqlite);
+            result.SchedulerDays.Should().Be(SchedulerDays.Weekends);
+            result.TorrentContentLayout.Should().Be(TorrentContentLayout.NoSubfolder);
+            result.TorrentContentRemoveOption.Should().Be(TorrentContentRemoveOption.MoveToTrash);
+            result.TorrentStopCondition.Should().Be(StopCondition.FilesChecked);
+            result.UploadSlotsBehavior.Should().Be(UploadSlotsBehavior.UploadRateBased);
+            result.UploadChokingAlgorithm.Should().Be(UploadChokingAlgorithm.AntiLeech);
+            result.UtpTcpMixedMode.Should().Be(UtpTcpMixedMode.PeerProportional);
+        }
+
+        [Fact]
         public async Task GIVEN_NonSuccess_WHEN_GetApplicationPreferences_THEN_ShouldThrow()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
@@ -993,6 +1043,92 @@ namespace QBittorrent.ApiClient.Test
 
             var prefs = new UpdatePreferences();
             await _target.SetApplicationPreferencesAsync(prefs, cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        [Fact]
+        public async Task GIVEN_MaxRatioPreference_WHEN_SetApplicationPreferences_THEN_ShouldSerializeMaxRatioAsJsonNumber()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                req.Method.Should().Be(HttpMethod.Post);
+                req.RequestUri!.ToString().Should().Be("http://localhost/app/setPreferences");
+
+                var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                body.Should().StartWith("json=");
+
+                var json = body.Substring("json=".Length);
+                json.Should().Contain("\"max_ratio\":1.23456789012345");
+                json.Should().NotContain("\"max_ratio\":\"1.23456789012345\"");
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            var preferences = new UpdatePreferences
+            {
+                MaxRatio = 1.23456789012345
+            };
+
+            (await _target.SetApplicationPreferencesAsync(preferences, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_EnumBackedPreferences_WHEN_SetApplicationPreferences_THEN_ShouldSerializeNumericAndStringEnumValues()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                req.Method.Should().Be(HttpMethod.Post);
+                req.RequestUri!.ToString().Should().Be("http://localhost/app/setPreferences");
+
+                var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                body.Should().StartWith("json=");
+
+                var json = body.Substring("json=".Length);
+                json.Should().Contain("\"auto_delete_mode\":1");
+                json.Should().Contain("\"bittorrent_protocol\":2");
+                json.Should().Contain("\"disk_io_read_mode\":1");
+                json.Should().Contain("\"disk_io_type\":2");
+                json.Should().Contain("\"disk_io_write_mode\":2");
+                json.Should().Contain("\"dyndns_service\":0");
+                json.Should().Contain("\"encryption\":1");
+                json.Should().Contain("\"max_ratio_act\":2");
+                json.Should().Contain("\"proxy_type\":\"HTTP\"");
+                json.Should().Contain("\"resume_data_storage_type\":\"Legacy\"");
+                json.Should().Contain("\"scheduler_days\":7");
+                json.Should().Contain("\"torrent_content_layout\":\"Subfolder\"");
+                json.Should().Contain("\"torrent_content_remove_option\":\"Delete\"");
+                json.Should().Contain("\"torrent_stop_condition\":\"MetadataReceived\"");
+                json.Should().Contain("\"upload_slots_behavior\":0");
+                json.Should().Contain("\"upload_choking_algorithm\":1");
+                json.Should().Contain("\"utp_tcp_mixed_mode\":0");
+                json.Should().NotContain("\"auto_delete_mode\":\"1\"");
+                json.Should().NotContain("\"bittorrent_protocol\":\"2\"");
+                json.Should().NotContain("\"proxy_type\":1");
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            var preferences = new UpdatePreferences
+            {
+                AutoDeleteMode = AutoDeleteMode.IfAdded,
+                BittorrentProtocol = BittorrentProtocol.UtpOnly,
+                DiskIoReadMode = DiskIoReadMode.EnableOsCache,
+                DiskIoType = DiskIoType.PosixCompliant,
+                DiskIoWriteMode = DiskIoWriteMode.WriteThrough,
+                DyndnsService = DyndnsService.DynDns,
+                Encryption = EncryptionMode.RequireEncryption,
+                MaxRatioAct = MaxRatioAction.EnableSuperSeeding,
+                ProxyType = ProxyType.Http,
+                ResumeDataStorageType = ResumeDataStorageType.Legacy,
+                SchedulerDays = SchedulerDays.Friday,
+                TorrentContentLayout = TorrentContentLayout.Subfolder,
+                TorrentContentRemoveOption = TorrentContentRemoveOption.Delete,
+                TorrentStopCondition = StopCondition.MetadataReceived,
+                UploadSlotsBehavior = UploadSlotsBehavior.FixedSlots,
+                UploadChokingAlgorithm = UploadChokingAlgorithm.FastestUpload,
+                UtpTcpMixedMode = UtpTcpMixedMode.PreferTcp
+            };
+
+            (await _target.SetApplicationPreferencesAsync(preferences, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]

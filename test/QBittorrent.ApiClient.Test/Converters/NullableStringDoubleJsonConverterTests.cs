@@ -5,14 +5,14 @@ using System.Text.Json;
 
 namespace QBittorrent.ApiClient.Test.Converters
 {
-    public sealed class NullableStringFloatJsonConverterTests
+    public sealed class NullableStringDoubleJsonConverterTests
     {
-        private readonly NullableStringFloatJsonConverter _target;
+        private readonly NullableStringDoubleJsonConverter _target;
         private readonly JsonSerializerOptions _options;
 
-        public NullableStringFloatJsonConverterTests()
+        public NullableStringDoubleJsonConverterTests()
         {
-            _target = new NullableStringFloatJsonConverter();
+            _target = new NullableStringDoubleJsonConverter();
             _options = new JsonSerializerOptions();
             _options.Converters.Add(_target);
         }
@@ -20,7 +20,7 @@ namespace QBittorrent.ApiClient.Test.Converters
         [Fact]
         public void GIVEN_NullToken_WHEN_Read_THEN_ShouldReturnNull()
         {
-            var value = JsonSerializer.Deserialize<float?>("null", _options);
+            var value = JsonSerializer.Deserialize<double?>("null", _options);
 
             value.Should().BeNull();
         }
@@ -30,7 +30,7 @@ namespace QBittorrent.ApiClient.Test.Converters
         {
             var reader = CreateReader("null");
 
-            var value = _target.Read(ref reader, typeof(float?), _options);
+            var value = _target.Read(ref reader, typeof(double?), _options);
 
             value.Should().BeNull();
         }
@@ -38,7 +38,7 @@ namespace QBittorrent.ApiClient.Test.Converters
         [Fact]
         public void GIVEN_StringDash_WHEN_Read_THEN_ShouldReturnNull()
         {
-            var value = JsonSerializer.Deserialize<float?>("\"-\"", _options);
+            var value = JsonSerializer.Deserialize<double?>("\"-\"", _options);
 
             value.Should().BeNull();
         }
@@ -46,7 +46,7 @@ namespace QBittorrent.ApiClient.Test.Converters
         [Fact]
         public void GIVEN_WhitespaceString_WHEN_Read_THEN_ShouldReturnNull()
         {
-            var value = JsonSerializer.Deserialize<float?>("\"   \"", _options);
+            var value = JsonSerializer.Deserialize<double?>("\"   \"", _options);
 
             value.Should().BeNull();
         }
@@ -54,7 +54,7 @@ namespace QBittorrent.ApiClient.Test.Converters
         [Fact]
         public void GIVEN_InvalidString_WHEN_Read_THEN_ShouldReturnNull()
         {
-            var value = JsonSerializer.Deserialize<float?>("\"invalid-value\"", _options);
+            var value = JsonSerializer.Deserialize<double?>("\"invalid-value\"", _options);
 
             value.Should().BeNull();
         }
@@ -62,39 +62,39 @@ namespace QBittorrent.ApiClient.Test.Converters
         [Fact]
         public void GIVEN_StringNumberWithThousands_WHEN_Read_THEN_ShouldReturnValue()
         {
-            var value = JsonSerializer.Deserialize<float?>("\"1,234.5\"", _options);
+            var value = JsonSerializer.Deserialize<double?>("\"1,234.5\"", _options);
 
-            value.Should().Be(1234.5f);
+            value.Should().Be(1234.5);
         }
 
         [Fact]
         public void GIVEN_NumberToken_WHEN_Read_THEN_ShouldReturnValue()
         {
-            var value = JsonSerializer.Deserialize<float?>("123.5", _options);
+            var value = JsonSerializer.Deserialize<double?>("123.5", _options);
 
-            value.Should().Be(123.5f);
+            value.Should().Be(123.5);
         }
 
         [Fact]
         public void GIVEN_StringNumber_WHEN_Read_THEN_ShouldReturnValue()
         {
-            var value = JsonSerializer.Deserialize<float?>("\"123.5\"", _options);
+            var value = JsonSerializer.Deserialize<double?>("\"123.5\"", _options);
 
-            value.Should().Be(123.5f);
+            value.Should().Be(123.5);
         }
 
         [Fact]
-        public void GIVEN_OutOfRangeNumberToken_WHEN_Read_THEN_ShouldReturnPositiveInfinity()
+        public void GIVEN_PreciseStringNumber_WHEN_Read_THEN_ShouldPreserveDoublePrecision()
         {
-            var value = JsonSerializer.Deserialize<float?>("1e50", _options);
+            var value = JsonSerializer.Deserialize<double?>("\"1.23456789012345\"", _options);
 
-            value.Should().Be(float.PositiveInfinity);
+            value.Should().Be(1.23456789012345);
         }
 
         [Fact]
         public void GIVEN_UnsupportedToken_WHEN_Read_THEN_ShouldReturnNull()
         {
-            var value = JsonSerializer.Deserialize<float?>("true", _options);
+            var value = JsonSerializer.Deserialize<double?>("true", _options);
 
             value.Should().BeNull();
         }
@@ -102,20 +102,20 @@ namespace QBittorrent.ApiClient.Test.Converters
         [Fact]
         public void GIVEN_NullValue_WHEN_Write_THEN_ShouldEmitNull()
         {
-            var json = Write((float?)null);
+            var json = Write(null);
 
             json.Should().Be("null");
         }
 
         [Fact]
-        public void GIVEN_Value_WHEN_Write_THEN_ShouldEmitInvariantString()
+        public void GIVEN_Value_WHEN_Write_THEN_ShouldEmitJsonNumber()
         {
-            var json = Write(1.25f);
+            var json = Write(1.25);
 
-            json.Should().Be("\"1.25\"");
+            json.Should().Be("1.25");
         }
 
-        private string Write(float? value)
+        private string Write(double? value)
         {
             using var memoryStream = new MemoryStream();
             using var writer = new Utf8JsonWriter(memoryStream);

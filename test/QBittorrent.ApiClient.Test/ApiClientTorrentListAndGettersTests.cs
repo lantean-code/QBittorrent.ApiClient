@@ -305,7 +305,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.Name.Should().Be("Name");
             torrent.MagnetUri.Should().Be("MagnetUri");
             torrent.Size.Should().Be(1000);
-            torrent.Progress.Should().Be(0.5f);
+            torrent.Progress.Should().Be(0.5);
             torrent.DownloadSpeed.Should().Be(2);
             torrent.UploadSpeed.Should().Be(3);
             torrent.Priority.Should().Be(4);
@@ -313,10 +313,10 @@ namespace QBittorrent.ApiClient.Test
             torrent.NumberComplete.Should().Be(6);
             torrent.NumberLeeches.Should().Be(7);
             torrent.NumberIncomplete.Should().Be(8);
-            torrent.Ratio.Should().Be(1.2f);
-            torrent.Popularity.Should().Be(1.3f);
+            torrent.Ratio.Should().Be(1.2);
+            torrent.Popularity.Should().Be(1.3);
             torrent.EstimatedTimeOfArrival.Should().Be(9);
-            torrent.State.Should().Be("downloading");
+            torrent.State.Should().Be(TorrentState.Downloading);
             torrent.SequentialDownload.Should().BeTrue();
             torrent.FirstLastPiecePriority.Should().BeFalse();
             torrent.Category.Should().Be("Movies");
@@ -341,10 +341,10 @@ namespace QBittorrent.ApiClient.Test
             torrent.Completed.Should().Be(20);
             torrent.ConnectionsCount.Should().Be(21);
             torrent.ConnectionsLimit.Should().Be(22);
-            torrent.MaxRatio.Should().Be(1.4f);
+            torrent.MaxRatio.Should().Be(1.4);
             torrent.MaxSeedingTime.Should().Be(23);
             torrent.MaxInactiveSeedingTime.Should().Be(24);
-            torrent.RatioLimit.Should().Be(1.5f);
+            torrent.RatioLimit.Should().Be(1.5);
             torrent.SeedingTimeLimit.Should().Be(25);
             torrent.InactiveSeedingTimeLimit.Should().Be(26);
             torrent.ShareLimitAction.Should().Be(ShareLimitAction.Remove);
@@ -354,7 +354,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.AutomaticTorrentManagement.Should().BeTrue();
             torrent.TimeActive.Should().Be(30);
             torrent.SeedingTime.Should().Be(31);
-            torrent.Availability.Should().Be(1.6f);
+            torrent.Availability.Should().Be(1.6);
             torrent.Reannounce.Should().Be(32);
             torrent.Comment.Should().Be("Comment");
             torrent.HasMetadata.Should().BeTrue();
@@ -368,6 +368,53 @@ namespace QBittorrent.ApiClient.Test
             torrent.HasTrackerWarning.Should().BeTrue();
             torrent.HasTrackerError.Should().BeFalse();
             torrent.HasOtherAnnounceError.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GIVEN_TorrentPayloadWithPreciseAndLargeValues_WHEN_GetTorrentList_THEN_ShouldPreserveRangeAndPrecision()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.AbsolutePath.Should().Be("/torrents/info");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        [
+                            {
+                                "hash": "hash1",
+                                "progress": 0.1234567890123456,
+                                "ratio": 1.234567890123456,
+                                "popularity": 2.345678901234567,
+                                "dl_limit": 2147483647,
+                                "up_limit": 2147483646,
+                                "max_ratio": 3.456789012345678,
+                                "max_inactive_seeding_time": 321,
+                                "ratio_limit": 4.567890123456789,
+                                "inactive_seeding_time_limit": 654,
+                                "time_active": 3000000000,
+                                "availability": 5.67890123456789
+                            }
+                        ]
+                        """)
+                });
+            };
+
+            var result = (await _target.GetTorrentListAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().ContainSingle();
+            var torrent = result[0];
+            torrent.Progress.Should().Be(0.1234567890123456);
+            torrent.Ratio.Should().Be(1.234567890123456);
+            torrent.Popularity.Should().Be(2.345678901234567);
+            torrent.DownloadLimit.Should().Be(2147483647);
+            torrent.UploadLimit.Should().Be(2147483646);
+            torrent.MaxRatio.Should().Be(3.456789012345678);
+            torrent.MaxInactiveSeedingTime.Should().Be(321);
+            torrent.RatioLimit.Should().Be(4.567890123456789);
+            torrent.InactiveSeedingTimeLimit.Should().Be(654);
+            torrent.TimeActive.Should().Be(3000000000);
+            torrent.Availability.Should().Be(5.67890123456789);
         }
 
         [Fact]
@@ -481,6 +528,7 @@ namespace QBittorrent.ApiClient.Test
                             "share_ratio": 1.1,
                             "popularity": 1.2,
                             "progress": 1.3,
+                            "availability": 1.4,
                             "time_elapsed": 20,
                             "total_downloaded": 21,
                             "total_downloaded_session": 22,
@@ -528,9 +576,10 @@ namespace QBittorrent.ApiClient.Test
             result.SeedingTime.Should().Be(17);
             result.Seeds.Should().Be(18);
             result.SeedsTotal.Should().Be(19);
-            result.ShareRatio.Should().Be(1.1f);
-            result.Popularity.Should().Be(1.2f);
-            result.Progress.Should().Be(1.3f);
+            result.ShareRatio.Should().Be(1.1);
+            result.Popularity.Should().Be(1.2);
+            result.Progress.Should().Be(1.3);
+            result.Availability.Should().Be(1.4);
             result.TimeElapsed.Should().Be(20);
             result.TotalDownloaded.Should().Be(21);
             result.TotalDownloadedSession.Should().Be(22);
@@ -548,6 +597,77 @@ namespace QBittorrent.ApiClient.Test
             result.IsPrivate.Should().BeTrue();
             result.Private.Should().BeFalse();
             result.HasMetadata.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GIVEN_TorrentPropertiesPayloadWithPreciseAndLargeValues_WHEN_GetTorrentProperties_THEN_ShouldPreserveRangeAndPrecision()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/properties?hash=abc");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        {
+                            "addition_date": 1,
+                            "comment": "Comment",
+                            "completion_date": 2,
+                            "created_by": "Creator",
+                            "creation_date": 3,
+                            "dl_limit": 2147483647,
+                            "dl_speed": 2147483646,
+                            "dl_speed_avg": 6,
+                            "eta": 7,
+                            "last_seen": 8,
+                            "nb_connections": 9,
+                            "nb_connections_limit": 10,
+                            "peers": 11,
+                            "peers_total": 12,
+                            "piece_size": 3000000000,
+                            "pieces_have": 14,
+                            "pieces_num": 15,
+                            "reannounce": 3000000001,
+                            "save_path": "/save",
+                            "download_path": "/download",
+                            "seeding_time": 3000000002,
+                            "seeds": 18,
+                            "seeds_total": 19,
+                            "share_ratio": 1.1234567890123456,
+                            "popularity": 2.1234567890123456,
+                            "progress": 3.1234567890123456,
+                            "availability": 4.1234567890123456,
+                            "time_elapsed": 3000000003,
+                            "total_downloaded": 21,
+                            "total_downloaded_session": 22,
+                            "total_size": 23,
+                            "total_uploaded": 24,
+                            "total_uploaded_session": 25,
+                            "total_wasted": 26,
+                            "up_limit": 2147483645,
+                            "up_speed": 2147483644,
+                            "up_speed_avg": 29,
+                            "infohash_v1": "InfoHashV1",
+                            "infohash_v2": "InfoHashV2"
+                        }
+                        """)
+                });
+            };
+
+            var result = (await _target.GetTorrentPropertiesAsync("abc", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.DownloadLimit.Should().Be(2147483647);
+            result.DownloadSpeed.Should().Be(2147483646);
+            result.PieceSize.Should().Be(3000000000);
+            result.Reannounce.Should().Be(3000000001);
+            result.SeedingTime.Should().Be(3000000002);
+            result.ShareRatio.Should().Be(1.1234567890123456);
+            result.Popularity.Should().Be(2.1234567890123456);
+            result.Progress.Should().Be(3.1234567890123456);
+            result.Availability.Should().Be(4.1234567890123456);
+            result.TimeElapsed.Should().Be(3000000003);
+            result.UploadLimit.Should().Be(2147483645);
+            result.UploadSpeed.Should().Be(2147483644);
         }
 
         [Fact]
@@ -773,11 +893,44 @@ namespace QBittorrent.ApiClient.Test
             result[0].Index.Should().Be(1);
             result[0].Name.Should().Be("FileName");
             result[0].Size.Should().Be(1000);
-            result[0].Progress.Should().Be(0.5f);
+            result[0].Progress.Should().Be(0.5);
             result[0].Priority.Should().Be((Priority)7);
             result[0].IsSeed.Should().BeTrue();
             result[0].PieceRange.Should().BeEquivalentTo(new[] { 2, 5 });
-            result[0].Availability.Should().Be(1.2f);
+            result[0].Availability.Should().Be(1.2);
+        }
+
+        [Fact]
+        public async Task GIVEN_FileDataPayloadWithPreciseValues_WHEN_GetTorrentContents_THEN_ShouldPreservePrecision()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        [
+                            {
+                                "index": 0,
+                                "name": "file.mkv",
+                                "size": 10,
+                                "progress": 0.1234567890123456,
+                                "priority": 1,
+                                "is_seed": false,
+                                "piece_range": [1, 2],
+                                "availability": 1.234567890123456
+                            }
+                        ]
+                        """)
+                });
+            };
+
+            var result = (await _target.GetTorrentContentsAsync("hash", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().ContainSingle();
+            result[0].Progress.Should().Be(0.1234567890123456);
+            result[0].Availability.Should().Be(1.234567890123456);
         }
 
         [Fact]

@@ -53,7 +53,7 @@ namespace QBittorrent.ApiClient.Models
         /// <summary>
         /// Gets or sets the format.
         /// </summary>
-        public string? Format { get; set; }
+        public TorrentFormat? Format { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether alignment optimization is enabled.
@@ -61,7 +61,7 @@ namespace QBittorrent.ApiClient.Models
         public bool? OptimizeAlignment { get; set; }
 
         /// <summary>
-        /// Gets or sets the padded file size limit.
+        /// Gets or sets the padded file size limit in bytes.
         /// </summary>
         public int? PaddedFileSizeLimit { get; set; }
     }

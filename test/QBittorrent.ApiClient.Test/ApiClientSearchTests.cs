@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using QBittorrent.ApiClient.Models;
 using System.Net;
 
 namespace QBittorrent.ApiClient.Test
@@ -138,7 +139,7 @@ namespace QBittorrent.ApiClient.Test
 
             status.Should().NotBeNull();
             status!.Id.Should().Be(5);
-            status.Status.Should().Be("Running");
+            status.Status.Should().Be(SearchJobStatus.Running);
             status.Total.Should().Be(12);
         }
 
@@ -198,7 +199,7 @@ namespace QBittorrent.ApiClient.Test
                     [
                         {
                             "id": 1,
-                            "status": "Queued",
+                            "status": "Running",
                             "total": 4
                         },
                         {
@@ -214,10 +215,10 @@ namespace QBittorrent.ApiClient.Test
 
             list.Should().HaveCount(2);
             list[0].Id.Should().Be(1);
-            list[0].Status.Should().Be("Queued");
+            list[0].Status.Should().Be(SearchJobStatus.Running);
             list[0].Total.Should().Be(4);
             list[1].Id.Should().Be(2);
-            list[1].Status.Should().Be("Stopped");
+            list[1].Status.Should().Be(SearchJobStatus.Stopped);
             list[1].Total.Should().Be(5);
         }
 
@@ -271,7 +272,7 @@ namespace QBittorrent.ApiClient.Test
 
             var results = (await _target.GetSearchResultsAsync(9, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
-            results.Status.Should().Be("Running");
+            results.Status.Should().Be(SearchJobStatus.Running);
             results.Total.Should().Be(1);
             results.Results.Should().ContainSingle();
             results.Results[0].DescriptionLink.Should().Be("https://example.com/details");

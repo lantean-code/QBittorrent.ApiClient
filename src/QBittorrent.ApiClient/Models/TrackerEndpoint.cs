@@ -19,8 +19,8 @@ namespace QBittorrent.ApiClient.Models
         /// <param name="seeds">The number of seeds reported by the tracker.</param>
         /// <param name="leeches">The number of leeches reported by the tracker.</param>
         /// <param name="downloads">The number of completed downloads reported by the tracker.</param>
-        /// <param name="nextAnnounce">The next announce time reported by qBittorrent.</param>
-        /// <param name="minAnnounce">The minimum announce interval reported by qBittorrent.</param>
+        /// <param name="nextAnnounce">The time until the next announce in seconds when available.</param>
+        /// <param name="minAnnounce">The minimum announce interval in seconds when available.</param>
         public TrackerEndpoint(
             string? name,
             bool? updating,
@@ -102,13 +102,13 @@ namespace QBittorrent.ApiClient.Models
         public int? Downloads { get; }
 
         /// <summary>
-        /// Gets the next announce time.
+        /// Gets the time until the next announce in seconds when available.
         /// </summary>
         [JsonPropertyName("next_announce")]
         public long? NextAnnounce { get; }
 
         /// <summary>
-        /// Gets the minimum announce interval.
+        /// Gets the minimum announce interval in seconds when available.
         /// </summary>
         [JsonPropertyName("min_announce")]
         public long? MinAnnounce { get; }

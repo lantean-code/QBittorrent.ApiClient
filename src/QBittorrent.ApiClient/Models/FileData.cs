@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -15,11 +15,11 @@ namespace QBittorrent.ApiClient.Models
             int index,
             string name,
             long size,
-            float progress,
+            double progress,
             Priority priority,
             bool isSeed,
             IReadOnlyList<int> pieceRange,
-            float availability)
+            double availability)
         {
             Index = index;
             Name = name;
@@ -44,16 +44,16 @@ namespace QBittorrent.ApiClient.Models
         public string Name { get; }
 
         /// <summary>
-        /// Gets the size.
+        /// Gets the file size in bytes.
         /// </summary>
         [JsonPropertyName("size")]
         public long Size { get; }
 
         /// <summary>
-        /// Gets the progress.
+        /// Gets the file completion fraction from 0.0 to 1.0.
         /// </summary>
         [JsonPropertyName("progress")]
-        public float Progress { get; }
+        public double Progress { get; }
 
         /// <summary>
         /// Gets the priority.
@@ -74,9 +74,9 @@ namespace QBittorrent.ApiClient.Models
         public IReadOnlyList<int> PieceRange { get; }
 
         /// <summary>
-        /// Gets the availability.
+        /// Gets the availability value reported by qBittorrent in distributed copies.
         /// </summary>
         [JsonPropertyName("availability")]
-        public float Availability { get; }
+        public double Availability { get; }
     }
 }
