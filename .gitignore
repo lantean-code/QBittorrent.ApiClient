@@ -76,6 +76,7 @@ node_modules/
 # Local dotnet install / cache
 /.dotnet/
 /.nuget/
+ref/
 
 # Mono crash logs
 mono_crash.*

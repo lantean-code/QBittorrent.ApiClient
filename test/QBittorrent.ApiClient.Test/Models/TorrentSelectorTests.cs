@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using QBittorrent.ApiClient.Models;
+using System.Runtime.CompilerServices;
 
 namespace QBittorrent.ApiClient.Test.Models
 {
@@ -78,5 +79,107 @@ namespace QBittorrent.ApiClient.Test.Models
             var exception = action.Should().Throw<ArgumentException>();
             exception.Which.ParamName.Should().Be("hash");
         }
+
+        [Fact]
+        public void GIVEN_SameInstance_WHEN_Equals_THEN_ShouldReturnTrue()
+        {
+            var target = TorrentSelector.FromHash("hash");
+
+            var result = target.Equals(target);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void GIVEN_NullOther_WHEN_Equals_THEN_ShouldReturnFalse()
+        {
+            var target = TorrentSelector.FromHash("hash");
+
+            var result = target.Equals(null);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void GIVEN_DifferentAllValues_WHEN_Equals_THEN_ShouldReturnFalse()
+        {
+            var target = TorrentSelector.AllTorrents();
+
+            var result = target.Equals(TorrentSelector.FromHash("hash"));
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void GIVEN_DistinctAllSelectors_WHEN_Equals_THEN_ShouldReturnTrue()
+        {
+            var target = TorrentSelector.AllTorrents();
+            var other = CreateTorrentSelector(all: true, hashes: null);
+
+            ReferenceEquals(target, other).Should().BeFalse();
+
+            var result = target.Equals(other);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void GIVEN_SameAllButOnlyOneNullHashes_WHEN_Equals_THEN_ShouldReturnFalse()
+        {
+            var target = CreateTorrentSelector(all: false, hashes: null);
+
+            var result = target.Equals(TorrentSelector.FromHash("hash"));
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void GIVEN_EquivalentHashes_WHEN_Equals_THEN_ShouldReturnTrue()
+        {
+            var target = TorrentSelector.FromHashes(["hash1", "hash2"]);
+            var other = TorrentSelector.FromHashes(["hash1", "hash2"]);
+
+            var result = target.Equals(other);
+
+            result.Should().BeTrue();
+        }
+
+        [Fact]
+        public void GIVEN_DifferentHashes_WHEN_Equals_THEN_ShouldReturnFalse()
+        {
+            var target = TorrentSelector.FromHashes(["hash1", "hash2"]);
+            var other = TorrentSelector.FromHashes(["hash1", "hash3"]);
+
+            var result = target.Equals(other);
+
+            result.Should().BeFalse();
+        }
+
+        [Fact]
+        public void GIVEN_EquivalentSelectors_WHEN_GetHashCode_THEN_ShouldReturnSameHashCode()
+        {
+            var left = TorrentSelector.FromHashes(["hash1", "hash2"]);
+            var right = TorrentSelector.FromHashes(["hash1", "hash2"]);
+
+            var leftHashCode = left.GetHashCode();
+            var rightHashCode = right.GetHashCode();
+
+            leftHashCode.Should().Be(rightHashCode);
+        }
+
+        [Fact]
+        public void GIVEN_AllSelectors_WHEN_GetHashCode_THEN_ShouldReturnSameHashCode()
+        {
+            var left = TorrentSelector.AllTorrents();
+            var right = CreateTorrentSelector(all: true, hashes: null);
+
+            var leftHashCode = left.GetHashCode();
+            var rightHashCode = right.GetHashCode();
+
+            leftHashCode.Should().Be(rightHashCode);
+        }
+
+        [UnsafeAccessor(UnsafeAccessorKind.Constructor)]
+        private static extern TorrentSelector CreateTorrentSelector(bool all, IReadOnlyList<string>? hashes);
     }
 }

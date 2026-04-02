@@ -61,5 +61,17 @@ namespace QBittorrent.ApiClient.Test
             success.Should().BeFalse();
             failure.Should().BeNull();
         }
+
+        [Fact]
+        public void GIVEN_Value_WHEN_CallingNonGenericSuccessOverload_THEN_ShouldReturnSuccessfulGenericResult()
+        {
+            var target = ApiResult.Success(42);
+
+            var success = target.TryGetValue(out var value);
+
+            success.Should().BeTrue();
+            value.Should().Be(42);
+            target.Failure.Should().BeNull();
+        }
     }
 }

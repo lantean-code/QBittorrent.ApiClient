@@ -618,6 +618,20 @@ namespace QBittorrent.ApiClient.Test
             (await _target.AddPeersAsync(TorrentSelector.FromHashes(["h1", "h2"]), new[] { new PeerId("127.0.0.1", 6881), new PeerId("127.0.0.2", 6882) }, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
+        [Fact]
+        public async Task GIVEN_AllSelectorAndPeers_WHEN_AddPeers_THEN_ShouldPostAllSelectorAndPipeSeparatedPeers()
+        {
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                request.RequestUri!.ToString().Should().Be("http://localhost/torrents/addPeers");
+                var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                body.Should().Be("hashes=all&peers=127.0.0.1%3A6881%7C127.0.0.2%3A6882");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.AddPeersAsync(TorrentSelector.AllTorrents(), new[] { new PeerId("127.0.0.1", 6881), new PeerId("127.0.0.2", 6882) }, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
         {
             if (content is null)
