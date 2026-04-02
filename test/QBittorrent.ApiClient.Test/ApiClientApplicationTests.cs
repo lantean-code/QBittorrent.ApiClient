@@ -819,6 +819,84 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_GetProcessInfo_THEN_ShouldDeserialize()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/app/processInfo":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, """{"launch_time":12345}"""));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.LaunchTime.Should().Be(12345);
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_GetProcessInfo_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var processInfoRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/app/processInfo":
+                        processInfoRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, """{"launch_time":1}"""));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support process info.");
+            processInfoRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetProcessInfo_THEN_ShouldReturnProbeFailure()
+        {
+            var processInfoRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/app/processInfo":
+                        processInfoRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, """{"launch_time":1}"""));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            processInfoRequestCount.Should().Be(0);
+        }
+
+        [Fact]
         public async Task GIVEN_OK_WHEN_Shutdown_THEN_ShouldPostAndNotThrow()
         {
             _handler.Responder = (req, _) =>
@@ -994,6 +1072,162 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_RotateApiKey_THEN_ShouldReturnNewKey()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/app/rotateAPIKey":
+                        req.Method.Should().Be(HttpMethod.Post);
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, """{"apiKey":"ApiKey"}"""));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Key.Should().Be("ApiKey");
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_RotateApiKey_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var rotateRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/app/rotateAPIKey":
+                        rotateRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, """{"apiKey":"ApiKey"}"""));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support Web API key rotation.");
+            rotateRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_RotateApiKey_THEN_ShouldReturnProbeFailure()
+        {
+            var rotateRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/app/rotateAPIKey":
+                        rotateRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, """{"apiKey":"ApiKey"}"""));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            rotateRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_DeleteApiKey_THEN_ShouldPostAndSucceed()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/app/deleteAPIKey":
+                        req.Method.Should().Be(HttpMethod.Post);
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_DeleteApiKey_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var deleteRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/app/deleteAPIKey":
+                        deleteRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support Web API key deletion.");
+            deleteRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_DeleteApiKey_THEN_ShouldReturnProbeFailure()
+        {
+            var deleteRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/app/deleteAPIKey":
+                        deleteRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            deleteRequestCount.Should().Be(0);
+        }
+
+        [Fact]
         public async Task GIVEN_Success_WHEN_SendTestEmail_THEN_ShouldPOSTToEndpoint()
         {
             _handler.Responder = (req, _) =>
@@ -1080,6 +1314,105 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetDirectoryContentAsync("/data", DirectoryContentMode.Directories, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadRequest, userMessage: "bad directory");
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_GetDirectoryContentEntries_THEN_ShouldQueryWithMetadataAndReturnEntries()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/app/getDirectoryContent":
+                        req.Method.Should().Be(HttpMethod.Get);
+                        req.RequestUri!.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=files&withMetadata=true");
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            [
+                                {
+                                    "name": "file.iso",
+                                    "type": "file",
+                                    "size": 42,
+                                    "creation_date": 100,
+                                    "last_access_date": 101,
+                                    "last_modification_date": 102
+                                }
+                            ]
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.GetDirectoryContentEntriesAsync("/data", DirectoryContentMode.Files, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().ContainSingle();
+            result[0].Name.Should().Be("file.iso");
+            result[0].Type.Should().Be(DirectoryContentEntryType.File);
+            result[0].Size.Should().Be(42);
+            result[0].CreationDate.Should().Be(100);
+            result[0].LastAccessDate.Should().Be(101);
+            result[0].LastModificationDate.Should().Be(102);
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_GetDirectoryContentEntries_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var directoryRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/app/getDirectoryContent":
+                        directoryRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.GetDirectoryContentEntriesAsync("/data", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support directory metadata responses.");
+            directoryRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetDirectoryContentEntries_THEN_ShouldReturnProbeFailure()
+        {
+            var directoryRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/app/getDirectoryContent":
+                        directoryRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.GetDirectoryContentEntriesAsync("/data", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            directoryRequestCount.Should().Be(0);
         }
 
         [Fact]

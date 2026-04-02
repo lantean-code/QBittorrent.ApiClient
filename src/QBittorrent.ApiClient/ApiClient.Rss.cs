@@ -14,14 +14,35 @@ namespace QBittorrent.ApiClient
             return ExecuteAsync(ct => _httpClient.PostAsync("rss/addFolder", content, ct), cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> AddRssFeedAsync(string url, string? path = null, CancellationToken cancellationToken = default)
+        public async Task<ApiResult> AddRssFeedAsync(string url, string? path = null, long? refreshInterval = null, CancellationToken cancellationToken = default)
         {
+            if (refreshInterval is not null)
+            {
+                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+                if (!profileResult.TryGetValue(out var profile))
+                {
+                    return profileResult.Failure.ToResult();
+                }
+
+                if (!profile.SupportsRssFeedRefreshInterval)
+                {
+                    return CreateUnsupportedCompatibilityFailure(
+                        nameof(AddRssFeedAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support RSS feed refresh intervals.").ToResult();
+                }
+            }
+
             var content = new FormUrlEncodedBuilder()
                 .Add("url", url)
-                .Add("path", path ?? string.Empty)
-                .ToFormUrlEncodedContent();
+                .Add("path", path ?? string.Empty);
 
-            return ExecuteAsync(ct => _httpClient.PostAsync("rss/addFeed", content, ct), cancellationToken: cancellationToken);
+            if (refreshInterval is not null)
+            {
+                content.Add("refreshInterval", refreshInterval.Value);
+            }
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("rss/addFeed", content.ToFormUrlEncodedContent(), ct), cancellationToken: cancellationToken);
         }
 
         public Task<ApiResult> RemoveRssItemAsync(string path, CancellationToken cancellationToken = default)
@@ -51,6 +72,30 @@ namespace QBittorrent.ApiClient
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(ct => _httpClient.PostAsync("rss/setFeedURL", content, ct), cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult> SetRssFeedRefreshIntervalAsync(string path, long refreshInterval, CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult();
+            }
+
+            if (!profile.SupportsRssFeedRefreshInterval)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(SetRssFeedRefreshIntervalAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support RSS feed refresh intervals.").ToResult();
+            }
+
+            var content = new FormUrlEncodedBuilder()
+                .Add("path", path)
+                .Add("refreshInterval", refreshInterval)
+                .ToFormUrlEncodedContent();
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("rss/setFeedRefreshInterval", content, ct), cancellationToken: cancellationToken);
         }
 
         public Task<ApiResult<IReadOnlyDictionary<string, RssItem>>> GetAllRssItemsAsync(bool? withData = null, CancellationToken cancellationToken = default)

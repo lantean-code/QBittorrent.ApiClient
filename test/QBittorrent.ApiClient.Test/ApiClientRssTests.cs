@@ -72,6 +72,84 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_ModernApiVersionAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldIncludeRefreshInterval()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/rss/addFeed":
+                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        body.Should().Be("url=http://feed&path=/podcasts&refreshInterval=60");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            await _target.AddRssFeedAsync("http://feed", "/podcasts", 60, cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersionAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var addFeedRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/rss/addFeed":
+                        addFeedRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.AddRssFeedAsync("http://feed", "/podcasts", 60, cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support RSS feed refresh intervals.");
+            addFeedRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailureAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldReturnProbeFailure()
+        {
+            var addFeedRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/rss/addFeed":
+                        addFeedRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.AddRssFeedAsync("http://feed", "/podcasts", 60, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            addFeedRequestCount.Should().Be(0);
+        }
+
+        [Fact]
         public async Task GIVEN_NonSuccess_WHEN_AddRssFeed_THEN_ShouldThrow()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
@@ -136,6 +214,84 @@ namespace QBittorrent.ApiClient.Test
             };
 
             await _target.SetRssFeedUrlAsync("/feeds/tv", "http://example.com", cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_SetRssFeedRefreshInterval_THEN_ShouldPostInterval()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/rss/setFeedRefreshInterval":
+                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        body.Should().Be("path=/feeds/tv&refreshInterval=120");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.SetRssFeedRefreshIntervalAsync("/feeds/tv", 120, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_SetRssFeedRefreshInterval_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var setIntervalRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/rss/setFeedRefreshInterval":
+                        setIntervalRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SetRssFeedRefreshIntervalAsync("/feeds/tv", 120, cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support RSS feed refresh intervals.");
+            setIntervalRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetRssFeedRefreshInterval_THEN_ShouldReturnProbeFailure()
+        {
+            var setIntervalRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/rss/setFeedRefreshInterval":
+                        setIntervalRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SetRssFeedRefreshIntervalAsync("/feeds/tv", 120, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            setIntervalRequestCount.Should().Be(0);
         }
 
         [Fact]
@@ -411,6 +567,14 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetRssMatchingArticlesAsync("x", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadGateway, userMessage: "fail");
+        }
+
+        private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
+        {
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(content ?? string.Empty)
+            };
         }
     }
 }

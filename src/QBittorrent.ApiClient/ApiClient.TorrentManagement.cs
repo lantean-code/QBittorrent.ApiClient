@@ -194,6 +194,28 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
+        public async Task<ApiResult<IReadOnlyList<int>>> GetTorrentPieceAvailabilityAsync(string hash, CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult<IReadOnlyList<int>>();
+            }
+
+            if (!profile.SupportsTorrentPieceAvailability)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(GetTorrentPieceAvailabilityAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support torrent piece availability.").ToResult<IReadOnlyList<int>>();
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.GetAsync($"torrents/pieceAvailability?hash={hash}", ct),
+                GetJsonListAsync<int>,
+                cancellationToken: cancellationToken);
+        }
+
         public Task<ApiResult> StopTorrentsAsync(TorrentSelector selector, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
@@ -239,20 +261,72 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult> ReannounceTorrentsAsync(TorrentSelector selector, IEnumerable<string>? trackers = null, CancellationToken cancellationToken = default)
+        public async Task<ApiResult> ReannounceTorrentsAsync(TorrentSelector selector, IEnumerable<string>? urls = null, CancellationToken cancellationToken = default)
         {
-            var content = new FormUrlEncodedBuilder()
-                .AddTorrentSelector("hashes", selector)
-                .ToFormUrlEncodedContent();
+            var normalizedUrls = urls?
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Select(url => url.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToArray() ?? [];
 
-            return ExecuteAsync(
-                ct => _httpClient.PostAsync("torrents/reannounce", content, ct),
+            if (normalizedUrls.Length > 0)
+            {
+                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+                if (!profileResult.TryGetValue(out var profile))
+                {
+                    return profileResult.Failure.ToResult();
+                }
+
+                if (!profile.SupportsReannounceUrls)
+                {
+                    return CreateUnsupportedCompatibilityFailure(
+                        nameof(ReannounceTorrentsAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support tracker-targeted reannounce URLs.").ToResult();
+                }
+            }
+
+            var contentBuilder = new FormUrlEncodedBuilder()
+                .AddTorrentSelector("hashes", selector);
+
+            if (normalizedUrls.Length > 0)
+            {
+                contentBuilder.AddPipeSeparated("urls", normalizedUrls);
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync("torrents/reannounce", contentBuilder.ToFormUrlEncodedContent(), ct),
                 cancellationToken: cancellationToken);
         }
 
         public async Task<ApiResult<AddTorrentResult>> AddTorrentAsync(AddTorrentParams addTorrentParams, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(addTorrentParams);
+
+            if ((addTorrentParams.Downloader is not null) || (addTorrentParams.FilePriorities is not null))
+            {
+                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+                if (!profileResult.TryGetValue(out var profile))
+                {
+                    return profileResult.Failure.ToResult<AddTorrentResult>();
+                }
+
+                if ((addTorrentParams.Downloader is not null) && !profile.SupportsTorrentAddDownloader)
+                {
+                    return CreateUnsupportedCompatibilityFailure(
+                        nameof(AddTorrentAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent downloader selection.").ToResult<AddTorrentResult>();
+                }
+
+                if ((addTorrentParams.FilePriorities is not null) && !profile.SupportsTorrentAddFilePriorities)
+                {
+                    return CreateUnsupportedCompatibilityFailure(
+                        nameof(AddTorrentAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent file priorities.").ToResult<AddTorrentResult>();
+                }
+            }
 
             using var content = new MultipartFormDataContent();
 
@@ -875,6 +949,32 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
+        public async Task<ApiResult> SetTorrentCommentAsync(TorrentSelector selector, string comment, CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult();
+            }
+
+            if (!profile.SupportsTorrentCommentEditing)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(SetTorrentCommentAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support torrent comments.").ToResult();
+            }
+
+            var content = new FormUrlEncodedBuilder()
+                .AddTorrentSelector("hashes", selector)
+                .Add("comment", comment)
+                .ToFormUrlEncodedContent();
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync("torrents/setComment", content, ct),
+                cancellationToken: cancellationToken);
+        }
+
         public Task<ApiResult> SetTorrentCategoryAsync(TorrentSelector selector, string category, CancellationToken cancellationToken = default)
         {
             var content = new FormUrlEncodedBuilder()
@@ -1115,6 +1215,17 @@ namespace QBittorrent.ApiClient
             return Task.FromResult(ApiResult<string>.Success(uriBuilder.Uri.AbsoluteUri));
         }
 
+        public Task<ApiResult<byte[]>> ExportTorrentAsync(string hash, CancellationToken cancellationToken = default)
+        {
+            var query = new QueryBuilder()
+                .Add("hash", hash);
+
+            return ExecuteAsync(
+                ct => _httpClient.GetAsync("torrents/export", query, ct),
+                (content, ct) => content.ReadAsByteArrayAsync(ct),
+                cancellationToken: cancellationToken);
+        }
+
         public Task<ApiResult<SslParameters>> GetTorrentSslParametersAsync(string hash, CancellationToken cancellationToken = default)
         {
             return ExecuteAsync(
@@ -1140,6 +1251,106 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/setSSLParameters", content, ct),
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult<TorrentMetadata>> FetchTorrentMetadataAsync(string source, string? downloader = null, CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult<TorrentMetadata>();
+            }
+
+            if (!profile.SupportsTorrentMetadata)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(FetchTorrentMetadataAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support torrent metadata APIs.").ToResult<TorrentMetadata>();
+            }
+
+            var content = new FormUrlEncodedBuilder()
+                .Add("source", source);
+
+            if (!string.IsNullOrWhiteSpace(downloader))
+            {
+                content.Add("downloader", downloader!);
+            }
+
+            async Task<ApiResult<TorrentMetadata>> HandleFetchMetadataResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            {
+                if (response.StatusCode == HttpStatusCode.Accepted)
+                {
+                    using (response)
+                    {
+                        var responseBody = NormalizeResponseBody(await response.Content.ReadAsStringAsync(currentCancellationToken));
+                        return CreateOperationPendingFailure(operation, response.StatusCode, responseBody).ToResult<TorrentMetadata>();
+                    }
+                }
+
+                return await CreateResultAsync(operation, response, GetJsonAsync<TorrentMetadata>, currentCancellationToken);
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync("torrents/fetchMetadata", content.ToFormUrlEncodedContent(), ct),
+                HandleFetchMetadataResponse,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult<IReadOnlyList<TorrentMetadata>>> ParseTorrentMetadataAsync(IReadOnlyDictionary<string, Stream> torrents, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(torrents);
+
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult<IReadOnlyList<TorrentMetadata>>();
+            }
+
+            if (!profile.SupportsTorrentMetadata)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(ParseTorrentMetadataAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support torrent metadata APIs.").ToResult<IReadOnlyList<TorrentMetadata>>();
+            }
+
+            using var content = new MultipartFormDataContent();
+            foreach (var (name, stream) in torrents)
+            {
+                content.Add(await CreateOwnedTorrentContentAsync(stream, cancellationToken), "torrents", name);
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync("torrents/parseMetadata", content, ct),
+                ReadParsedTorrentMetadataAsync,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult<byte[]>> SaveTorrentMetadataAsync(string source, CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult<byte[]>();
+            }
+
+            if (!profile.SupportsTorrentMetadata)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(SaveTorrentMetadataAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support torrent metadata APIs.").ToResult<byte[]>();
+            }
+
+            var content = new FormUrlEncodedBuilder()
+                .Add("source", source)
+                .ToFormUrlEncodedContent();
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync("torrents/saveMetadata", content, ct),
+                (httpContent, ct) => httpContent.ReadAsByteArrayAsync(ct),
                 cancellationToken: cancellationToken);
         }
 
@@ -1174,6 +1385,21 @@ namespace QBittorrent.ApiClient
                     stream.Position = originalPosition;
                 }
             }
+        }
+
+        private async Task<IReadOnlyList<TorrentMetadata>> ReadParsedTorrentMetadataAsync(HttpContent content, CancellationToken cancellationToken)
+        {
+            var items = await GetJsonAsync<IEnumerable<TorrentMetadata?>>(content, cancellationToken);
+            var normalizedItems = items.ToList();
+            if (normalizedItems.Any(item => item is null))
+            {
+                throw new InvalidOperationException("Unable to deserialize response as IReadOnlyList<TorrentMetadata>");
+            }
+
+            return normalizedItems
+                .Cast<TorrentMetadata>()
+                .ToList()
+                .AsReadOnly();
         }
     }
 }

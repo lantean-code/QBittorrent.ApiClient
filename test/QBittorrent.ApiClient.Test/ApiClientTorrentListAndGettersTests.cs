@@ -943,6 +943,86 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(statusCode: HttpStatusCode.InternalServerError, userMessage: "err");
         }
 
+        [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_GetTorrentPieceAvailability_THEN_ShouldGETAndReturnCounts()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/pieceAvailability":
+                        req.Method.Should().Be(HttpMethod.Get);
+                        req.RequestUri!.ToString().Should().Be("http://localhost/torrents/pieceAvailability?hash=abc");
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[1,2,3]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Equal(1, 2, 3);
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_GetTorrentPieceAvailability_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var availabilityRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/pieceAvailability":
+                        availabilityRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent piece availability.");
+            availabilityRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetTorrentPieceAvailability_THEN_ShouldReturnProbeFailure()
+        {
+            var availabilityRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/torrents/pieceAvailability":
+                        availabilityRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            availabilityRequestCount.Should().Be(0);
+        }
+
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
         {
             if (content is null)

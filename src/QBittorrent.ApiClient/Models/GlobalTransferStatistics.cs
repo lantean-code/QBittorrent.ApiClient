@@ -5,13 +5,13 @@ namespace QBittorrent.ApiClient.Models
     /// <summary>
     /// Represents global transfer statistics reported by qBittorrent.
     /// </summary>
-    public record GlobalTransferInfo
+    public record GlobalTransferStatistics
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GlobalTransferInfo" /> class.
+        /// Initializes a new instance of the <see cref="GlobalTransferStatistics" /> class.
         /// </summary>
         [JsonConstructor]
-        public GlobalTransferInfo(
+        public GlobalTransferStatistics(
             string? connectionStatus,
             int? dHTNodes,
             long? downloadInfoData,

@@ -387,6 +387,20 @@ namespace QBittorrent.ApiClient
             };
         }
 
+        private static ApiFailure CreateOperationPendingFailure(string operation, HttpStatusCode statusCode, string? responseBody)
+        {
+            return new ApiFailure
+            {
+                Kind = ApiFailureKind.OperationPending,
+                Operation = operation,
+                StatusCode = statusCode,
+                UserMessage = "qBittorrent accepted the request, but the operation has not completed yet. Retry the request.",
+                Detail = responseBody,
+                IsTransient = true,
+                ResponseBody = responseBody,
+            };
+        }
+
         private static ApiFailure CreateUnexpectedResponseFailure(string operation, Exception exception)
         {
             return new ApiFailure

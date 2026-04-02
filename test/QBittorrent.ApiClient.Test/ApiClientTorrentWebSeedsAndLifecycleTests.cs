@@ -202,7 +202,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_AllTrueAndNoTrackers_WHEN_ReannounceTorrents_THEN_ShouldOnlySendHashes()
+        public async Task GIVEN_AllTrueAndNoUrls_WHEN_ReannounceTorrents_THEN_ShouldOnlySendHashes()
         {
             _handler.Responder = async (req, ct) =>
             {
@@ -212,21 +212,83 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.ReannounceTorrentsAsync(TorrentSelector.AllTorrents(), trackers: null, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.ReannounceTorrentsAsync(TorrentSelector.AllTorrents(), urls: null, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
-        public async Task GIVEN_Trackers_WHEN_ReannounceTorrents_THEN_ShouldOnlySendHashes()
+        public async Task GIVEN_ModernApiVersionAndUrls_WHEN_ReannounceTorrents_THEN_ShouldSendHashesAndUrls()
         {
-            _handler.Responder = async (req, ct) =>
+            _handler.Responder = (req, _) =>
             {
-                var body = await req.Content!.ReadAsStringAsync(ct);
-                body.Should().Be("hashes=h1%7Ch2");
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
 
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                    case "/torrents/reannounce":
+                        return AssertReannounceRequestAsync(req, "hashes=h1%7Ch2&urls=http%3A%2F%2Ft1%7Chttp%3A%2F%2Ft2");
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
             };
 
-            await _target.ReannounceTorrentsAsync(TorrentSelector.FromHashes(["h1", "h2"]), trackers: new[] { "http://t1", "http://t2" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.ReannounceTorrentsAsync(TorrentSelector.FromHashes(["h1", "h2"]), urls: new[] { "http://t1", "http://t2" }, cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersionAndUrls_WHEN_ReannounceTorrents_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var reannounceRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/reannounce":
+                        reannounceRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: new[] { "http://t1" }, cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support tracker-targeted reannounce URLs.");
+            reannounceRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailureAndUrls_WHEN_ReannounceTorrents_THEN_ShouldReturnProbeFailure()
+        {
+            var reannounceRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/torrents/reannounce":
+                        reannounceRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: new[] { "http://t1" }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            reannounceRequestCount.Should().Be(0);
         }
 
         [Fact]
@@ -240,6 +302,26 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Forbidden, userMessage: "nope");
+        }
+
+        private static Task<HttpResponseMessage> AssertReannounceRequestAsync(HttpRequestMessage request, string expectedBody)
+        {
+            return AssertReannounceRequestAsyncCore(request, expectedBody);
+        }
+
+        private static async Task<HttpResponseMessage> AssertReannounceRequestAsyncCore(HttpRequestMessage request, string expectedBody)
+        {
+            var body = await request.Content!.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            body.Should().Be(expectedBody);
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+
+        private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
+        {
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(content ?? string.Empty)
+            };
         }
     }
 }

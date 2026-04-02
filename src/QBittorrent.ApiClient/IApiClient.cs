@@ -63,6 +63,11 @@ namespace QBittorrent.ApiClient
         /// <returns>A result with the qBittorrent build information.</returns>
         Task<ApiResult<BuildInfo>> GetBuildInfoAsync(CancellationToken cancellationToken = default);
 
+        /// <summary>Gets qBittorrent process information.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the qBittorrent process information.</returns>
+        Task<ApiResult<ProcessInfo>> GetProcessInfoAsync(CancellationToken cancellationToken = default);
+
         /// <summary>Requests qBittorrent shutdown.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
@@ -90,6 +95,16 @@ namespace QBittorrent.ApiClient
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> SetApplicationCookiesAsync(IEnumerable<ApplicationCookie> cookies, CancellationToken cancellationToken = default);
 
+        /// <summary>Rotates the qBittorrent Web API key.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the new Web API key.</returns>
+        Task<ApiResult<ApiKey>> RotateAPIKeyAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Deletes the qBittorrent Web API key.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> DeleteAPIKeyAsync(CancellationToken cancellationToken = default);
+
         /// <summary>Requests that qBittorrent send a test email using the configured mail settings.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
@@ -101,6 +116,13 @@ namespace QBittorrent.ApiClient
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the matching directory entries.</returns>
         Task<ApiResult<IReadOnlyList<string>>> GetDirectoryContentAsync(string directoryPath, DirectoryContentMode mode = DirectoryContentMode.All, CancellationToken cancellationToken = default);
+
+        /// <summary>Gets the contents of a directory on the qBittorrent host including metadata for each entry.</summary>
+        /// <param name="directoryPath">The absolute directory path to inspect.</param>
+        /// <param name="mode">The entry types to include in the result.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the matching directory entries and their metadata.</returns>
+        Task<ApiResult<IReadOnlyList<DirectoryContentEntry>>> GetDirectoryContentEntriesAsync(string directoryPath, DirectoryContentMode mode = DirectoryContentMode.All, CancellationToken cancellationToken = default);
 
         /// <summary>Gets qBittorrent's default save path.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -162,7 +184,7 @@ namespace QBittorrent.ApiClient
         /// <summary>Gets the global transfer statistics.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the current global transfer information.</returns>
-        Task<ApiResult<GlobalTransferInfo>> GetGlobalTransferInfoAsync(CancellationToken cancellationToken = default);
+        Task<ApiResult<GlobalTransferStatistics>> GetGlobalTransferStatisticsAsync(CancellationToken cancellationToken = default);
 
         /// <summary>Gets whether alternative speed limits are enabled.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -292,6 +314,12 @@ namespace QBittorrent.ApiClient
         /// <returns>A result with the torrent piece hashes.</returns>
         Task<ApiResult<IReadOnlyList<string>>> GetTorrentPieceHashesAsync(string hash, CancellationToken cancellationToken = default);
 
+        /// <summary>Gets the piece availability counts for a torrent.</summary>
+        /// <param name="hash">The torrent hash.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the piece availability counts.</returns>
+        Task<ApiResult<IReadOnlyList<int>>> GetTorrentPieceAvailabilityAsync(string hash, CancellationToken cancellationToken = default);
+
         /// <summary>Starts one or more torrents.</summary>
         /// <param name="selector">The torrent selection to target.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -319,10 +347,10 @@ namespace QBittorrent.ApiClient
 
         /// <summary>Forces one or more torrents to reannounce.</summary>
         /// <param name="selector">The torrent selection to target.</param>
-        /// <param name="trackers">The optional tracker URLs to reannounce against.</param>
+        /// <param name="urls">The optional tracker URLs to reannounce against.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> ReannounceTorrentsAsync(TorrentSelector selector, IEnumerable<string>? trackers = null, CancellationToken cancellationToken = default);
+        Task<ApiResult> ReannounceTorrentsAsync(TorrentSelector selector, IEnumerable<string>? urls = null, CancellationToken cancellationToken = default);
 
         /// <summary>Adds one or more torrents.</summary>
         /// <param name="addTorrentParams">The torrent-add parameters.</param>
@@ -456,6 +484,13 @@ namespace QBittorrent.ApiClient
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> SetTorrentNameAsync(string hash, string name, CancellationToken cancellationToken = default);
 
+        /// <summary>Sets the comment for one or more torrents.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
+        /// <param name="comment">The comment to apply.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> SetTorrentCommentAsync(TorrentSelector selector, string comment, CancellationToken cancellationToken = default);
+
         /// <summary>Sets the category for one or more torrents.</summary>
         /// <param name="selector">The torrent selection to target.</param>
         /// <param name="category">The category to assign.</param>
@@ -583,6 +618,12 @@ namespace QBittorrent.ApiClient
         /// <remarks>This method only builds the export URL. qBittorrent is contacted when the returned URL is requested.</remarks>
         Task<ApiResult<string>> GetExportUrlAsync(string hash);
 
+        /// <summary>Downloads the exported torrent file for a hash.</summary>
+        /// <param name="hash">The torrent hash.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the exported torrent file bytes.</returns>
+        Task<ApiResult<byte[]>> ExportTorrentAsync(string hash, CancellationToken cancellationToken = default);
+
         /// <summary>Gets the SSL parameters associated with a torrent.</summary>
         /// <param name="hash">The torrent hash.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -595,6 +636,25 @@ namespace QBittorrent.ApiClient
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> SetTorrentSslParametersAsync(string hash, SslParameters parameters, CancellationToken cancellationToken = default);
+
+        /// <summary>Fetches resolved torrent metadata for a URI or hash.</summary>
+        /// <param name="source">The torrent source URI or hash.</param>
+        /// <param name="downloader">The optional search plugin downloader to use.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the resolved torrent metadata. When qBittorrent accepts the request but has not completed it yet, the result fails with <see cref="ApiFailureKind.OperationPending" />.</returns>
+        Task<ApiResult<TorrentMetadata>> FetchTorrentMetadataAsync(string source, string? downloader = null, CancellationToken cancellationToken = default);
+
+        /// <summary>Parses torrent metadata from uploaded torrent files.</summary>
+        /// <param name="torrents">The torrent files keyed by file name.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the parsed torrent metadata in request order.</returns>
+        Task<ApiResult<IReadOnlyList<TorrentMetadata>>> ParseTorrentMetadataAsync(IReadOnlyDictionary<string, Stream> torrents, CancellationToken cancellationToken = default);
+
+        /// <summary>Saves previously fetched torrent metadata as a torrent file.</summary>
+        /// <param name="source">The torrent source URI or hash.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the torrent file bytes.</returns>
+        Task<ApiResult<byte[]>> SaveTorrentMetadataAsync(string source, CancellationToken cancellationToken = default);
 
         #endregion Torrent management
 
@@ -637,9 +697,10 @@ namespace QBittorrent.ApiClient
         /// <summary>Creates an RSS feed.</summary>
         /// <param name="url">The RSS feed URL.</param>
         /// <param name="path">The RSS path to place the feed under, or <see langword="null" /> to let qBittorrent derive one.</param>
+        /// <param name="refreshInterval">The optional refresh interval in seconds.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> AddRssFeedAsync(string url, string? path = null, CancellationToken cancellationToken = default);
+        Task<ApiResult> AddRssFeedAsync(string url, string? path = null, long? refreshInterval = null, CancellationToken cancellationToken = default);
 
         /// <summary>Removes an RSS folder or feed.</summary>
         /// <param name="path">The RSS item path.</param>
@@ -660,6 +721,13 @@ namespace QBittorrent.ApiClient
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> SetRssFeedUrlAsync(string path, string url, CancellationToken cancellationToken = default);
+
+        /// <summary>Updates the refresh interval for an RSS feed.</summary>
+        /// <param name="path">The RSS feed path.</param>
+        /// <param name="refreshInterval">The refresh interval in seconds.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> SetRssFeedRefreshIntervalAsync(string path, long refreshInterval, CancellationToken cancellationToken = default);
 
         /// <summary>Gets all RSS items.</summary>
         /// <param name="withData">Whether to include full article data.</param>

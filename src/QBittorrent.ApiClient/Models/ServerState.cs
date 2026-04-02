@@ -5,7 +5,7 @@ namespace QBittorrent.ApiClient.Models
     /// <summary>
     /// Represents server-state information from the sync API.
     /// </summary>
-    public record ServerState : GlobalTransferInfo
+    public record ServerState : GlobalTransferStatistics
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ServerState" /> class.

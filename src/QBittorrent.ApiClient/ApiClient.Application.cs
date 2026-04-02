@@ -116,6 +116,28 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
+        public async Task<ApiResult<ProcessInfo>> GetProcessInfoAsync(CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult<ProcessInfo>();
+            }
+
+            if (!profile.SupportsProcessInfo)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(GetProcessInfoAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support process info.").ToResult<ProcessInfo>();
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.GetAsync("app/processInfo", ct),
+                GetJsonAsync<ProcessInfo>,
+                cancellationToken: cancellationToken);
+        }
+
         public Task<ApiResult> ShutdownAsync(CancellationToken cancellationToken = default)
         {
             return ExecuteAsync(ct => _httpClient.PostAsync("app/shutdown", null, ct), cancellationToken: cancellationToken);
@@ -161,6 +183,47 @@ namespace QBittorrent.ApiClient
             return ExecuteAsync(ct => _httpClient.PostAsync("app/setCookies", content, ct), cancellationToken: cancellationToken);
         }
 
+        public async Task<ApiResult<ApiKey>> RotateAPIKeyAsync(CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult<ApiKey>();
+            }
+
+            if (!profile.SupportsApiKeyManagement)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(RotateAPIKeyAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support Web API key rotation.").ToResult<ApiKey>();
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync("app/rotateAPIKey", null, ct),
+                GetJsonAsync<ApiKey>,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult> DeleteAPIKeyAsync(CancellationToken cancellationToken = default)
+        {
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult();
+            }
+
+            if (!profile.SupportsApiKeyManagement)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(DeleteAPIKeyAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support Web API key deletion.").ToResult();
+            }
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("app/deleteAPIKey", null, ct), cancellationToken: cancellationToken);
+        }
+
         public Task<ApiResult> SendTestEmailAsync(CancellationToken cancellationToken = default)
         {
             return ExecuteAsync(ct => _httpClient.PostAsync("app/sendTestEmail", null, ct), cancellationToken: cancellationToken);
@@ -170,18 +233,38 @@ namespace QBittorrent.ApiClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
 
-            var query = new QueryBuilder()
-                .Add("dirPath", directoryPath)
-                .Add("mode", mode switch
-                {
-                    DirectoryContentMode.Directories => "dirs",
-                    DirectoryContentMode.Files => "files",
-                    _ => "all"
-                });
+            var query = BuildDirectoryContentQuery(directoryPath, mode);
 
             return ExecuteAsync(
                 ct => _httpClient.GetAsync("app/getDirectoryContent", query, ct),
                 GetJsonListAsync<string>,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult<IReadOnlyList<DirectoryContentEntry>>> GetDirectoryContentEntriesAsync(string directoryPath, DirectoryContentMode mode = DirectoryContentMode.All, CancellationToken cancellationToken = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
+
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                return profileResult.Failure.ToResult<IReadOnlyList<DirectoryContentEntry>>();
+            }
+
+            if (!profile.SupportsDirectoryContentMetadata)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(GetDirectoryContentEntriesAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support directory metadata responses.").ToResult<IReadOnlyList<DirectoryContentEntry>>();
+            }
+
+            var query = BuildDirectoryContentQuery(directoryPath, mode)
+                .Add("withMetadata", true);
+
+            return await ExecuteAsync(
+                ct => _httpClient.GetAsync("app/getDirectoryContent", query, ct),
+                GetJsonListAsync<DirectoryContentEntry>,
                 cancellationToken: cancellationToken);
         }
 
@@ -210,6 +293,18 @@ namespace QBittorrent.ApiClient
                 ct => _httpClient.GetAsync("app/networkInterfaceAddressList", query, ct),
                 GetJsonListAsync<string>,
                 cancellationToken: cancellationToken);
+        }
+
+        private static QueryBuilder BuildDirectoryContentQuery(string directoryPath, DirectoryContentMode mode)
+        {
+            return new QueryBuilder()
+                .Add("dirPath", directoryPath)
+                .Add("mode", mode switch
+                {
+                    DirectoryContentMode.Directories => "dirs",
+                    DirectoryContentMode.Files => "files",
+                    _ => "all"
+                });
         }
     }
 }

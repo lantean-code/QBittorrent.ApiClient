@@ -57,6 +57,7 @@
 - Preserve qBittorrent Web API semantics unless the user explicitly approves a change.
 - Keep version-specific request and response handling inside the client library, not in consuming applications.
 - Do not require callers to interpret raw HTTP status codes or response bodies for normal API outcomes when a structured result or failure can represent the behavior.
+- Do not parse API JSON payloads directly inside `ApiClient*.cs` methods with `JsonDocument`, `JsonElement`, or property-by-property response walking. Model non-standard payloads with typed DTOs and `JsonConverter` implementations, then deserialize through the shared serializer options.
 
 ### Design
 - Use constructor injection only, unless absolutely necessary.

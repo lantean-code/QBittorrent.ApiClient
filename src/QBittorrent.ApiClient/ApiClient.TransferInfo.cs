@@ -4,11 +4,11 @@ namespace QBittorrent.ApiClient
 {
     internal partial class ApiClient
     {
-        public Task<ApiResult<GlobalTransferInfo>> GetGlobalTransferInfoAsync(CancellationToken cancellationToken = default)
+        public Task<ApiResult<GlobalTransferStatistics>> GetGlobalTransferStatisticsAsync(CancellationToken cancellationToken = default)
         {
             return ExecuteAsync(
                 ct => _httpClient.GetAsync("transfer/info", ct),
-                GetJsonAsync<GlobalTransferInfo>,
+                GetJsonAsync<GlobalTransferStatistics>,
                 cancellationToken: cancellationToken);
         }
 

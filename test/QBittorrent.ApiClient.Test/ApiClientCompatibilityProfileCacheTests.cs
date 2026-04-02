@@ -16,6 +16,52 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public void GIVEN_VersionBefore2151_WHEN_CreatingCompatibilityProfile_THEN_ShouldDisableModern52Features()
+        {
+            var target = new ApiClientCompatibilityProfile(new Version(2, 11, 4));
+
+            target.SupportsClientData.Should().BeFalse();
+            target.SupportsProcessInfo.Should().BeFalse();
+            target.SupportsApiKeyManagement.Should().BeFalse();
+            target.SupportsDirectoryContentMetadata.Should().BeFalse();
+            target.SupportsRssFeedRefreshInterval.Should().BeFalse();
+            target.SupportsTorrentListIncludeFiles.Should().BeFalse();
+            target.SupportsTorrentAddDownloader.Should().BeFalse();
+            target.SupportsTorrentAddFilePriorities.Should().BeFalse();
+            target.SupportsTrackerBatchOperations.Should().BeFalse();
+            target.SupportsTrackerTierEditing.Should().BeFalse();
+            target.SupportsReannounceUrls.Should().BeFalse();
+            target.SupportsTorrentPieceAvailability.Should().BeFalse();
+            target.SupportsTorrentCommentEditing.Should().BeFalse();
+            target.SupportsTorrentMetadata.Should().BeFalse();
+            target.RequiresShareLimitAction.Should().BeFalse();
+            target.TrackerAllValue.Should().Be("*");
+        }
+
+        [Fact]
+        public void GIVEN_Version2151_WHEN_CreatingCompatibilityProfile_THEN_ShouldEnableModern52Features()
+        {
+            var target = new ApiClientCompatibilityProfile(new Version(2, 15, 1));
+
+            target.SupportsClientData.Should().BeTrue();
+            target.SupportsProcessInfo.Should().BeTrue();
+            target.SupportsApiKeyManagement.Should().BeTrue();
+            target.SupportsDirectoryContentMetadata.Should().BeTrue();
+            target.SupportsRssFeedRefreshInterval.Should().BeTrue();
+            target.SupportsTorrentListIncludeFiles.Should().BeTrue();
+            target.SupportsTorrentAddDownloader.Should().BeTrue();
+            target.SupportsTorrentAddFilePriorities.Should().BeTrue();
+            target.SupportsTrackerBatchOperations.Should().BeTrue();
+            target.SupportsTrackerTierEditing.Should().BeTrue();
+            target.SupportsReannounceUrls.Should().BeTrue();
+            target.SupportsTorrentPieceAvailability.Should().BeTrue();
+            target.SupportsTorrentCommentEditing.Should().BeTrue();
+            target.SupportsTorrentMetadata.Should().BeTrue();
+            target.RequiresShareLimitAction.Should().BeTrue();
+            target.TrackerAllValue.Should().Be("all");
+        }
+
+        [Fact]
         public async Task GIVEN_CacheMiss_WHEN_GetOrAddAsync_THEN_ShouldStoreValueForKey()
         {
             var target = new ApiClientCompatibilityProfileCache();

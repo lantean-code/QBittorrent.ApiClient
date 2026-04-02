@@ -54,54 +54,63 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/add");
-                req.Content.Should().BeOfType<MultipartFormDataContent>();
-
-                var parts = (req.Content as MultipartFormDataContent)!.ToList();
-
-                async Task<string> ReadAsync(string name)
+                switch (req.RequestUri!.AbsolutePath)
                 {
-                    var part = parts.Single(p => p.Headers.ContentDisposition!.Name == name);
-                    return await part.ReadAsStringAsync(ct);
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/torrents/add":
+                        req.Content.Should().BeOfType<MultipartFormDataContent>();
+
+                        var parts = (req.Content as MultipartFormDataContent)!.ToList();
+
+                        async Task<string> ReadAsync(string name)
+                        {
+                            var part = parts.Single(p => p.Headers.ContentDisposition!.Name == name);
+                            return await part.ReadAsStringAsync(ct);
+                        }
+
+                        parts.Any(p => p.Headers.ContentDisposition!.Name == "torrents" &&
+                                       p.Headers.ContentDisposition!.FileName == "a.torrent").Should().BeTrue();
+                        parts.Any(p => p.Headers.ContentDisposition!.Name == "torrents" &&
+                                       p.Headers.ContentDisposition!.FileName == "b.torrent").Should().BeTrue();
+
+                        (await ReadAsync("skip_checking")).Should().Be("true");
+                        (await ReadAsync("sequentialDownload")).Should().Be("false");
+                        (await ReadAsync("firstLastPiecePrio")).Should().Be("true");
+                        (await ReadAsync("addToTopOfQueue")).Should().Be("true");
+                        (await ReadAsync("forced")).Should().Be("false");
+                        (await ReadAsync("stopped")).Should().Be("true");
+                        (await ReadAsync("savepath")).Should().Be("/save");
+                        (await ReadAsync("downloadPath")).Should().Be("/dl");
+                        (await ReadAsync("useDownloadPath")).Should().Be("true");
+                        (await ReadAsync("category")).Should().Be("Movies");
+                        (await ReadAsync("tags")).Should().Be("one,two");
+                        (await ReadAsync("rename")).Should().Be("renamed");
+                        (await ReadAsync("upLimit")).Should().Be("123");
+                        (await ReadAsync("dlLimit")).Should().Be("456");
+                        (await ReadAsync("ratioLimit")).Should().Be("1.5");
+                        (await ReadAsync("seedingTimeLimit")).Should().Be("90");
+                        (await ReadAsync("inactiveSeedingTimeLimit")).Should().Be("30");
+                        (await ReadAsync("shareLimitAction")).Should().Be("Remove");
+                        (await ReadAsync("autoTMM")).Should().Be("true");
+                        (await ReadAsync("stopCondition")).Should().Be("FilesChecked");
+                        (await ReadAsync("contentLayout")).Should().Be("Subfolder");
+                        (await ReadAsync("downloader")).Should().Be("curl");
+                        (await ReadAsync("filePriorities")).Should().Be("0,1");
+                        (await ReadAsync("ssl_certificate")).Should().Be("cert");
+                        (await ReadAsync("ssl_private_key")).Should().Be("key");
+                        (await ReadAsync("ssl_dh_params")).Should().Be("dh");
+                        (await ReadAsync("cookie")).Should().Be("sessionid=123");
+
+                        return new HttpResponseMessage(HttpStatusCode.OK)
+                        {
+                            Content = new StringContent("{}")
+                        };
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
-
-                parts.Any(p => p.Headers.ContentDisposition!.Name == "torrents" &&
-                               p.Headers.ContentDisposition!.FileName == "a.torrent").Should().BeTrue();
-                parts.Any(p => p.Headers.ContentDisposition!.Name == "torrents" &&
-                               p.Headers.ContentDisposition!.FileName == "b.torrent").Should().BeTrue();
-
-                (await ReadAsync("skip_checking")).Should().Be("true");
-                (await ReadAsync("sequentialDownload")).Should().Be("false");
-                (await ReadAsync("firstLastPiecePrio")).Should().Be("true");
-                (await ReadAsync("addToTopOfQueue")).Should().Be("true");
-                (await ReadAsync("forced")).Should().Be("false");
-                (await ReadAsync("stopped")).Should().Be("true");
-                (await ReadAsync("savepath")).Should().Be("/save");
-                (await ReadAsync("downloadPath")).Should().Be("/dl");
-                (await ReadAsync("useDownloadPath")).Should().Be("true");
-                (await ReadAsync("category")).Should().Be("Movies");
-                (await ReadAsync("tags")).Should().Be("one,two");
-                (await ReadAsync("rename")).Should().Be("renamed");
-                (await ReadAsync("upLimit")).Should().Be("123");
-                (await ReadAsync("dlLimit")).Should().Be("456");
-                (await ReadAsync("ratioLimit")).Should().Be("1.5");
-                (await ReadAsync("seedingTimeLimit")).Should().Be("90");
-                (await ReadAsync("inactiveSeedingTimeLimit")).Should().Be("30");
-                (await ReadAsync("shareLimitAction")).Should().Be("Remove");
-                (await ReadAsync("autoTMM")).Should().Be("true");
-                (await ReadAsync("stopCondition")).Should().Be("FilesChecked");
-                (await ReadAsync("contentLayout")).Should().Be("Subfolder");
-                (await ReadAsync("downloader")).Should().Be("curl");
-                (await ReadAsync("filePriorities")).Should().Be("0,1");
-                (await ReadAsync("ssl_certificate")).Should().Be("cert");
-                (await ReadAsync("ssl_private_key")).Should().Be("key");
-                (await ReadAsync("ssl_dh_params")).Should().Be("dh");
-                (await ReadAsync("cookie")).Should().Be("sessionid=123");
-
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent("{}")
-                };
             };
 
             using var s1 = new MemoryStream(Encoding.UTF8.GetBytes("a"));
@@ -141,6 +150,131 @@ namespace QBittorrent.ApiClient.Test
             };
 
             var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersionAndDownloader_WHEN_AddTorrent_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var addRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/add":
+                        addRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = new[] { "u1" },
+                Downloader = "plugin"
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support add-torrent downloader selection.");
+            addRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersionAndFilePriorities_WHEN_AddTorrent_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var addRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/add":
+                        addRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = new[] { "u1" },
+                FilePriorities = new[] { Priority.DoNotDownload }
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support add-torrent file priorities.");
+            addRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailureAndDownloader_WHEN_AddTorrent_THEN_ShouldReturnProbeFailure()
+        {
+            var addRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/torrents/add":
+                        addRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = new[] { "u1" },
+                Downloader = "plugin"
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            addRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersionAndDownloaderWithoutFilePriorities_WHEN_AddTorrent_THEN_ShouldPostDownloaderWithoutProbingFailure()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/torrents/add":
+                        var parts = (req.Content as MultipartFormDataContent)!.ToList();
+                        parts.Should().ContainSingle();
+                        parts[0].Headers.ContentDisposition!.Name.Should().Be("downloader");
+                        (await parts[0].ReadAsStringAsync(ct)).Should().Be("plugin");
+                        return CreateResponse(HttpStatusCode.OK, "{}");
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Downloader = "plugin"
+            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();
         }
@@ -516,6 +650,789 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(
                 kind: ApiFailureKind.InvalidConfiguration,
                 userMessage: "HttpClient BaseAddress must be configured.");
+        }
+
+        [Fact]
+        public async Task GIVEN_Hash_WHEN_ExportTorrent_THEN_ShouldReturnTorrentBytes()
+        {
+            var expected = Encoding.UTF8.GetBytes("torrent-bytes");
+
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/export?hash=abc123");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent(expected)
+                });
+            };
+
+            var result = (await _target.ExportTorrentAsync("abc123", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Equal(expected);
+        }
+
+        [Fact]
+        public async Task GIVEN_NonSuccess_WHEN_ExportTorrent_THEN_ShouldReturnFailure()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent("missing")
+            });
+
+            var result = await _target.ExportTorrentAsync("abc123", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(statusCode: HttpStatusCode.NotFound, userMessage: "missing");
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_FetchTorrentMetadata_THEN_ShouldReturnResolvedMetadata()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/torrents/fetchMetadata":
+                        req.Method.Should().Be(HttpMethod.Post);
+                        (await req.Content!.ReadAsStringAsync(ct)).Should().Be("source=magnet%3A%3Fxt%3Durn%3Abtih%3Aabc&downloader=plugin");
+                        return CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            {
+                                "infohash_v1": "InfoHashV1",
+                                "infohash_v2": "InfoHashV2",
+                                "hash": "Hash",
+                                "created_by": "CreatedBy",
+                                "creation_date": 946684800,
+                                "comment": "Comment",
+                                "trackers":
+                                [
+                                    {
+                                        "url": "udp://tracker",
+                                        "tier": 0
+                                    }
+                                ],
+                                "webseeds": [ "https://seed" ],
+                                "info":
+                                {
+                                    "name": "Name",
+                                    "length": 99,
+                                    "piece_length": 16,
+                                    "pieces_num": 7,
+                                    "private": true,
+                                    "files":
+                                    [
+                                        {
+                                            "path": "file.bin",
+                                            "length": 99
+                                        }
+                                    ]
+                                }
+                            }
+                            """);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.FetchTorrentMetadataAsync("magnet:?xt=urn:btih:abc", "plugin", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.InfoHashV1.Should().Be("InfoHashV1");
+            result.InfoHashV2.Should().Be("InfoHashV2");
+            result.Hash.Should().Be("Hash");
+            result.Info.Name.Should().Be("Name");
+            result.Info.Length.Should().Be(99);
+            result.Info.PieceLength.Should().Be(16);
+            result.Info.PiecesNum.Should().Be(7);
+            result.Info.Private.Should().BeTrue();
+            result.CreatedBy.Should().Be("CreatedBy");
+            result.CreationDate.Should().Be(946684800);
+            result.Comment.Should().Be("Comment");
+            result.Info.Files.Should().ContainSingle();
+            result.Info.Files[0].Path.Should().Be("file.bin");
+            result.Info.Files[0].Length.Should().Be(99);
+            result.Trackers.Should().ContainSingle();
+            result.Trackers[0].Url.Should().Be("udp://tracker");
+            result.Trackers[0].Tier.Should().Be(0);
+            result.WebSeeds.Should().ContainSingle().Which.Should().Be("https://seed");
+        }
+
+        [Fact]
+        public async Task GIVEN_AcceptedResponseWithIdentifiers_WHEN_FetchTorrentMetadata_THEN_ShouldReturnOperationPendingFailure()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.Accepted,
+                            """
+                            {
+                                "infohash_v1": "InfoHashV1",
+                                "infohash_v2": "InfoHashV2",
+                                "hash": "Hash"
+                            }
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(
+                kind: ApiFailureKind.OperationPending,
+                statusCode: HttpStatusCode.Accepted,
+                userMessage: "qBittorrent accepted the request, but the operation has not completed yet. Retry the request.");
+
+            failure.IsTransient.Should().BeTrue();
+            failure.ResponseBody.Should().Contain("InfoHashV1");
+        }
+
+        [Fact]
+        public async Task GIVEN_AcceptedEmptyObject_WHEN_FetchTorrentMetadata_THEN_ShouldReturnOperationPendingFailure()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.Accepted, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(
+                kind: ApiFailureKind.OperationPending,
+                statusCode: HttpStatusCode.Accepted,
+                userMessage: "qBittorrent accepted the request, but the operation has not completed yet. Retry the request.");
+
+            failure.ResponseBody.Should().Be("{}");
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_FetchTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var metadataRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/fetchMetadata":
+                        metadataRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent metadata APIs.");
+            metadataRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_FetchTorrentMetadata_THEN_ShouldReturnProbeFailure()
+        {
+            var metadataRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/torrents/fetchMetadata":
+                        metadataRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            metadataRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_NonSuccess_WHEN_FetchTorrentMetadata_THEN_ShouldReturnFailure()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.NotFound, "missing"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(statusCode: HttpStatusCode.NotFound, userMessage: "missing");
+        }
+
+        [Fact]
+        public async Task GIVEN_InvalidJson_WHEN_FetchTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "not-json"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_InvalidTrackerPayload_WHEN_FetchTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            {
+                                "trackers":
+                                [
+                                    {
+                                        "tier": 0
+                                    }
+                                ],
+                                "info":
+                                {
+                                    "name": "Name",
+                                    "length": 99,
+                                    "piece_length": 16,
+                                    "pieces_num": 7,
+                                    "private": true,
+                                    "files":
+                                    [
+                                        {
+                                            "path": "file.bin",
+                                            "length": 99
+                                        }
+                                    ]
+                                }
+                            }
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_NullJsonPayload_WHEN_FetchTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "null"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_MultipartFiles_WHEN_ParseTorrentMetadata_THEN_ShouldReturnMetadataInResponseOrder()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/torrents/parseMetadata":
+                        req.Method.Should().Be(HttpMethod.Post);
+                        req.Content.Should().BeOfType<MultipartFormDataContent>();
+
+                        var parts = (req.Content as MultipartFormDataContent)!.ToList();
+                        parts.Count.Should().Be(2);
+                        parts[0].Headers.ContentDisposition!.Name.Should().Be("torrents");
+                        parts[0].Headers.ContentDisposition!.FileName.Should().Be("a.torrent");
+                        parts[1].Headers.ContentDisposition!.FileName.Should().Be("b.torrent");
+                        (await parts[0].ReadAsStringAsync(ct)).Should().Be("a");
+                        (await parts[1].ReadAsStringAsync(ct)).Should().Be("b");
+
+                        return CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            [
+                                {
+                                    "hash": "Hash1",
+                                    "info":
+                                    {
+                                        "name": "First",
+                                        "length": 10,
+                                        "piece_length": 2,
+                                        "pieces_num": 5,
+                                        "private": false,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "first.bin",
+                                                "length": 10
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "hash": "Hash2",
+                                    "info":
+                                    {
+                                        "name": "Second",
+                                        "length": 20,
+                                        "piece_length": 4,
+                                        "pieces_num": 5,
+                                        "private": true,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "second.bin",
+                                                "length": 20
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                            """);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var first = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+            using var second = new MemoryStream(Encoding.UTF8.GetBytes("b"));
+
+            var result = (await _target.ParseTorrentMetadataAsync(
+                new Dictionary<string, Stream>
+                {
+                    ["a.torrent"] = first,
+                    ["b.torrent"] = second
+                },
+                cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Select(item => item.Info.Name).Should().Equal("First", "Second");
+            result.Select(item => item.Hash).Should().Equal("Hash1", "Hash2");
+        }
+
+        [Fact]
+        public async Task GIVEN_NullTorrents_WHEN_ParseTorrentMetadata_THEN_ShouldThrowArgumentNullException()
+        {
+            var action = async () => await _target.ParseTorrentMetadataAsync(null!, cancellationToken: TestContext.Current.CancellationToken);
+
+            var exception = await action.Should().ThrowAsync<ArgumentNullException>();
+            exception.Which.ParamName.Should().Be("torrents");
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_ParseTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var metadataRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/parseMetadata":
+                        metadataRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent metadata APIs.");
+            metadataRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_ParseTorrentMetadata_THEN_ShouldReturnProbeFailure()
+        {
+            var metadataRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/torrents/parseMetadata":
+                        metadataRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            metadataRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ObjectPayload_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/parseMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_MetadataEntryWithoutInfo_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/parseMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, """[{ "hash": "Hash1" }]"""));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_InvalidMetadataEntry_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/parseMetadata":
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            [
+                                {
+                                    "info":
+                                    {
+                                        "name": "Name",
+                                        "length": "invalid",
+                                        "piece_length": 16,
+                                        "pieces_num": 7,
+                                        "private": true,
+                                        "files": []
+                                    }
+                                }
+                            ]
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_InvalidFileEntry_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/parseMetadata":
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            [
+                                {
+                                    "info":
+                                    {
+                                        "name": "Name",
+                                        "length": 10,
+                                        "piece_length": 2,
+                                        "pieces_num": 5,
+                                        "private": false,
+                                        "files":
+                                        [
+                                            {
+                                                "length": 10
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_NullMetadataEntry_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/parseMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[null]"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_SaveTorrentMetadata_THEN_ShouldReturnTorrentBytes()
+        {
+            var expected = Encoding.UTF8.GetBytes("saved-torrent");
+
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/torrents/saveMetadata":
+                        req.Method.Should().Be(HttpMethod.Post);
+                        (await req.Content!.ReadAsStringAsync(ct)).Should().Be("source=source");
+                        return new HttpResponseMessage(HttpStatusCode.OK)
+                        {
+                            Content = new ByteArrayContent(expected)
+                        };
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Equal(expected);
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_SaveTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var metadataRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/saveMetadata":
+                        metadataRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent metadata APIs.");
+            metadataRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SaveTorrentMetadata_THEN_ShouldReturnProbeFailure()
+        {
+            var metadataRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/torrents/saveMetadata":
+                        metadataRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            metadataRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_NonSuccess_WHEN_SaveTorrentMetadata_THEN_ShouldReturnFailure()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+
+                    case "/torrents/saveMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.NotFound, "missing"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(statusCode: HttpStatusCode.NotFound, userMessage: "missing");
+        }
+
+        private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
+        {
+            if (content is null)
+            {
+                return new HttpResponseMessage(statusCode);
+            }
+
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(content)
+            };
         }
 
         private sealed class UnreadableStream : Stream

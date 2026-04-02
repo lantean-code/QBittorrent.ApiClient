@@ -22,6 +22,7 @@ namespace QBittorrent.ApiClient
 
             options.Converters.Add(new StringFloatJsonConverter());
             options.Converters.Add(new NullableStringFloatJsonConverter());
+            options.Converters.Add(new DirectoryContentEntryTypeJsonConverter());
             options.Converters.Add(new SaveLocationJsonConverter());
 
             return options;

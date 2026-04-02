@@ -57,6 +57,7 @@
    - Confirm SDK target, nullable context, analyzers, and editorconfig rules.
    - Keep the public package surface consistent unless the user explicitly requests a breaking change.
    - Keep qBittorrent Web API request and response semantics aligned with upstream behavior.
+   - Treat `ApiResult` success as a completed, usable operation outcome, not merely receipt of an HTTP success status. If qBittorrent reports an accepted, pending, queued, or otherwise incomplete state that still requires polling or retry to obtain the real result, model that as a failed `ApiResult` with an explicit failure kind rather than a successful value wrapper.
 4. When generating code:
    - Follow `./src/AGENTS.md` exactly.
    - Prefer minimal, maintainable changes and avoid churn to unrelated files.

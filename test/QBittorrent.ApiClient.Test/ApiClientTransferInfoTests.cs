@@ -20,20 +20,20 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_OKJson_WHEN_GetGlobalTransferInfo_THEN_ShouldDeserialize()
+        public async Task GIVEN_OKJson_WHEN_GetGlobalTransferStatistics_THEN_ShouldDeserialize()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("{}")
             });
 
-            var result = (await _target.GetGlobalTransferInfoAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.GetGlobalTransferStatisticsAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();
         }
 
         [Fact]
-        public async Task GIVEN_GlobalTransferInfoPayload_WHEN_GetGlobalTransferInfo_THEN_ShouldMapAllFields()
+        public async Task GIVEN_GlobalTransferStatisticsPayload_WHEN_GetGlobalTransferStatistics_THEN_ShouldMapAllFields()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -53,7 +53,7 @@ namespace QBittorrent.ApiClient.Test
                     """)
             });
 
-            var result = (await _target.GetGlobalTransferInfoAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.GetGlobalTransferStatisticsAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.ConnectionStatus.Should().Be("connected");
             result.DHTNodes.Should().Be(10);
@@ -68,14 +68,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_NonSuccess_WHEN_GetGlobalTransferInfo_THEN_ShouldThrowWithStatusAndMessage()
+        public async Task GIVEN_NonSuccess_WHEN_GetGlobalTransferStatistics_THEN_ShouldThrowWithStatusAndMessage()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadGateway)
             {
                 Content = new StringContent("bad")
             });
 
-            var result = await _target.GetGlobalTransferInfoAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.GetGlobalTransferStatisticsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadGateway, userMessage: "bad");
         }

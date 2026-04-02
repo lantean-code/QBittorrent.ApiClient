@@ -75,6 +75,84 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_ModernApiVersion_WHEN_SetTorrentComment_THEN_ShouldPOSTHashesAndComment()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+
+                    case "/torrents/setComment":
+                        req.Method.Should().Be(HttpMethod.Post);
+                        (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=h1%7Ch2&comment=Comment");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.SetTorrentCommentAsync(TorrentSelector.FromHashes(["h1", "h2"]), "Comment", cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_LegacyApiVersion_WHEN_SetTorrentComment_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var commentRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+
+                    case "/torrents/setComment":
+                        commentRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SetTorrentCommentAsync(TorrentSelector.FromHash("h1"), "Comment", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent comments.");
+            commentRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetTorrentComment_THEN_ShouldReturnProbeFailure()
+        {
+            var commentRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    case "/torrents/setComment":
+                        commentRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SetTorrentCommentAsync(TorrentSelector.FromHash("h1"), "Comment", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            commentRequestCount.Should().Be(0);
+        }
+
+        [Fact]
         public async Task GIVEN_Hashes_WHEN_SetTorrentSavePath_THEN_ShouldPOSTIdsAndPath()
         {
             _handler.Responder = async (req, ct) =>
@@ -389,6 +467,19 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.SetTorrentSslParametersAsync("abc", new SslParameters("cert", "key", "dh"), cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadGateway, userMessage: "ssl failed");
+        }
+
+        private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
+        {
+            if (content is null)
+            {
+                return new HttpResponseMessage(statusCode);
+            }
+
+            return new HttpResponseMessage(statusCode)
+            {
+                Content = new StringContent(content)
+            };
         }
     }
 }

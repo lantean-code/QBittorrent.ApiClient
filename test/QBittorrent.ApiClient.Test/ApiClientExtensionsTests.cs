@@ -50,11 +50,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_HashAndMatchingTorrent_WHEN_GetTorrent_THEN_ShouldReturnFirstTorrent()
         {
-            var expectedTorrent = new Torrent
-            {
-                Hash = "Hash",
-                Name = "Name"
-            };
+            var expectedTorrent = new Torrent(hash: "Hash", name: "Name");
 
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
@@ -88,9 +84,9 @@ namespace QBittorrent.ApiClient.Test
         {
             var torrents = new List<Torrent>
             {
-                new Torrent { Category = "UsedCategory" },
-                new Torrent { Category = "UsedCategory" },
-                new Torrent { Category = null }
+                new Torrent(category: "UsedCategory"),
+                new Torrent(category: "UsedCategory"),
+                new Torrent(category: null)
             };
 
             var categories = new Dictionary<string, Category>
@@ -184,8 +180,8 @@ namespace QBittorrent.ApiClient.Test
         {
             var torrents = new List<Torrent>
             {
-                new Torrent { Tags = new List<string> { "UsedTag", "OtherUsedTag", "UsedTag" } },
-                new Torrent { Tags = null }
+                new Torrent(tags: new List<string> { "UsedTag", "OtherUsedTag", "UsedTag" }),
+                new Torrent(tags: null)
             };
 
             var tags = new List<string>

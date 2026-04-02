@@ -9,425 +9,573 @@ namespace QBittorrent.ApiClient.Models
     public record Torrent
     {
         /// <summary>
-        /// Gets or sets the torrent hash.
+        /// Initializes a new instance of the <see cref="Torrent" /> class.
+        /// </summary>
+        [JsonConstructor]
+        public Torrent(
+            string? hash = null,
+            string? infoHashV1 = null,
+            string? infoHashV2 = null,
+            string? name = null,
+            string? magnetUri = null,
+            long? size = null,
+            float? progress = null,
+            long? downloadSpeed = null,
+            long? uploadSpeed = null,
+            int? priority = null,
+            int? numberSeeds = null,
+            int? numberComplete = null,
+            int? numberLeeches = null,
+            int? numberIncomplete = null,
+            float? ratio = null,
+            float? popularity = null,
+            long? estimatedTimeOfArrival = null,
+            string? state = null,
+            bool? sequentialDownload = null,
+            bool? firstLastPiecePriority = null,
+            string? category = null,
+            IReadOnlyList<string>? tags = null,
+            bool? superSeeding = null,
+            bool? forceStart = null,
+            string? savePath = null,
+            string? downloadPath = null,
+            string? contentPath = null,
+            string? rootPath = null,
+            long? addedOn = null,
+            long? completionOn = null,
+            string? tracker = null,
+            int? trackersCount = null,
+            long? downloadLimit = null,
+            long? uploadLimit = null,
+            long? downloaded = null,
+            long? uploaded = null,
+            long? downloadedSession = null,
+            long? uploadedSession = null,
+            long? amountLeft = null,
+            long? completed = null,
+            int? connectionsCount = null,
+            int? connectionsLimit = null,
+            float? maxRatio = null,
+            int? maxSeedingTime = null,
+            float? maxInactiveSeedingTime = null,
+            float? ratioLimit = null,
+            int? seedingTimeLimit = null,
+            float? inactiveSeedingTimeLimit = null,
+            ShareLimitAction? shareLimitAction = null,
+            long? seenComplete = null,
+            long? lastActivity = null,
+            long? totalSize = null,
+            bool? automaticTorrentManagement = null,
+            int? timeActive = null,
+            long? seedingTime = null,
+            float? availability = null,
+            long? reannounce = null,
+            string? comment = null,
+            bool? hasMetadata = null,
+            string? createdBy = null,
+            long? creationDate = null,
+            bool? isPrivate = null,
+            long? totalWasted = null,
+            int? piecesCount = null,
+            long? pieceSize = null,
+            int? piecesHave = null,
+            bool? hasTrackerWarning = null,
+            bool? hasTrackerError = null,
+            bool? hasOtherAnnounceError = null,
+            IReadOnlyList<TorrentTracker>? trackers = null)
+        {
+            Hash = hash ?? string.Empty;
+            InfoHashV1 = infoHashV1;
+            InfoHashV2 = infoHashV2;
+            Name = name;
+            MagnetUri = magnetUri;
+            Size = size;
+            Progress = progress;
+            DownloadSpeed = downloadSpeed;
+            UploadSpeed = uploadSpeed;
+            Priority = priority;
+            NumberSeeds = numberSeeds;
+            NumberComplete = numberComplete;
+            NumberLeeches = numberLeeches;
+            NumberIncomplete = numberIncomplete;
+            Ratio = ratio;
+            Popularity = popularity;
+            EstimatedTimeOfArrival = estimatedTimeOfArrival;
+            State = state;
+            SequentialDownload = sequentialDownload;
+            FirstLastPiecePriority = firstLastPiecePriority;
+            Category = category;
+            Tags = tags;
+            SuperSeeding = superSeeding;
+            ForceStart = forceStart;
+            SavePath = savePath;
+            DownloadPath = downloadPath;
+            ContentPath = contentPath;
+            RootPath = rootPath;
+            AddedOn = addedOn;
+            CompletionOn = completionOn;
+            Tracker = tracker;
+            TrackersCount = trackersCount;
+            DownloadLimit = downloadLimit;
+            UploadLimit = uploadLimit;
+            Downloaded = downloaded;
+            Uploaded = uploaded;
+            DownloadedSession = downloadedSession;
+            UploadedSession = uploadedSession;
+            AmountLeft = amountLeft;
+            Completed = completed;
+            ConnectionsCount = connectionsCount;
+            ConnectionsLimit = connectionsLimit;
+            MaxRatio = maxRatio;
+            MaxSeedingTime = maxSeedingTime;
+            MaxInactiveSeedingTime = maxInactiveSeedingTime;
+            RatioLimit = ratioLimit;
+            SeedingTimeLimit = seedingTimeLimit;
+            InactiveSeedingTimeLimit = inactiveSeedingTimeLimit;
+            ShareLimitAction = shareLimitAction;
+            SeenComplete = seenComplete;
+            LastActivity = lastActivity;
+            TotalSize = totalSize;
+            AutomaticTorrentManagement = automaticTorrentManagement;
+            TimeActive = timeActive;
+            SeedingTime = seedingTime;
+            Availability = availability;
+            Reannounce = reannounce;
+            Comment = comment;
+            HasMetadata = hasMetadata;
+            CreatedBy = createdBy;
+            CreationDate = creationDate;
+            IsPrivate = isPrivate;
+            TotalWasted = totalWasted;
+            PiecesCount = piecesCount;
+            PieceSize = pieceSize;
+            PiecesHave = piecesHave;
+            HasTrackerWarning = hasTrackerWarning;
+            HasTrackerError = hasTrackerError;
+            HasOtherAnnounceError = hasOtherAnnounceError;
+            Trackers = trackers;
+        }
+
+        /// <summary>
+        /// Gets the torrent hash.
         /// </summary>
         [JsonPropertyName("hash")]
-        public string Hash { get; init; } = string.Empty;
+        public string Hash { get; }
 
         /// <summary>
-        /// Gets or sets the v1 info hash.
+        /// Gets the v1 info hash.
         /// </summary>
         [JsonPropertyName("infohash_v1")]
-        public string? InfoHashV1 { get; init; }
+        public string? InfoHashV1 { get; }
 
         /// <summary>
-        /// Gets or sets the v2 info hash.
+        /// Gets the v2 info hash.
         /// </summary>
         [JsonPropertyName("infohash_v2")]
-        public string? InfoHashV2 { get; init; }
+        public string? InfoHashV2 { get; }
 
         /// <summary>
-        /// Gets or sets the torrent name.
+        /// Gets the torrent name.
         /// </summary>
         [JsonPropertyName("name")]
-        public string? Name { get; init; }
+        public string? Name { get; }
 
         /// <summary>
-        /// Gets or sets the magnet URI.
+        /// Gets the magnet URI.
         /// </summary>
         [JsonPropertyName("magnet_uri")]
-        public string? MagnetUri { get; init; }
+        public string? MagnetUri { get; }
 
         /// <summary>
-        /// Gets or sets the torrent size in bytes.
+        /// Gets the torrent size in bytes.
         /// </summary>
         [JsonPropertyName("size")]
-        public long? Size { get; init; }
+        public long? Size { get; }
 
         /// <summary>
-        /// Gets or sets the torrent progress.
+        /// Gets the torrent progress.
         /// </summary>
         [JsonPropertyName("progress")]
-        public float? Progress { get; init; }
+        public float? Progress { get; }
 
         /// <summary>
-        /// Gets or sets the download speed.
+        /// Gets the download speed.
         /// </summary>
         [JsonPropertyName("dlspeed")]
-        public long? DownloadSpeed { get; init; }
+        public long? DownloadSpeed { get; }
 
         /// <summary>
-        /// Gets or sets the upload speed.
+        /// Gets the upload speed.
         /// </summary>
         [JsonPropertyName("upspeed")]
-        public long? UploadSpeed { get; init; }
+        public long? UploadSpeed { get; }
 
         /// <summary>
-        /// Gets or sets the torrent priority.
+        /// Gets the torrent priority.
         /// </summary>
         [JsonPropertyName("priority")]
-        public int? Priority { get; init; }
+        public int? Priority { get; }
 
         /// <summary>
-        /// Gets or sets the number of seeds.
+        /// Gets the number of seeds.
         /// </summary>
         [JsonPropertyName("num_seeds")]
-        public int? NumberSeeds { get; init; }
+        public int? NumberSeeds { get; }
 
         /// <summary>
-        /// Gets or sets the number of complete copies.
+        /// Gets the number of complete copies.
         /// </summary>
         [JsonPropertyName("num_complete")]
-        public int? NumberComplete { get; init; }
+        public int? NumberComplete { get; }
 
         /// <summary>
-        /// Gets or sets the number of leeches.
+        /// Gets the number of leeches.
         /// </summary>
         [JsonPropertyName("num_leechs")]
-        public int? NumberLeeches { get; init; }
+        public int? NumberLeeches { get; }
 
         /// <summary>
-        /// Gets or sets the number of incomplete peers.
+        /// Gets the number of incomplete peers.
         /// </summary>
         [JsonPropertyName("num_incomplete")]
-        public int? NumberIncomplete { get; init; }
+        public int? NumberIncomplete { get; }
 
         /// <summary>
-        /// Gets or sets the share ratio.
+        /// Gets the share ratio.
         /// </summary>
         [JsonPropertyName("ratio")]
-        public float? Ratio { get; init; }
+        public float? Ratio { get; }
 
         /// <summary>
-        /// Gets or sets the swarm popularity.
+        /// Gets the swarm popularity.
         /// </summary>
         [JsonPropertyName("popularity")]
-        public float? Popularity { get; init; }
+        public float? Popularity { get; }
 
         /// <summary>
-        /// Gets or sets the estimated time remaining.
+        /// Gets the estimated time remaining.
         /// </summary>
         [JsonPropertyName("eta")]
-        public long? EstimatedTimeOfArrival { get; init; }
+        public long? EstimatedTimeOfArrival { get; }
 
         /// <summary>
-        /// Gets or sets the torrent state.
+        /// Gets the torrent state.
         /// </summary>
         [JsonPropertyName("state")]
-        public string? State { get; init; }
+        public string? State { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether sequential download is enabled.
+        /// Gets a value indicating whether sequential download is enabled.
         /// </summary>
         [JsonPropertyName("seq_dl")]
-        public bool? SequentialDownload { get; init; }
+        public bool? SequentialDownload { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether first and last piece priority is enabled.
+        /// Gets a value indicating whether first and last piece priority is enabled.
         /// </summary>
         [JsonPropertyName("f_l_piece_prio")]
-        public bool? FirstLastPiecePriority { get; init; }
+        public bool? FirstLastPiecePriority { get; }
 
         /// <summary>
-        /// Gets or sets the torrent category.
+        /// Gets the torrent category.
         /// </summary>
         [JsonPropertyName("category")]
-        public string? Category { get; init; }
+        public string? Category { get; }
 
         /// <summary>
-        /// Gets or sets the torrent tags.
+        /// Gets the torrent tags.
         /// </summary>
         [JsonPropertyName("tags")]
         [JsonConverter(typeof(CommaSeparatedJsonConverter))]
-        public IReadOnlyList<string>? Tags { get; init; }
+        public IReadOnlyList<string>? Tags { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether super seeding is enabled.
+        /// Gets a value indicating whether super seeding is enabled.
         /// </summary>
         [JsonPropertyName("super_seeding")]
-        public bool? SuperSeeding { get; init; }
+        public bool? SuperSeeding { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether force start is enabled.
+        /// Gets a value indicating whether force start is enabled.
         /// </summary>
         [JsonPropertyName("force_start")]
-        public bool? ForceStart { get; init; }
+        public bool? ForceStart { get; }
 
         /// <summary>
-        /// Gets or sets the save path.
+        /// Gets the save path.
         /// </summary>
         [JsonPropertyName("save_path")]
-        public string? SavePath { get; init; }
+        public string? SavePath { get; }
 
         /// <summary>
-        /// Gets or sets the download path.
+        /// Gets the download path.
         /// </summary>
         [JsonPropertyName("download_path")]
-        public string? DownloadPath { get; init; }
+        public string? DownloadPath { get; }
 
         /// <summary>
-        /// Gets or sets the content path.
+        /// Gets the content path.
         /// </summary>
         [JsonPropertyName("content_path")]
-        public string? ContentPath { get; init; }
+        public string? ContentPath { get; }
 
         /// <summary>
-        /// Gets or sets the root path.
+        /// Gets the root path.
         /// </summary>
         [JsonPropertyName("root_path")]
-        public string? RootPath { get; init; }
+        public string? RootPath { get; }
 
         /// <summary>
-        /// Gets or sets the added-on timestamp.
+        /// Gets the added-on timestamp.
         /// </summary>
         [JsonPropertyName("added_on")]
-        public long? AddedOn { get; init; }
+        public long? AddedOn { get; }
 
         /// <summary>
-        /// Gets or sets the completion timestamp.
+        /// Gets the completion timestamp.
         /// </summary>
         [JsonPropertyName("completion_on")]
-        public long? CompletionOn { get; init; }
+        public long? CompletionOn { get; }
 
         /// <summary>
-        /// Gets or sets the current tracker URL.
+        /// Gets the current tracker URL.
         /// </summary>
         [JsonPropertyName("tracker")]
-        public string? Tracker { get; init; }
+        public string? Tracker { get; }
 
         /// <summary>
-        /// Gets or sets the trackers count.
+        /// Gets the trackers count.
         /// </summary>
         [JsonPropertyName("trackers_count")]
-        public int? TrackersCount { get; init; }
+        public int? TrackersCount { get; }
 
         /// <summary>
-        /// Gets or sets the download limit.
+        /// Gets the download limit.
         /// </summary>
         [JsonPropertyName("dl_limit")]
-        public long? DownloadLimit { get; init; }
+        public long? DownloadLimit { get; }
 
         /// <summary>
-        /// Gets or sets the upload limit.
+        /// Gets the upload limit.
         /// </summary>
         [JsonPropertyName("up_limit")]
-        public long? UploadLimit { get; init; }
+        public long? UploadLimit { get; }
 
         /// <summary>
-        /// Gets or sets the downloaded byte count.
+        /// Gets the downloaded byte count.
         /// </summary>
         [JsonPropertyName("downloaded")]
-        public long? Downloaded { get; init; }
+        public long? Downloaded { get; }
 
         /// <summary>
-        /// Gets or sets the uploaded byte count.
+        /// Gets the uploaded byte count.
         /// </summary>
         [JsonPropertyName("uploaded")]
-        public long? Uploaded { get; init; }
+        public long? Uploaded { get; }
 
         /// <summary>
-        /// Gets or sets the amount downloaded in the current session.
+        /// Gets the amount downloaded in the current session.
         /// </summary>
         [JsonPropertyName("downloaded_session")]
-        public long? DownloadedSession { get; init; }
+        public long? DownloadedSession { get; }
 
         /// <summary>
-        /// Gets or sets the amount uploaded in the current session.
+        /// Gets the amount uploaded in the current session.
         /// </summary>
         [JsonPropertyName("uploaded_session")]
-        public long? UploadedSession { get; init; }
+        public long? UploadedSession { get; }
 
         /// <summary>
-        /// Gets or sets the remaining byte count.
+        /// Gets the remaining byte count.
         /// </summary>
         [JsonPropertyName("amount_left")]
-        public long? AmountLeft { get; init; }
+        public long? AmountLeft { get; }
 
         /// <summary>
-        /// Gets or sets the completed byte count.
+        /// Gets the completed byte count.
         /// </summary>
         [JsonPropertyName("completed")]
-        public long? Completed { get; init; }
+        public long? Completed { get; }
 
         /// <summary>
-        /// Gets or sets the connections count.
+        /// Gets the connections count.
         /// </summary>
         [JsonPropertyName("connections_count")]
-        public int? ConnectionsCount { get; init; }
+        public int? ConnectionsCount { get; }
 
         /// <summary>
-        /// Gets or sets the connections limit.
+        /// Gets the connections limit.
         /// </summary>
         [JsonPropertyName("connections_limit")]
-        public int? ConnectionsLimit { get; init; }
+        public int? ConnectionsLimit { get; }
 
         /// <summary>
-        /// Gets or sets the max ratio.
+        /// Gets the max ratio.
         /// </summary>
         [JsonPropertyName("max_ratio")]
-        public float? MaxRatio { get; init; }
+        public float? MaxRatio { get; }
 
         /// <summary>
-        /// Gets or sets the max seeding time.
+        /// Gets the max seeding time.
         /// </summary>
         [JsonPropertyName("max_seeding_time")]
-        public int? MaxSeedingTime { get; init; }
+        public int? MaxSeedingTime { get; }
 
         /// <summary>
-        /// Gets or sets the max inactive seeding time.
+        /// Gets the max inactive seeding time.
         /// </summary>
         [JsonPropertyName("max_inactive_seeding_time")]
-        public float? MaxInactiveSeedingTime { get; init; }
+        public float? MaxInactiveSeedingTime { get; }
 
         /// <summary>
-        /// Gets or sets the ratio limit.
+        /// Gets the ratio limit.
         /// </summary>
         [JsonPropertyName("ratio_limit")]
-        public float? RatioLimit { get; init; }
+        public float? RatioLimit { get; }
 
         /// <summary>
-        /// Gets or sets the seeding time limit.
+        /// Gets the seeding time limit.
         /// </summary>
         [JsonPropertyName("seeding_time_limit")]
-        public int? SeedingTimeLimit { get; init; }
+        public int? SeedingTimeLimit { get; }
 
         /// <summary>
-        /// Gets or sets the inactive seeding time limit.
+        /// Gets the inactive seeding time limit.
         /// </summary>
         [JsonPropertyName("inactive_seeding_time_limit")]
-        public float? InactiveSeedingTimeLimit { get; init; }
+        public float? InactiveSeedingTimeLimit { get; }
 
         /// <summary>
-        /// Gets or sets the share limit action.
+        /// Gets the share limit action.
         /// </summary>
         [JsonPropertyName("share_limit_action")]
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public ShareLimitAction? ShareLimitAction { get; init; }
+        public ShareLimitAction? ShareLimitAction { get; }
 
         /// <summary>
-        /// Gets or sets the seen complete.
+        /// Gets the seen complete.
         /// </summary>
         [JsonPropertyName("seen_complete")]
-        public long? SeenComplete { get; init; }
+        public long? SeenComplete { get; }
 
         /// <summary>
-        /// Gets or sets the last activity.
+        /// Gets the last activity.
         /// </summary>
         [JsonPropertyName("last_activity")]
-        public long? LastActivity { get; init; }
+        public long? LastActivity { get; }
 
         /// <summary>
-        /// Gets or sets the total size in bytes.
+        /// Gets the total size in bytes.
         /// </summary>
         [JsonPropertyName("total_size")]
-        public long? TotalSize { get; init; }
+        public long? TotalSize { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether automatic torrent management is enabled.
+        /// Gets a value indicating whether automatic torrent management is enabled.
         /// </summary>
         [JsonPropertyName("auto_tmm")]
-        public bool? AutomaticTorrentManagement { get; init; }
+        public bool? AutomaticTorrentManagement { get; }
 
         /// <summary>
-        /// Gets or sets the time active.
+        /// Gets the time active.
         /// </summary>
         [JsonPropertyName("time_active")]
-        public int? TimeActive { get; init; }
+        public int? TimeActive { get; }
 
         /// <summary>
-        /// Gets or sets the seeding time.
+        /// Gets the seeding time.
         /// </summary>
         [JsonPropertyName("seeding_time")]
-        public long? SeedingTime { get; init; }
+        public long? SeedingTime { get; }
 
         /// <summary>
-        /// Gets or sets the availability reported by qBittorrent.
+        /// Gets the availability reported by qBittorrent.
         /// </summary>
         [JsonPropertyName("availability")]
-        public float? Availability { get; init; }
+        public float? Availability { get; }
 
         /// <summary>
-        /// Gets or sets the time until the next tracker reannounce.
+        /// Gets the time until the next tracker reannounce.
         /// </summary>
         [JsonPropertyName("reannounce")]
-        public long? Reannounce { get; init; }
+        public long? Reannounce { get; }
 
         /// <summary>
-        /// Gets or sets the torrent comment.
+        /// Gets the torrent comment.
         /// </summary>
         [JsonPropertyName("comment")]
-        public string? Comment { get; init; }
+        public string? Comment { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether torrent metadata is available.
+        /// Gets a value indicating whether torrent metadata is available.
         /// </summary>
         [JsonPropertyName("has_metadata")]
-        public bool? HasMetadata { get; init; }
+        public bool? HasMetadata { get; }
 
         /// <summary>
-        /// Gets or sets the torrent creator.
+        /// Gets the torrent creator.
         /// </summary>
         [JsonPropertyName("created_by")]
-        public string? CreatedBy { get; init; }
+        public string? CreatedBy { get; }
 
         /// <summary>
-        /// Gets or sets the torrent creation date.
+        /// Gets the torrent creation date.
         /// </summary>
         [JsonPropertyName("creation_date")]
-        public long? CreationDate { get; init; }
+        public long? CreationDate { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the torrent is private.
+        /// Gets a value indicating whether the torrent is private.
         /// </summary>
         [JsonPropertyName("private")]
-        public bool? IsPrivate { get; init; }
+        public bool? IsPrivate { get; }
 
         /// <summary>
-        /// Gets or sets the total wasted bytes.
+        /// Gets the total wasted bytes.
         /// </summary>
         [JsonPropertyName("total_wasted")]
-        public long? TotalWasted { get; init; }
+        public long? TotalWasted { get; }
 
         /// <summary>
-        /// Gets or sets the number of pieces.
+        /// Gets the number of pieces.
         /// </summary>
         [JsonPropertyName("pieces_num")]
-        public int? PiecesCount { get; init; }
+        public int? PiecesCount { get; }
 
         /// <summary>
-        /// Gets or sets the piece size in bytes.
+        /// Gets the piece size in bytes.
         /// </summary>
         [JsonPropertyName("piece_size")]
-        public long? PieceSize { get; init; }
+        public long? PieceSize { get; }
 
         /// <summary>
-        /// Gets or sets the number of pieces currently available.
+        /// Gets the number of pieces currently available.
         /// </summary>
         [JsonPropertyName("pieces_have")]
-        public int? PiecesHave { get; init; }
+        public int? PiecesHave { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the torrent has a tracker warning.
+        /// Gets a value indicating whether the torrent has a tracker warning.
         /// </summary>
         [JsonPropertyName("has_tracker_warning")]
-        public bool? HasTrackerWarning { get; init; }
+        public bool? HasTrackerWarning { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the torrent has a tracker error.
+        /// Gets a value indicating whether the torrent has a tracker error.
         /// </summary>
         [JsonPropertyName("has_tracker_error")]
-        public bool? HasTrackerError { get; init; }
+        public bool? HasTrackerError { get; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the torrent has a non-tracker announce error.
+        /// Gets a value indicating whether the torrent has a non-tracker announce error.
         /// </summary>
         [JsonPropertyName("has_other_announce_error")]
-        public bool? HasOtherAnnounceError { get; init; }
+        public bool? HasOtherAnnounceError { get; }
 
         /// <summary>
-        /// Gets or sets the trackers for the torrent.
+        /// Gets the trackers for the torrent.
         /// </summary>
         [JsonPropertyName("trackers")]
-        public IReadOnlyList<TorrentTracker>? Trackers { get; init; }
+        public IReadOnlyList<TorrentTracker>? Trackers { get; }
     }
 }
