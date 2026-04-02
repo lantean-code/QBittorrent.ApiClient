@@ -131,8 +131,8 @@ namespace QBittorrent.ApiClient.Test
         public async Task GIVEN_LegacyApiVersionAndAction_WHEN_SetTorrentShareLimit_THEN_ShouldOmitActionField()
         {
             var ratio = 1.5f.ToString();
-            var seed = 2.25f.ToString();
-            var inactive = 0.75f.ToString();
+            var seed = 2.ToString();
+            var inactive = 3.ToString();
 
             _handler.Responder = async (req, ct) =>
             {
@@ -164,8 +164,8 @@ namespace QBittorrent.ApiClient.Test
             (await _target.SetTorrentShareLimitAsync(
                 TorrentSelector.FromHashes(["h1", "h2"]),
                 ratioLimit: 1.5f,
-                seedingTimeLimit: 2.25f,
-                inactiveSeedingTimeLimit: 0.75f,
+                seedingTimeLimit: 2,
+                inactiveSeedingTimeLimit: 3,
                 shareLimitAction: ShareLimitAction.Remove,
                 cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
@@ -194,6 +194,38 @@ namespace QBittorrent.ApiClient.Test
             };
 
             (await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: ShareLimitAction.Remove, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ModernApiVersionAndTypedLimitSentinels_WHEN_SetTorrentShareLimit_THEN_ShouldAllowTypedConstantsWithoutCasting()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+
+                    case "/torrents/setShareLimits":
+                        var form = await req.Content!.ReadAsStringAsync(ct);
+                        form.Should().Contain("ratioLimit=-2");
+                        form.Should().Contain("seedingTimeLimit=-2");
+                        form.Should().Contain("inactiveSeedingTimeLimit=-1");
+                        form.Should().Contain("shareLimitAction=1");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.SetTorrentShareLimitAsync(
+                TorrentSelector.AllTorrents(),
+                Limits.UseGlobalShareRatioLimit,
+                Limits.UseGlobalSeedingTimeLimit,
+                Limits.NoInactiveSeedingTimeLimit,
+                shareLimitAction: ShareLimitAction.Remove,
+                cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]

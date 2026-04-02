@@ -680,8 +680,8 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult> SetTorrentShareLimitAsync(
             TorrentSelector selector,
             float ratioLimit,
-            float seedingTimeLimit,
-            float inactiveSeedingTimeLimit,
+            int seedingTimeLimit,
+            int inactiveSeedingTimeLimit,
             ShareLimitAction? shareLimitAction = null,
             CancellationToken cancellationToken = default)
         {

@@ -7,8 +7,12 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public void GIVEN_ShareLimitConstants_WHEN_ReadingValues_THEN_ShouldMatchQbittorrentSentinels()
         {
-            Limits.UseGlobalShareLimit.Should().Be(-2);
-            Limits.NoShareLimit.Should().Be(-1);
+            Limits.UseGlobalShareRatioLimit.Should().Be(-2);
+            Limits.NoShareRatioLimit.Should().Be(-1);
+            Limits.UseGlobalSeedingTimeLimit.Should().Be(-2);
+            Limits.NoSeedingTimeLimit.Should().Be(-1);
+            Limits.UseGlobalInactiveSeedingTimeLimit.Should().Be(-2);
+            Limits.NoInactiveSeedingTimeLimit.Should().Be(-1);
         }
 
         [Fact]

@@ -408,12 +408,12 @@ namespace QBittorrent.ApiClient
         /// <summary>Sets per-torrent share limits.</summary>
         /// <param name="selector">The torrent selection to target.</param>
         /// <param name="ratioLimit">The ratio limit.</param>
-        /// <param name="seedingTimeLimit">The seeding-time limit.</param>
-        /// <param name="inactiveSeedingTimeLimit">The inactive-seeding-time limit.</param>
+        /// <param name="seedingTimeLimit">The seeding-time limit in whole minutes.</param>
+        /// <param name="inactiveSeedingTimeLimit">The inactive-seeding-time limit in whole minutes.</param>
         /// <param name="shareLimitAction">The action to take when limits are reached.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> SetTorrentShareLimitAsync(TorrentSelector selector, float ratioLimit, float seedingTimeLimit, float inactiveSeedingTimeLimit, ShareLimitAction? shareLimitAction = null, CancellationToken cancellationToken = default);
+        Task<ApiResult> SetTorrentShareLimitAsync(TorrentSelector selector, float ratioLimit, int seedingTimeLimit, int inactiveSeedingTimeLimit, ShareLimitAction? shareLimitAction = null, CancellationToken cancellationToken = default);
 
         /// <summary>Gets per-torrent upload limits.</summary>
         /// <param name="selector">The torrent selection to query.</param>
