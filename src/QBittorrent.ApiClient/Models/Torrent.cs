@@ -82,6 +82,7 @@ namespace QBittorrent.ApiClient.Models
             bool? hasTrackerWarning = null,
             bool? hasTrackerError = null,
             bool? hasOtherAnnounceError = null,
+            IReadOnlyList<FileData>? files = null,
             IReadOnlyList<TorrentTracker>? trackers = null)
         {
             Hash = hash ?? string.Empty;
@@ -153,6 +154,7 @@ namespace QBittorrent.ApiClient.Models
             HasTrackerWarning = hasTrackerWarning;
             HasTrackerError = hasTrackerError;
             HasOtherAnnounceError = hasOtherAnnounceError;
+            Files = files;
             Trackers = trackers;
         }
 
@@ -571,6 +573,12 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("has_other_announce_error")]
         public bool? HasOtherAnnounceError { get; }
+
+        /// <summary>
+        /// Gets the torrent files when included in the list response.
+        /// </summary>
+        [JsonPropertyName("files")]
+        public IReadOnlyList<FileData>? Files { get; }
 
         /// <summary>
         /// Gets the trackers for the torrent.

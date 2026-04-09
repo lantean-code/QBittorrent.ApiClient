@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -17,7 +17,8 @@ namespace QBittorrent.ApiClient.Models
             string boostVersion,
             string openSSLVersion,
             string zlibVersion,
-            int bitness)
+            int bitness,
+            BuildPlatform platform)
         {
             QTVersion = qTVersion;
             LibTorrentVersion = libTorrentVersion;
@@ -25,6 +26,7 @@ namespace QBittorrent.ApiClient.Models
             OpenSSLVersion = openSSLVersion;
             ZLibVersion = zlibVersion;
             Bitness = bitness;
+            Platform = platform;
         }
 
         /// <summary>
@@ -62,5 +64,11 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("bitness")]
         public int Bitness { get; }
+
+        /// <summary>
+        /// Gets the platform qBittorrent was built for.
+        /// </summary>
+        [JsonPropertyName("platform")]
+        public BuildPlatform Platform { get; }
     }
 }

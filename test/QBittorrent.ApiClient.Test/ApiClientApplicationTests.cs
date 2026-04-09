@@ -790,7 +790,8 @@ namespace QBittorrent.ApiClient.Test
                         "boost": "BoostVersion",
                         "openssl": "OpenSslVersion",
                         "zlib": "ZLibVersion",
-                        "bitness": 64
+                        "bitness": 64,
+                        "platform": "windows"
                     }
                     """)
             });
@@ -803,6 +804,7 @@ namespace QBittorrent.ApiClient.Test
             result.OpenSSLVersion.Should().Be("OpenSslVersion");
             result.ZLibVersion.Should().Be("ZLibVersion");
             result.Bitness.Should().Be(64);
+            result.Platform.Should().Be(BuildPlatform.Windows);
         }
 
         [Fact]
@@ -980,8 +982,12 @@ namespace QBittorrent.ApiClient.Test
                         "disk_io_write_mode": 1,
                         "dyndns_service": 1,
                         "encryption": 2,
+                        "hostname_cache_ttl": 300,
+                        "lsd": true,
                         "max_ratio_act": 3,
+                        "pex": true,
                         "proxy_type": "SOCKS5",
+                        "resolve_peer_host_names": true,
                         "resume_data_storage_type": "SQLite",
                         "scheduler_days": 2,
                         "torrent_content_layout": "NoSubfolder",
@@ -989,6 +995,7 @@ namespace QBittorrent.ApiClient.Test
                         "torrent_stop_condition": "FilesChecked",
                         "upload_slots_behavior": 1,
                         "upload_choking_algorithm": 2,
+                        "use_subcategories": true,
                         "utp_tcp_mixed_mode": 1
                     }
                     """)
@@ -1003,8 +1010,12 @@ namespace QBittorrent.ApiClient.Test
             result.DiskIoWriteMode.Should().Be(DiskIoWriteMode.EnableOsCache);
             result.DyndnsService.Should().Be(DyndnsService.NoIp);
             result.Encryption.Should().Be(EncryptionMode.DisableEncryption);
+            result.HostnameCacheTtl.Should().Be(300);
+            result.Lsd.Should().BeTrue();
             result.MaxRatioAct.Should().Be(MaxRatioAction.RemoveTorrentAndFiles);
+            result.Pex.Should().BeTrue();
             result.ProxyType.Should().Be(ProxyType.Socks5);
+            result.ResolvePeerHostNames.Should().BeTrue();
             result.ResumeDataStorageType.Should().Be(ResumeDataStorageType.Sqlite);
             result.SchedulerDays.Should().Be(SchedulerDays.Weekends);
             result.TorrentContentLayout.Should().Be(TorrentContentLayout.NoSubfolder);
@@ -1012,6 +1023,7 @@ namespace QBittorrent.ApiClient.Test
             result.TorrentStopCondition.Should().Be(StopCondition.FilesChecked);
             result.UploadSlotsBehavior.Should().Be(UploadSlotsBehavior.UploadRateBased);
             result.UploadChokingAlgorithm.Should().Be(UploadChokingAlgorithm.AntiLeech);
+            result.UseSubcategories.Should().BeTrue();
             result.UtpTcpMixedMode.Should().Be(UtpTcpMixedMode.PeerProportional);
         }
 
@@ -1090,8 +1102,12 @@ namespace QBittorrent.ApiClient.Test
                 json.Should().Contain("\"disk_io_write_mode\":2");
                 json.Should().Contain("\"dyndns_service\":0");
                 json.Should().Contain("\"encryption\":1");
+                json.Should().Contain("\"hostname_cache_ttl\":300");
+                json.Should().Contain("\"lsd\":true");
                 json.Should().Contain("\"max_ratio_act\":2");
+                json.Should().Contain("\"pex\":true");
                 json.Should().Contain("\"proxy_type\":\"HTTP\"");
+                json.Should().Contain("\"resolve_peer_host_names\":true");
                 json.Should().Contain("\"resume_data_storage_type\":\"Legacy\"");
                 json.Should().Contain("\"scheduler_days\":7");
                 json.Should().Contain("\"torrent_content_layout\":\"Subfolder\"");
@@ -1116,8 +1132,12 @@ namespace QBittorrent.ApiClient.Test
                 DiskIoWriteMode = DiskIoWriteMode.WriteThrough,
                 DyndnsService = DyndnsService.DynDns,
                 Encryption = EncryptionMode.RequireEncryption,
+                HostnameCacheTtl = 300,
+                Lsd = true,
                 MaxRatioAct = MaxRatioAction.EnableSuperSeeding,
+                Pex = true,
                 ProxyType = ProxyType.Http,
+                ResolvePeerHostNames = true,
                 ResumeDataStorageType = ResumeDataStorageType.Legacy,
                 SchedulerDays = SchedulerDays.Friday,
                 TorrentContentLayout = TorrentContentLayout.Subfolder,

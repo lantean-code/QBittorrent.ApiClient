@@ -374,8 +374,9 @@ namespace QBittorrent.ApiClient.Test
                                     }
                                 ],
                                 "hasError": false,
-                                "IsLoading": true,
+                                "isLoading": true,
                                 "lastBuildDate": "2024-01-01",
+                                "refreshInterval": 60,
                                 "title": "FeedTitle",
                                 "uid": "Uid",
                                 "url": "https://example.com/feed"
@@ -388,10 +389,11 @@ namespace QBittorrent.ApiClient.Test
             var dict = (await _target.GetAllRssItemsAsync(true, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             dict.Should().ContainKey("FeedPath");
-            var item = dict["FeedPath"];
+            var item = dict["FeedPath"].Should().BeOfType<RssFeedItem>().Subject;
             item.HasError.Should().BeFalse();
             item.IsLoading.Should().BeTrue();
             item.LastBuildDate.Should().Be("2024-01-01");
+            item.RefreshInterval.Should().Be(60);
             item.Title.Should().Be("FeedTitle");
             item.Uid.Should().Be("Uid");
             item.Url.Should().Be("https://example.com/feed");
@@ -406,6 +408,54 @@ namespace QBittorrent.ApiClient.Test
             item.Articles[0].Title.Should().Be("Title");
             item.Articles[0].TorrentURL.Should().Be("magnet:?xt=urn:btih:hash");
             item.Articles[0].IsRead.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GIVEN_RssFolderTree_WHEN_GetAllRssItems_THEN_ShouldDeserializeNestedFoldersAndFeeds()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.ToString().Should().Be("http://localhost/rss/items?withData=True");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        {
+                            "Folder":
+                            {
+                                "FeedPath":
+                                {
+                                    "articles": [],
+                                    "hasError": false,
+                                    "isLoading": false,
+                                    "lastBuildDate": "2024-01-02",
+                                    "refreshInterval": 120,
+                                    "title": "NestedFeed",
+                                    "uid": "NestedUid",
+                                    "url": "https://example.com/nested"
+                                }
+                            }
+                        }
+                        """)
+                });
+            };
+
+            var dict = (await _target.GetAllRssItemsAsync(true, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            dict.Should().ContainKey("Folder");
+            var folder = dict["Folder"].Should().BeOfType<RssFolderItem>().Subject;
+            folder.Children.Should().ContainKey("FeedPath");
+
+            var feed = folder.Children["FeedPath"].Should().BeOfType<RssFeedItem>().Subject;
+            feed.Uid.Should().Be("NestedUid");
+            feed.Url.Should().Be("https://example.com/nested");
+            feed.Title.Should().Be("NestedFeed");
+            feed.LastBuildDate.Should().Be("2024-01-02");
+            feed.RefreshInterval.Should().Be(120);
+            feed.IsLoading.Should().BeFalse();
+            feed.HasError.Should().BeFalse();
+            feed.Articles.Should().NotBeNull();
+            feed.Articles.Should().BeEmpty();
         }
 
         [Fact]

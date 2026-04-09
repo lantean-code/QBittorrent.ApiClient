@@ -108,7 +108,7 @@ namespace QBittorrent.ApiClient.Models
             bool sslEnabled,
             int sslListenPort,
             string locale,
-            bool LSD,
+            bool lsd,
             bool mailNotificationAuthEnabled,
             string mailNotificationEmail,
             bool mailNotificationEnabled,
@@ -143,7 +143,7 @@ namespace QBittorrent.ApiClient.Models
             int peerTurnoverCutoff,
             int peerTurnoverInterval,
             bool performanceWarning,
-            bool PEX,
+            bool pex,
             bool preallocateAll,
             bool proxyAuthEnabled,
             bool proxyBittorrent,
@@ -163,6 +163,7 @@ namespace QBittorrent.ApiClient.Models
             bool recheckCompletedTorrents,
             int refreshInterval,
             int requestQueueSize,
+            bool? resolvePeerHostNames,
             bool resolvePeerCountries,
             ResumeDataStorageType resumeDataStorageType,
             bool rssAutoDownloadingEnabled,
@@ -209,9 +210,10 @@ namespace QBittorrent.ApiClient.Models
             bool useCategoryPathsInManualMode,
             bool useHttps,
             bool ignoreSslErrors,
-            bool useSubcategories,
+            bool? useSubcategories,
             UtpTcpMixedMode utpTcpMixedMode,
             bool validateHttpsTrackerCertificate,
+            int? hostnameCacheTtl,
             string webUiAddress,
             string webUiApiKey,
             int webUiBanDuration,
@@ -231,7 +233,6 @@ namespace QBittorrent.ApiClient.Models
             bool webUiUpnp,
             bool webUiUseCustomHttpHeadersEnabled,
             string webUiUsername,
-            string webUiPassword,
             bool confirmTorrentDeletion,
             bool confirmTorrentRecheck,
             bool statusBarExternalIp
@@ -333,7 +334,7 @@ namespace QBittorrent.ApiClient.Models
             SslEnabled = sslEnabled;
             SslListenPort = sslListenPort;
             Locale = locale;
-            Lsd = LSD;
+            Lsd = lsd;
             MailNotificationAuthEnabled = mailNotificationAuthEnabled;
             MailNotificationEmail = mailNotificationEmail;
             MailNotificationEnabled = mailNotificationEnabled;
@@ -368,7 +369,7 @@ namespace QBittorrent.ApiClient.Models
             PeerTurnoverCutoff = peerTurnoverCutoff;
             PeerTurnoverInterval = peerTurnoverInterval;
             PerformanceWarning = performanceWarning;
-            Pex = PEX;
+            Pex = pex;
             PreallocateAll = preallocateAll;
             ProxyAuthEnabled = proxyAuthEnabled;
             ProxyBittorrent = proxyBittorrent;
@@ -388,6 +389,7 @@ namespace QBittorrent.ApiClient.Models
             RecheckCompletedTorrents = recheckCompletedTorrents;
             RefreshInterval = refreshInterval;
             RequestQueueSize = requestQueueSize;
+            ResolvePeerHostNames = resolvePeerHostNames;
             ResolvePeerCountries = resolvePeerCountries;
             ResumeDataStorageType = resumeDataStorageType;
             RssAutoDownloadingEnabled = rssAutoDownloadingEnabled;
@@ -437,6 +439,7 @@ namespace QBittorrent.ApiClient.Models
             UseSubcategories = useSubcategories;
             UtpTcpMixedMode = utpTcpMixedMode;
             ValidateHttpsTrackerCertificate = validateHttpsTrackerCertificate;
+            HostnameCacheTtl = hostnameCacheTtl;
             WebUiAddress = webUiAddress;
             WebUiApiKey = webUiApiKey;
             WebUiBanDuration = webUiBanDuration;
@@ -456,7 +459,6 @@ namespace QBittorrent.ApiClient.Models
             WebUiUpnp = webUiUpnp;
             WebUiUseCustomHttpHeadersEnabled = webUiUseCustomHttpHeadersEnabled;
             WebUiUsername = webUiUsername;
-            WebUiPassword = webUiPassword;
             ConfirmTorrentDeletion = confirmTorrentDeletion;
             ConfirmTorrentRecheck = confirmTorrentRecheck;
             StatusBarExternalIp = statusBarExternalIp;
@@ -1041,7 +1043,7 @@ namespace QBittorrent.ApiClient.Models
         /// <summary>
         /// Gets a value indicating whether LSD is enabled.
         /// </summary>
-        [JsonPropertyName("LSD")]
+        [JsonPropertyName("lsd")]
         public bool Lsd { get; }
 
         /// <summary>
@@ -1251,7 +1253,7 @@ namespace QBittorrent.ApiClient.Models
         /// <summary>
         /// Gets a value indicating whether PEX is enabled.
         /// </summary>
-        [JsonPropertyName("PEX")]
+        [JsonPropertyName("pex")]
         public bool Pex { get; }
 
         /// <summary>
@@ -1367,6 +1369,12 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("request_queue_size")]
         public int RequestQueueSize { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether reverse DNS lookup of peer host names is enabled when returned by the server.
+        /// </summary>
+        [JsonPropertyName("resolve_peer_host_names")]
+        public bool? ResolvePeerHostNames { get; }
 
         /// <summary>
         /// Gets a value indicating whether peer countries are resolved.
@@ -1648,7 +1656,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets a value indicating whether subcategories are used.
         /// </summary>
         [JsonPropertyName("use_subcategories")]
-        public bool UseSubcategories { get; }
+        public bool? UseSubcategories { get; }
 
         /// <summary>
         /// Gets the uTP/TCP mixed mode algorithm: <c>0</c> for prefer TCP or <c>1</c> for peer proportional.
@@ -1661,6 +1669,12 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("validate_https_tracker_certificate")]
         public bool ValidateHttpsTrackerCertificate { get; }
+
+        /// <summary>
+        /// Gets the hostname resolver cache TTL in seconds when returned by the server.
+        /// </summary>
+        [JsonPropertyName("hostname_cache_ttl")]
+        public int? HostnameCacheTtl { get; }
 
         /// <summary>
         /// Gets the Web UI address.
@@ -1775,12 +1789,6 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("web_ui_username")]
         public string WebUiUsername { get; }
-
-        /// <summary>
-        /// Gets the Web UI password.
-        /// </summary>
-        [JsonPropertyName("web_ui_password")]
-        public string WebUiPassword { get; }
 
         /// <summary>
         /// Gets a value indicating whether torrent deletion requires confirmation.

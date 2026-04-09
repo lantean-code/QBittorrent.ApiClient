@@ -13,6 +13,7 @@ namespace QBittorrent.ApiClient.Models
         [JsonConstructor]
         public TorrentTracker(
             string url,
+            bool? updating,
             TrackerStatus status,
             int tier,
             int peers,
@@ -25,6 +26,7 @@ namespace QBittorrent.ApiClient.Models
             IReadOnlyList<TrackerEndpoint>? endpoints)
         {
             Url = url;
+            Updating = updating;
             Status = status;
             Tier = tier;
             Peers = peers;
@@ -42,6 +44,12 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("url")]
         public string Url { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether qBittorrent is currently updating the tracker.
+        /// </summary>
+        [JsonPropertyName("updating")]
+        public bool? Updating { get; }
 
         /// <summary>
         /// Gets the tracker status.

@@ -288,7 +288,20 @@ namespace QBittorrent.ApiClient.Test
                                 "pieces_have": 37,
                                 "has_tracker_warning": true,
                                 "has_tracker_error": false,
-                                "has_other_announce_error": true
+                                "has_other_announce_error": true,
+                                "files":
+                                [
+                                    {
+                                        "index": 1,
+                                        "name": "FileName",
+                                        "size": 38,
+                                        "progress": 0.4,
+                                        "priority": 1,
+                                        "is_seed": true,
+                                        "piece_range": [ 2, 3 ],
+                                        "availability": 1.7
+                                    }
+                                ]
                             }
                         ]
                         """)
@@ -368,6 +381,15 @@ namespace QBittorrent.ApiClient.Test
             torrent.HasTrackerWarning.Should().BeTrue();
             torrent.HasTrackerError.Should().BeFalse();
             torrent.HasOtherAnnounceError.Should().BeTrue();
+            torrent.Files.Should().ContainSingle();
+            torrent.Files![0].Index.Should().Be(1);
+            torrent.Files[0].Name.Should().Be("FileName");
+            torrent.Files[0].Size.Should().Be(38);
+            torrent.Files[0].Progress.Should().Be(0.4);
+            torrent.Files[0].Priority.Should().Be(Priority.Normal);
+            torrent.Files[0].IsSeed.Should().BeTrue();
+            torrent.Files[0].PieceRange.Should().BeEquivalentTo(new[] { 2, 3 });
+            torrent.Files[0].Availability.Should().Be(1.7);
         }
 
         [Fact]
@@ -715,6 +737,7 @@ namespace QBittorrent.ApiClient.Test
                         [
                             {
                                 "url": "Url",
+                                "updating": true,
                                 "status": 2,
                                 "tier": 1,
                                 "num_peers": 3,
@@ -761,6 +784,7 @@ namespace QBittorrent.ApiClient.Test
 
             result.Should().HaveCount(2);
             result[0].Url.Should().Be("Url");
+            result[0].Updating.Should().BeTrue();
             result[0].Status.Should().Be(TrackerStatus.Working);
             result[0].Tier.Should().Be(1);
             result[0].Peers.Should().Be(3);
@@ -784,6 +808,7 @@ namespace QBittorrent.ApiClient.Test
             result[0].Endpoints[0].MinAnnounce.Should().Be(7);
 
             result[1].Url.Should().Be("Url2");
+            result[1].Updating.Should().BeNull();
             result[1].Status.Should().Be(TrackerStatus.Uncontacted);
             result[1].Tier.Should().Be(2);
             result[1].Peers.Should().Be(8);

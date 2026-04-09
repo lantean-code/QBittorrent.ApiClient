@@ -21,6 +21,7 @@ namespace QBittorrent.ApiClient.Models
             string? files,
             string? flags,
             string? flagsDescription,
+            string? hostName,
             string? iPAddress,
             string? i2pDestination,
             string? clientId,
@@ -39,6 +40,7 @@ namespace QBittorrent.ApiClient.Models
             Files = files;
             Flags = flags;
             FlagsDescription = flagsDescription;
+            HostName = hostName;
             IPAddress = iPAddress;
             I2pDestination = i2pDestination;
             ClientId = clientId;
@@ -102,6 +104,12 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("flags_desc")]
         public string? FlagsDescription { get; }
+
+        /// <summary>
+        /// Gets the resolved peer host name when available.
+        /// </summary>
+        [JsonPropertyName("host_name")]
+        public string? HostName { get; }
 
         /// <summary>
         /// Gets the ip address.

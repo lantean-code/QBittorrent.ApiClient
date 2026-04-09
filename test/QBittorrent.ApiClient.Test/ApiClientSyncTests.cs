@@ -390,6 +390,7 @@ namespace QBittorrent.ApiClient.Test
                                     "files": "Files",
                                     "flags": "Flags",
                                     "flags_desc": "FlagsDescription",
+                                    "host_name": "HostName",
                                     "ip": "127.0.0.1",
                                     "i2p_dest": "Destination",
                                     "peer_id_client": "ClientId",
@@ -425,6 +426,7 @@ namespace QBittorrent.ApiClient.Test
             peer.Files.Should().Be("Files");
             peer.Flags.Should().Be("Flags");
             peer.FlagsDescription.Should().Be("FlagsDescription");
+            peer.HostName.Should().Be("HostName");
             peer.IPAddress.Should().Be("127.0.0.1");
             peer.I2pDestination.Should().Be("Destination");
             peer.ClientId.Should().Be("ClientId");

@@ -586,7 +586,7 @@ namespace QBittorrent.ApiClient.Models
         /// <summary>
         /// Gets or sets a value indicating whether LSD is enabled.
         /// </summary>
-        [JsonPropertyName("LSD")]
+        [JsonPropertyName("lsd")]
         public bool? Lsd { get; set; }
 
         /// <summary>
@@ -796,7 +796,7 @@ namespace QBittorrent.ApiClient.Models
         /// <summary>
         /// Gets or sets a value indicating whether PEX is enabled.
         /// </summary>
-        [JsonPropertyName("PEX")]
+        [JsonPropertyName("pex")]
         public bool? Pex { get; set; }
 
         /// <summary>
@@ -912,6 +912,12 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("request_queue_size")]
         public int? RequestQueueSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether reverse DNS lookup of peer host names is enabled.
+        /// </summary>
+        [JsonPropertyName("resolve_peer_host_names")]
+        public bool? ResolvePeerHostNames { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether peer countries are resolved.
@@ -1206,6 +1212,12 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("validate_https_tracker_certificate")]
         public bool? ValidateHttpsTrackerCertificate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the hostname resolver cache TTL in seconds.
+        /// </summary>
+        [JsonPropertyName("hostname_cache_ttl")]
+        public int? HostnameCacheTtl { get; set; }
 
         /// <summary>
         /// Gets or sets the Web UI address.
