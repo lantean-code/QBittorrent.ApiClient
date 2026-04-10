@@ -211,7 +211,7 @@ namespace QBittorrent.ApiClient
             }
         }
 
-        private async Task<ApiFailure?> TryCreateFailureAsync(
+        private static async Task<ApiFailure?> TryCreateFailureAsync(
             string operation,
             HttpResponseMessage response,
             CancellationToken cancellationToken,
