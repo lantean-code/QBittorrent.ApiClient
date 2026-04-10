@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient
 {
@@ -11,8 +13,6 @@ namespace QBittorrent.ApiClient
     {
         private readonly HttpClient _httpClient;
         private readonly ApiClientCompatibilityProfileCache _compatibilityProfileCache;
-
-        private readonly JsonSerializerOptions _options = SerializerOptions.Options;
 
         internal ApiClient(HttpClient httpClient, ApiClientCompatibilityProfileCache? compatibilityProfileCache = null)
         {
@@ -166,7 +166,7 @@ namespace QBittorrent.ApiClient
             return true;
         }
 
-        private async Task<ApiResult> CreateResultAsync(
+        private static async Task<ApiResult> CreateResultAsync(
             HttpResponseMessage response,
             string operation,
             CancellationToken cancellationToken,
@@ -181,7 +181,7 @@ namespace QBittorrent.ApiClient
             }
         }
 
-        private async Task<ApiResult<T>> CreateResultAsync<T>(
+        private static async Task<ApiResult<T>> CreateResultAsync<T>(
             string operation,
             HttpResponseMessage response,
             Func<HttpContent, CancellationToken, Task<T>> readValue,
@@ -442,21 +442,36 @@ namespace QBittorrent.ApiClient
             };
         }
 
-        private async Task<T> GetJsonAsync<T>(HttpContent content, CancellationToken cancellationToken)
+        private static JsonTypeInfo<T> GetJsonTypeInfo<T>()
         {
-            return await content.ReadFromJsonAsync<T>(_options, cancellationToken) ?? throw new InvalidOperationException($"Unable to deserialize response as {typeof(T).Name}");
+            return SerializerOptions.GetTypeInfo<T>();
+        }
+
+        private static string SerializeJson<T>(T value)
+        {
+            return JsonSerializer.Serialize(value, GetJsonTypeInfo<T>());
+        }
+
+        private static T? DeserializeJson<T>(string json)
+        {
+            return JsonSerializer.Deserialize(json, GetJsonTypeInfo<T>());
+        }
+
+        private static async Task<T> GetJsonAsync<T>(HttpContent content, CancellationToken cancellationToken)
+        {
+            return await content.ReadFromJsonAsync(GetJsonTypeInfo<T>(), cancellationToken) ?? throw new InvalidOperationException($"Unable to deserialize response as {typeof(T).Name}");
         }
 
         private async Task<IReadOnlyList<T>> GetJsonListAsync<T>(HttpContent content, CancellationToken cancellationToken)
         {
-            var items = await GetJsonAsync<IEnumerable<T>>(content, cancellationToken);
+            var items = await GetJsonAsync<List<T>>(content, cancellationToken);
 
-            return items.ToList().AsReadOnly();
+            return items.AsReadOnly();
         }
 
         private async Task<IReadOnlyDictionary<TKey, TValue>> GetJsonDictionaryAsync<TKey, TValue>(HttpContent content, CancellationToken cancellationToken) where TKey : notnull
         {
-            var items = await GetJsonAsync<IDictionary<TKey, TValue>>(content, cancellationToken);
+            var items = await GetJsonAsync<Dictionary<TKey, TValue>>(content, cancellationToken);
 
             return items.AsReadOnly();
         }
@@ -496,15 +511,13 @@ namespace QBittorrent.ApiClient
 
         private async Task<int> ReadSearchIdentifierAsync(HttpContent content, CancellationToken cancellationToken)
         {
-            var obj = await GetJsonAsync<Dictionary<string, JsonElement>>(content, cancellationToken);
-            if (!obj.TryGetValue("id", out var idElement)
-                || (idElement.ValueKind != JsonValueKind.Number)
-                || !idElement.TryGetInt32(out var id))
+            var payload = await GetJsonAsync<SearchStartResult>(content, cancellationToken);
+            if (payload.Id is null)
             {
                 throw new InvalidOperationException("Unable to deserialize response as Int32");
             }
 
-            return id;
+            return payload.Id.Value;
         }
     }
 }

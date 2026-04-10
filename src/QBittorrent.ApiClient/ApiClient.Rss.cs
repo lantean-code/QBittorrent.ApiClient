@@ -1,5 +1,4 @@
 using QBittorrent.ApiClient.Models;
-using System.Text.Json;
 
 namespace QBittorrent.ApiClient
 {
@@ -132,7 +131,7 @@ namespace QBittorrent.ApiClient
         {
             var content = new FormUrlEncodedBuilder()
                 .Add("ruleName", ruleName)
-                .Add("ruleDef", JsonSerializer.Serialize(ruleDef))
+                .Add("ruleDef", SerializeJson(ruleDef))
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(ct => _httpClient.PostAsync("rss/setRule", content, ct), cancellationToken: cancellationToken);
@@ -172,8 +171,8 @@ namespace QBittorrent.ApiClient
 
             async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ReadMatchingArticles(HttpContent content, CancellationToken currentCancellationToken)
             {
-                var dictionary = await GetJsonDictionaryAsync<string, IEnumerable<string>>(content, currentCancellationToken);
-                return dictionary.ToDictionary(d => d.Key, d => (IReadOnlyList<string>)d.Value.ToList().AsReadOnly()).AsReadOnly();
+                var dictionary = await GetJsonDictionaryAsync<string, List<string>>(content, currentCancellationToken);
+                return dictionary.ToDictionary(d => d.Key, d => (IReadOnlyList<string>)d.Value.AsReadOnly()).AsReadOnly();
             }
 
             return ExecuteAsync<IReadOnlyDictionary<string, IReadOnlyList<string>>>(

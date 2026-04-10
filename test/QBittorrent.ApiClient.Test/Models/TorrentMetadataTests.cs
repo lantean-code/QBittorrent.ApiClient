@@ -1,6 +1,6 @@
+using System.Text.Json;
 using AwesomeAssertions;
 using QBittorrent.ApiClient.Models;
-using System.Text.Json;
 
 namespace QBittorrent.ApiClient.Test.Models
 {

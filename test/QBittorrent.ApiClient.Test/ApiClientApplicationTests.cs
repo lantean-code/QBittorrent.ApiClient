@@ -1,7 +1,7 @@
-using AwesomeAssertions;
-using QBittorrent.ApiClient.Models;
 using System.Net;
 using System.Text.Json;
+using AwesomeAssertions;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient.Test
 {
@@ -657,9 +657,10 @@ namespace QBittorrent.ApiClient.Test
 
                     case "/clientdata/store":
                         req.Method.Should().Be(HttpMethod.Post);
-                        var body = await req.Content!.ReadAsStringAsync(ct);
+                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
                         body.Should().Contain("data=");
-                        body.Should().Contain("QbtMud.AppSettings.State.v1");
+                        body.Should().Contain("\"QbtMud.AppSettings.State.v1\":{\"notifications\":true}");
+                        body.Should().Contain("\"QbtMud.Search.Jobs\":null");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
                     default:
@@ -667,9 +668,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            await _target.StoreClientDataAsync(new Dictionary<string, object?>
+            await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
-                ["QbtMud.AppSettings.State.v1"] = new { notifications = true },
+                ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { notifications = true }),
                 ["QbtMud.Search.Jobs"] = null
             }, cancellationToken: TestContext.Current.CancellationToken);
         }
@@ -695,9 +696,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.StoreClientDataAsync(new Dictionary<string, object?>
+            var result = await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
-                ["QbtMud.AppSettings.State.v1"] = new { value = true }
+                ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { value = true })
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -723,9 +724,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.StoreClientDataAsync(new Dictionary<string, object?>
+            var result = await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
-                ["QbtMud.AppSettings.State.v1"] = new { value = true }
+                ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { value = true })
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Conflict, userMessage: "store failed");
@@ -752,9 +753,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.StoreClientDataAsync(new Dictionary<string, object?>
+            var result = await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
-                ["QbtMud.AppSettings.State.v1"] = new { value = true }
+                ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { value = true })
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
@@ -763,6 +764,106 @@ namespace QBittorrent.ApiClient.Test
                 userMessage: "probe failed");
 
             storeRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_JsonNullValue_WHEN_StoreClientData_THEN_ShouldThrowArgumentException()
+        {
+            var action = async () => await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
+            {
+                ["QbtMud.AppSettings.State.v1"] = CreateNullJsonElement()
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>()
+                .WithParameterName("data");
+        }
+
+        [Fact]
+        public async Task GIVEN_Data_WHEN_UpsertClientData_THEN_ShouldDelegateToStorePayloadWithoutDeletes()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.13.1");
+
+                    case "/clientdata/store":
+                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        body.Should().Contain("\"QbtMud.AppSettings.State.v1\":{\"notifications\":true}");
+                        body.Should().NotContain(":null");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.UpsertClientDataAsync(new Dictionary<string, JsonElement>
+            {
+                ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { notifications = true })
+            }, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_JsonNullValue_WHEN_UpsertClientData_THEN_ShouldThrowArgumentException()
+        {
+            var action = async () => await _target.UpsertClientDataAsync(new Dictionary<string, JsonElement>
+            {
+                ["QbtMud.AppSettings.State.v1"] = CreateNullJsonElement()
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>()
+                .WithParameterName("data");
+        }
+
+        [Fact]
+        public async Task GIVEN_Keys_WHEN_DeleteClientData_THEN_ShouldDelegateToStorePayloadWithDeletes()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.13.1");
+
+                    case "/clientdata/store":
+                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        body.Should().Contain("\"QbtMud.AppSettings.State.v1\":null");
+                        body.Should().Contain("\"QbtMud.Search.Jobs\":null");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.DeleteClientDataAsync(
+                ["QbtMud.AppSettings.State.v1", " QbtMud.Search.Jobs ", "QbtMud.Search.Jobs"],
+                cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_EmptyKeys_WHEN_DeleteClientData_THEN_ShouldPostEmptyPatch()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.13.1");
+
+                    case "/clientdata/store":
+                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        body.Should().Contain("data={}");
+                        return new HttpResponseMessage(HttpStatusCode.OK);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.DeleteClientDataAsync([], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]
@@ -1666,6 +1767,16 @@ namespace QBittorrent.ApiClient.Test
             {
                 Content = new StringContent(content)
             };
+        }
+
+        private static JsonElement CreateJsonElement<T>(T value)
+        {
+            return JsonSerializer.SerializeToElement(value);
+        }
+
+        private static JsonElement CreateNullJsonElement()
+        {
+            return JsonDocument.Parse("null").RootElement.Clone();
         }
     }
 }

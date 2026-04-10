@@ -1,5 +1,5 @@
-using QBittorrent.ApiClient.Models;
 using System.Globalization;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient
 {

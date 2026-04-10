@@ -1,5 +1,5 @@
-using QBittorrent.ApiClient.Converters;
 using System.Text.Json.Serialization;
+using QBittorrent.ApiClient.Converters;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -451,7 +451,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the share limit action.
         /// </summary>
         [JsonPropertyName("share_limit_action")]
-        [JsonConverter(typeof(JsonStringEnumConverter))]
+        [JsonConverter(typeof(JsonStringEnumConverter<ShareLimitAction>))]
         public ShareLimitAction? ShareLimitAction { get; }
 
         /// <summary>

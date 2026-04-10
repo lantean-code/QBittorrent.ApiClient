@@ -1,29 +1,37 @@
-using QBittorrent.ApiClient.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace QBittorrent.ApiClient
 {
     internal static class SerializerOptions
     {
-        private static readonly JsonSerializerOptions _defaultOptions = CreateDefaultOptions();
+        private static readonly QBittorrentJsonSerializerContext _context;
+        private static readonly JsonSerializerOptions _defaultOptions;
 
-        internal static JsonSerializerOptions Options
+        static SerializerOptions()
         {
-            get { return new JsonSerializerOptions(_defaultOptions); }
-        }
-
-        private static JsonSerializerOptions CreateDefaultOptions()
-        {
-            var options = new JsonSerializerOptions
+            _defaultOptions = new JsonSerializerOptions
             {
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
-            options.Converters.Add(new DirectoryContentEntryTypeJsonConverter());
-            options.Converters.Add(new SaveLocationJsonConverter());
+            _context = new QBittorrentJsonSerializerContext(_defaultOptions);
+        }
 
-            return options;
+        internal static JsonSerializerOptions Options
+        {
+            get { return new JsonSerializerOptions(_context.Options); }
+        }
+
+        internal static QBittorrentJsonSerializerContext Context
+        {
+            get { return _context; }
+        }
+
+        internal static JsonTypeInfo<T> GetTypeInfo<T>()
+        {
+            return (JsonTypeInfo<T>)_context.GetTypeInfo(typeof(T))!;
         }
     }
 }

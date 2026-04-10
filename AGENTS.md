@@ -61,6 +61,7 @@
 4. When generating code:
    - Follow `./src/AGENTS.md` exactly.
    - Prefer minimal, maintainable changes and avoid churn to unrelated files.
+   - After modifying source, test, project, or solution files, format the changed files to match `.editorconfig` before finishing. Prefer the smallest formatting scope that covers the edited files.
 5. When writing tests:
    - Follow `./test/AGENTS.md` exactly.
 6. Before opening a PR or preparing a release:

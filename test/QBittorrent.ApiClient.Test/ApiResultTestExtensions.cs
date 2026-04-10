@@ -1,5 +1,5 @@
-using AwesomeAssertions;
 using System.Net;
+using AwesomeAssertions;
 
 namespace QBittorrent.ApiClient.Test
 {

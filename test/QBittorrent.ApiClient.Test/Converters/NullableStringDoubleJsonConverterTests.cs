@@ -1,7 +1,7 @@
-using AwesomeAssertions;
-using QBittorrent.ApiClient.Converters;
 using System.Text;
 using System.Text.Json;
+using AwesomeAssertions;
+using QBittorrent.ApiClient.Converters;
 
 namespace QBittorrent.ApiClient.Test.Converters
 {

@@ -23,13 +23,14 @@
 - Use PascalCase for classes, records, structs, methods, properties, and public fields.
 - Use `_camelCase` for private and internal fields, and for private and internal constants.
 - Use PascalCase for public constants.
-- Use camelCase for local variables and private methods.
+- Use camelCase for local variables and local functions.
 - Interfaces must begin with `I`.
 
 ### Formatting
 - Braces on a new line and never omitted.
 - Use blank lines where appropriate to improve readability.
 - Expression-bodied members are allowed only for get-only properties; methods must use block bodies.
+- After modifying a C# file, format that file to match `.editorconfig` before finishing. Prefer file-scoped formatting over whole-repo formatting unless a broader pass is required.
 - Member order:
   1. Constants
   2. Static properties/fields

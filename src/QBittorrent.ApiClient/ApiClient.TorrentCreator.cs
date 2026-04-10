@@ -1,5 +1,4 @@
 using QBittorrent.ApiClient.Models;
-using System.Text.Json;
 
 namespace QBittorrent.ApiClient
 {
@@ -67,21 +66,23 @@ namespace QBittorrent.ApiClient
                 builder.Add("paddedFileSizeLimit", request.PaddedFileSizeLimit.Value);
             }
 
-            async Task<string> ReadTaskId(HttpContent content, CancellationToken currentCancellationToken)
+            static async Task<string> ReadTaskId(HttpContent content, CancellationToken currentCancellationToken)
             {
-                var payload = await content.ReadAsStringAsync(currentCancellationToken);
-                if (string.IsNullOrWhiteSpace(payload))
+                var rawPayload = await content.ReadAsStringAsync(currentCancellationToken);
+                if (string.IsNullOrWhiteSpace(rawPayload))
                 {
                     return string.Empty;
                 }
 
-                var json = JsonSerializer.Deserialize<JsonElement>(payload, _options);
-                if (json.ValueKind == JsonValueKind.Object && json.TryGetProperty("taskID", out var idElement))
+                try
                 {
-                    return idElement.GetString() ?? string.Empty;
+                    var payload = DeserializeJson<TorrentCreationTaskIdentifier>(rawPayload);
+                    return payload?.TaskId ?? string.Empty;
                 }
-
-                return string.Empty;
+                catch (System.Text.Json.JsonException)
+                {
+                    return string.Empty;
+                }
             }
 
             return ExecuteAsync(

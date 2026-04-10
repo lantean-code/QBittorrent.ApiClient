@@ -1,6 +1,6 @@
-using QBittorrent.ApiClient.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient.Converters
 {
@@ -71,7 +71,7 @@ namespace QBittorrent.ApiClient.Converters
             if (feed.Articles is not null)
             {
                 writer.WritePropertyName("articles");
-                JsonSerializer.Serialize(writer, feed.Articles, options);
+                JsonSerializer.Serialize(writer, feed.Articles.ToList(), options);
             }
 
             writer.WriteEndObject();

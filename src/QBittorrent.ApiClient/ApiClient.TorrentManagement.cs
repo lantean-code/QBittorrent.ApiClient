@@ -1,7 +1,6 @@
-using QBittorrent.ApiClient.Models;
 using System.Globalization;
 using System.Net;
-using System.Text.Json;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient
 {
@@ -472,7 +471,7 @@ namespace QBittorrent.ApiClient
                             return new AddTorrentResult(0, 0);
                     }
 
-                    var result = JsonSerializer.Deserialize<AddTorrentResult>(payload, _options);
+                    var result = DeserializeJson<AddTorrentResult>(payload);
                     if (result is null)
                     {
                         var count = (addTorrentParams.Torrents?.Count ?? 0) + (addTorrentParams.Urls?.Count() ?? 0);
@@ -1278,7 +1277,7 @@ namespace QBittorrent.ApiClient
                 content.Add("downloader", downloader!);
             }
 
-            async Task<ApiResult<TorrentMetadata>> HandleFetchMetadataResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static async Task<ApiResult<TorrentMetadata>> HandleFetchMetadataResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 if (response.StatusCode == HttpStatusCode.Accepted)
                 {
@@ -1389,8 +1388,7 @@ namespace QBittorrent.ApiClient
 
         private async Task<IReadOnlyList<TorrentMetadata>> ReadParsedTorrentMetadataAsync(HttpContent content, CancellationToken cancellationToken)
         {
-            var items = await GetJsonAsync<IEnumerable<TorrentMetadata?>>(content, cancellationToken);
-            var normalizedItems = items.ToList();
+            var normalizedItems = await GetJsonAsync<List<TorrentMetadata?>>(content, cancellationToken);
             if (normalizedItems.Any(item => item is null))
             {
                 throw new InvalidOperationException("Unable to deserialize response as IReadOnlyList<TorrentMetadata>");

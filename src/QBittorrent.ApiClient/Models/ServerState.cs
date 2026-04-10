@@ -1,5 +1,5 @@
-using QBittorrent.ApiClient.Converters;
 using System.Text.Json.Serialization;
+using QBittorrent.ApiClient.Converters;
 
 namespace QBittorrent.ApiClient.Models
 {

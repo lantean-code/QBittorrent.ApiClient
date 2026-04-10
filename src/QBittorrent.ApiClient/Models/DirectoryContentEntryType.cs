@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+using QBittorrent.ApiClient.Converters;
+
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
     /// Specifies the type of a directory entry returned by qBittorrent.
     /// </summary>
+    [JsonConverter(typeof(DirectoryContentEntryTypeJsonConverter))]
     public enum DirectoryContentEntryType
     {
         /// <summary>

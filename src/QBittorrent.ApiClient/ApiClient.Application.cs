@@ -1,5 +1,5 @@
-using QBittorrent.ApiClient.Models;
 using System.Text.Json;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient
 {
@@ -67,11 +67,11 @@ namespace QBittorrent.ApiClient
             var contentBuilder = new FormUrlEncodedBuilder();
             if (normalizedKeys.Length > 0)
             {
-                var serializedKeys = JsonSerializer.Serialize(normalizedKeys, _options);
+                var serializedKeys = SerializeJson(normalizedKeys);
                 contentBuilder.Add("keys", serializedKeys);
             }
 
-            async Task<IReadOnlyDictionary<string, JsonElement>> ReadClientData(HttpContent content, CancellationToken currentCancellationToken)
+            static async Task<IReadOnlyDictionary<string, JsonElement>> ReadClientData(HttpContent content, CancellationToken currentCancellationToken)
             {
                 return await GetJsonAsync<Dictionary<string, JsonElement>>(content, currentCancellationToken);
             }
@@ -82,9 +82,20 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<ApiResult> StoreClientDataAsync(IReadOnlyDictionary<string, object?> data, CancellationToken cancellationToken = default)
+        public async Task<ApiResult> StoreClientDataAsync(IReadOnlyDictionary<string, JsonElement?> data, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(data);
+
+            var normalizedData = new Dictionary<string, JsonElement?>(data.Count, StringComparer.Ordinal);
+            foreach (var entry in data)
+            {
+                if (entry.Value is { ValueKind: JsonValueKind.Null })
+                {
+                    throw new ArgumentException("JSON null values are not supported. Use a null dictionary entry to delete a client-data key.", nameof(data));
+                }
+
+                normalizedData[entry.Key] = entry.Value;
+            }
 
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
             if (!profileResult.TryGetValue(out var profile))
@@ -100,12 +111,43 @@ namespace QBittorrent.ApiClient
                     $"qBittorrent Web API {profile.WebApiVersion} does not support the client data API.").ToResult();
             }
 
-            var serializedData = JsonSerializer.Serialize(data, _options);
+            var serializedData = SerializeJson(normalizedData);
             var content = new FormUrlEncodedBuilder()
                 .Add("data", serializedData)
                 .ToFormUrlEncodedContent();
 
             return await ExecuteAsync(ct => _httpClient.PostAsync("clientdata/store", content, ct), cancellationToken: cancellationToken);
+        }
+
+        public Task<ApiResult> UpsertClientDataAsync(IReadOnlyDictionary<string, JsonElement> data, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(data);
+
+            var patch = new Dictionary<string, JsonElement?>(data.Count, StringComparer.Ordinal);
+            foreach (var entry in data)
+            {
+                if (entry.Value.ValueKind == JsonValueKind.Null)
+                {
+                    throw new ArgumentException("JSON null values are not supported. Use DeleteClientDataAsync to remove a client-data key.", nameof(data));
+                }
+
+                patch[entry.Key] = entry.Value;
+            }
+
+            return StoreClientDataAsync(patch, cancellationToken);
+        }
+
+        public Task<ApiResult> DeleteClientDataAsync(IEnumerable<string> keys, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(keys);
+
+            var patch = keys
+                .Where(key => !string.IsNullOrWhiteSpace(key))
+                .Select(key => key.Trim())
+                .Distinct(StringComparer.Ordinal)
+                .ToDictionary(key => key, _ => (JsonElement?)null, StringComparer.Ordinal);
+
+            return StoreClientDataAsync(patch, cancellationToken);
         }
 
         public Task<ApiResult<BuildInfo>> GetBuildInfoAsync(CancellationToken cancellationToken = default)
@@ -155,7 +197,7 @@ namespace QBittorrent.ApiClient
         {
             preferences.Validate();
 
-            var json = JsonSerializer.Serialize(preferences, _options);
+            var json = SerializeJson(preferences);
 
             var content = new FormUrlEncodedBuilder()
                 .Add("json", json)
@@ -174,7 +216,8 @@ namespace QBittorrent.ApiClient
 
         public Task<ApiResult> SetApplicationCookiesAsync(IEnumerable<ApplicationCookie> cookies, CancellationToken cancellationToken = default)
         {
-            var json = JsonSerializer.Serialize(cookies, _options);
+            var serializedCookies = cookies.ToList();
+            var json = SerializeJson(serializedCookies);
 
             var content = new FormUrlEncodedBuilder()
                 .Add("cookies", json)

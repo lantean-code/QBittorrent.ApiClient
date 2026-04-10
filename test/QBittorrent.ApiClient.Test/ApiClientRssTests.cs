@@ -1,6 +1,6 @@
+using System.Net;
 using AwesomeAssertions;
 using QBittorrent.ApiClient.Models;
-using System.Net;
 
 namespace QBittorrent.ApiClient.Test
 {
@@ -523,7 +523,7 @@ namespace QBittorrent.ApiClient.Test
                 decoded.Should().StartWith("ruleName=r1&ruleDef=");
 
                 var json = decoded.Substring("ruleName=r1&ruleDef=".Length);
-                var expectedJson = System.Text.Json.JsonSerializer.Serialize(new AutoDownloadingRule());
+                var expectedJson = System.Text.Json.JsonSerializer.Serialize(new AutoDownloadingRule(), SerializerOptions.Options);
 
                 json.Should().Be(expectedJson);
 

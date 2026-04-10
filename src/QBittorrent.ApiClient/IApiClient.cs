@@ -1,5 +1,5 @@
-using QBittorrent.ApiClient.Models;
 using System.Text.Json;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient
 {
@@ -52,11 +52,23 @@ namespace QBittorrent.ApiClient
         /// <returns>A result with the stored client-side data.</returns>
         Task<ApiResult<IReadOnlyDictionary<string, JsonElement>>> LoadClientDataAsync(IEnumerable<string>? keys = null, CancellationToken cancellationToken = default);
 
-        /// <summary>Stores client-side data through qBittorrent's client data API.</summary>
-        /// <param name="data">The key-value data to store.</param>
+        /// <summary>Stores client-side data patches through qBittorrent's client data API.</summary>
+        /// <param name="data">The key-value patch to apply. A <see langword="null" /> value deletes the key; a non-null value upserts the exact JSON payload.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
-        Task<ApiResult> StoreClientDataAsync(IReadOnlyDictionary<string, object?> data, CancellationToken cancellationToken = default);
+        Task<ApiResult> StoreClientDataAsync(IReadOnlyDictionary<string, JsonElement?> data, CancellationToken cancellationToken = default);
+
+        /// <summary>Upserts client-side data through qBittorrent's client data API.</summary>
+        /// <param name="data">The key-value data to upsert.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> UpsertClientDataAsync(IReadOnlyDictionary<string, JsonElement> data, CancellationToken cancellationToken = default);
+
+        /// <summary>Deletes stored client-side data keys through qBittorrent's client data API.</summary>
+        /// <param name="keys">The keys to delete.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> DeleteClientDataAsync(IEnumerable<string> keys, CancellationToken cancellationToken = default);
 
         /// <summary>Gets qBittorrent build information.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>

@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+using QBittorrent.ApiClient.Converters;
+
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
     /// Represents a qBittorrent save-location selection.
     /// </summary>
+    [JsonConverter(typeof(SaveLocationJsonConverter))]
     public sealed record SaveLocation
     {
         private static readonly SaveLocation _watchedFolder = new SaveLocation(SaveLocationKind.WatchedFolder, null);

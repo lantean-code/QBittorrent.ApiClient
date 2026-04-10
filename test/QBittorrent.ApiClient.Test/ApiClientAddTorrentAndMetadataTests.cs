@@ -1,7 +1,7 @@
-using AwesomeAssertions;
-using QBittorrent.ApiClient.Models;
 using System.Net;
 using System.Text;
+using AwesomeAssertions;
+using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient.Test
 {

@@ -1,4 +1,4 @@
-﻿namespace QBittorrent.ApiClient.Models
+namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
     /// Represents a category download-path setting.

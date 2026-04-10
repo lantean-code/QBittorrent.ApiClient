@@ -6,7 +6,7 @@ namespace QBittorrent.ApiClient
     {
         public Task<ApiResult<bool>> CheckAuthStateAsync(CancellationToken cancellationToken = default)
         {
-            async Task<ApiResult<bool>> HandleAuthStateResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static async Task<ApiResult<bool>> HandleAuthStateResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 using (response)
                 {

@@ -39,6 +39,9 @@
 ## Line endings
 - Use CRLF line terminators for any files you write or modify.
 
+## Formatting
+- After modifying a test file, format that file to match `.editorconfig` before finishing. Prefer file-scoped formatting over whole-repo formatting unless a broader pass is required.
+
 ## Test Execution
 - After each behavior-affecting set of changes, follow the test execution instructions in the root `AGENTS.md`.
 - If the change is docs-only/report-only/markdown-only and does not affect behavior, test execution is optional unless explicitly requested.

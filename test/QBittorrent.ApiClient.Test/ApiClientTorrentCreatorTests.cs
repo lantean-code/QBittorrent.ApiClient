@@ -1,6 +1,6 @@
+using System.Net;
 using AwesomeAssertions;
 using QBittorrent.ApiClient.Models;
-using System.Net;
 
 namespace QBittorrent.ApiClient.Test
 {
@@ -171,6 +171,22 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("{\"taskID\":null}")
+            });
+
+            var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            {
+                SourcePath = "/src"
+            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            id.Should().Be(string.Empty);
+        }
+
+        [Fact]
+        public async Task GIVEN_OKButNullPayload_WHEN_AddTorrentCreationTask_THEN_ShouldReturnEmptyString()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("null")
             });
 
             var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
