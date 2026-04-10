@@ -779,6 +779,18 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_UndefinedJsonValue_WHEN_StoreClientData_THEN_ShouldThrowArgumentException()
+        {
+            var action = async () => await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
+            {
+                ["QbtMud.AppSettings.State.v1"] = default(JsonElement)
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>()
+                .WithParameterName("data");
+        }
+
+        [Fact]
         public async Task GIVEN_Data_WHEN_UpsertClientData_THEN_ShouldDelegateToStorePayloadWithoutDeletes()
         {
             _handler.Responder = async (req, ct) =>
@@ -811,6 +823,18 @@ namespace QBittorrent.ApiClient.Test
             var action = async () => await _target.UpsertClientDataAsync(new Dictionary<string, JsonElement>
             {
                 ["QbtMud.AppSettings.State.v1"] = CreateNullJsonElement()
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>()
+                .WithParameterName("data");
+        }
+
+        [Fact]
+        public async Task GIVEN_UndefinedJsonValue_WHEN_UpsertClientData_THEN_ShouldThrowArgumentException()
+        {
+            var action = async () => await _target.UpsertClientDataAsync(new Dictionary<string, JsonElement>
+            {
+                ["QbtMud.AppSettings.State.v1"] = default
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             await action.Should().ThrowAsync<ArgumentException>()

@@ -94,6 +94,11 @@ namespace QBittorrent.ApiClient
                     throw new ArgumentException("JSON null values are not supported. Use a null dictionary entry to delete a client-data key.", nameof(data));
                 }
 
+                if (entry.Value is { ValueKind: JsonValueKind.Undefined })
+                {
+                    throw new ArgumentException("Undefined JsonElement values are not supported. Use a populated JsonElement or a null dictionary entry to delete a client-data key.", nameof(data));
+                }
+
                 normalizedData[entry.Key] = entry.Value;
             }
 
@@ -129,6 +134,11 @@ namespace QBittorrent.ApiClient
                 if (entry.Value.ValueKind == JsonValueKind.Null)
                 {
                     throw new ArgumentException("JSON null values are not supported. Use DeleteClientDataAsync to remove a client-data key.", nameof(data));
+                }
+
+                if (entry.Value.ValueKind == JsonValueKind.Undefined)
+                {
+                    throw new ArgumentException("Undefined JsonElement values are not supported. Use a populated JsonElement or DeleteClientDataAsync to remove a client-data key.", nameof(data));
                 }
 
                 patch[entry.Key] = entry.Value;
