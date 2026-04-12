@@ -54,7 +54,7 @@ namespace QBittorrent.ApiClient.Test
             {
                 req.RequestUri!.ToString().Should().Be("http://localhost/torrents/rename");
                 var body = await req.Content!.ReadAsStringAsync(ct);
-                body.Should().Be("hash=hx&name=My+Torrent"); // spaces => '+'
+                body.Should().Be("hash=hx&name=My+Torrent");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 

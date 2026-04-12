@@ -216,14 +216,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndUrls_WHEN_ReannounceTorrents_THEN_ShouldSendHashesAndUrls()
+        public async Task GIVEN_SupportedApiVersionAndUrls_WHEN_ReannounceTorrents_THEN_ShouldSendHashesAndUrls()
         {
             _handler.Responder = (req, _) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.10"));
 
                     case "/torrents/reannounce":
                         return AssertReannounceRequestAsync(req, "hashes=h1%7Ch2&urls=http%3A%2F%2Ft1%7Chttp%3A%2F%2Ft2");
@@ -246,7 +246,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/reannounce":
                         reannounceRequestCount++;
@@ -260,7 +260,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: new[] { "http://t1" }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support tracker-targeted reannounce URLs.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.9 does not support tracker-targeted reannounce URLs.");
             reannounceRequestCount.Should().Be(0);
         }
 

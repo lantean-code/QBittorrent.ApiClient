@@ -1353,14 +1353,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_RotateApiKey_THEN_ShouldReturnNewKey()
+        public async Task GIVEN_SupportedApiVersion_WHEN_RotateApiKey_THEN_ShouldReturnNewKey()
         {
             _handler.Responder = (req, _) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.1"));
 
                     case "/app/rotateAPIKey":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -1386,7 +1386,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.0"));
 
                     case "/app/rotateAPIKey":
                         rotateRequestCount++;
@@ -1400,7 +1400,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support Web API key rotation.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.14.0 does not support Web API key rotation.");
             rotateRequestCount.Should().Be(0);
         }
 
@@ -1432,14 +1432,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_DeleteApiKey_THEN_ShouldPostAndSucceed()
+        public async Task GIVEN_SupportedApiVersion_WHEN_DeleteApiKey_THEN_ShouldPostAndSucceed()
         {
             _handler.Responder = (req, _) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.1"));
 
                     case "/app/deleteAPIKey":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -1463,7 +1463,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.0"));
 
                     case "/app/deleteAPIKey":
                         deleteRequestCount++;
@@ -1477,7 +1477,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support Web API key deletion.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.14.0 does not support Web API key deletion.");
             deleteRequestCount.Should().Be(0);
         }
 
