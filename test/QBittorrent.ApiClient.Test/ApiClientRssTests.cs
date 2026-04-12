@@ -72,14 +72,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldIncludeRefreshInterval()
+        public async Task GIVEN_SupportedApiVersionAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldIncludeRefreshInterval()
         {
             _handler.Responder = async (req, ct) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.5");
 
                     case "/rss/addFeed":
                         var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
@@ -217,14 +217,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_SetRssFeedRefreshInterval_THEN_ShouldPostInterval()
+        public async Task GIVEN_SupportedApiVersion_WHEN_SetRssFeedRefreshInterval_THEN_ShouldPostInterval()
         {
             _handler.Responder = async (req, ct) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.5");
 
                     case "/rss/setFeedRefreshInterval":
                         var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));

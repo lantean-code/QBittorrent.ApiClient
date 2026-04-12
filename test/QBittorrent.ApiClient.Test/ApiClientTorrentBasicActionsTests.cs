@@ -75,14 +75,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_SetTorrentComment_THEN_ShouldPOSTHashesAndComment()
+        public async Task GIVEN_SupportedApiVersion_WHEN_SetTorrentComment_THEN_ShouldPOSTHashesAndComment()
         {
             _handler.Responder = async (req, ct) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.12.1");
 
                     case "/torrents/setComment":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -107,7 +107,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.0"));
 
                     case "/torrents/setComment":
                         commentRequestCount++;
@@ -121,7 +121,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.SetTorrentCommentAsync(TorrentSelector.FromHash("h1"), "Comment", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent comments.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.12.0 does not support torrent comments.");
             commentRequestCount.Should().Be(0);
         }
 

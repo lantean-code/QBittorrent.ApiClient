@@ -34,7 +34,7 @@ namespace QBittorrent.ApiClient.Test
             target.SupportsTorrentPieceAvailability.Should().BeFalse();
             target.SupportsTorrentCommentEditing.Should().BeFalse();
             target.SupportsTorrentMetadata.Should().BeFalse();
-            target.RequiresShareLimitAction.Should().BeFalse();
+            target.SupportsTorrentShareLimitAction.Should().BeFalse();
             target.TrackerAllValue.Should().Be("*");
         }
 
@@ -74,7 +74,7 @@ namespace QBittorrent.ApiClient.Test
             target.SupportsTorrentMetadata.Should().BeTrue();
             target.SupportsTrackerBatchOperations.Should().BeTrue();
             target.SupportsReannounceUrls.Should().BeFalse();
-            target.RequiresShareLimitAction.Should().BeFalse();
+            target.SupportsTorrentShareLimitAction.Should().BeFalse();
             target.TrackerAllValue.Should().Be("all");
         }
 
@@ -85,16 +85,16 @@ namespace QBittorrent.ApiClient.Test
 
             target.SupportsTrackerBatchOperations.Should().BeTrue();
             target.SupportsReannounceUrls.Should().BeTrue();
-            target.RequiresShareLimitAction.Should().BeFalse();
+            target.SupportsTorrentShareLimitAction.Should().BeFalse();
             target.TrackerAllValue.Should().Be("all");
         }
 
         [Fact]
-        public void GIVEN_Version2120_WHEN_CreatingCompatibilityProfile_THEN_ShouldRequireShareLimitAction()
+        public void GIVEN_Version2120_WHEN_CreatingCompatibilityProfile_THEN_ShouldSupportShareLimitAction()
         {
             var target = new ApiClientCompatibilityProfile(new Version(2, 12, 0));
 
-            target.RequiresShareLimitAction.Should().BeTrue();
+            target.SupportsTorrentShareLimitAction.Should().BeTrue();
             target.SupportsTorrentCommentEditing.Should().BeFalse();
             target.SupportsTrackerTierEditing.Should().BeFalse();
         }
@@ -160,7 +160,7 @@ namespace QBittorrent.ApiClient.Test
             target.SupportsTorrentPieceAvailability.Should().BeTrue();
             target.SupportsTorrentCommentEditing.Should().BeTrue();
             target.SupportsTorrentMetadata.Should().BeTrue();
-            target.RequiresShareLimitAction.Should().BeTrue();
+            target.SupportsTorrentShareLimitAction.Should().BeTrue();
             target.TrackerAllValue.Should().Be("all");
         }
 

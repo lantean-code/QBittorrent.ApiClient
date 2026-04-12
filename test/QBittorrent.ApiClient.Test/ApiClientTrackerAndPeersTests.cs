@@ -35,14 +35,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndAllTrue_WHEN_AddTrackersToTorrent_THEN_ShouldPostAllAndUrlList()
+        public async Task GIVEN_SupportedApiVersionAndAllTrue_WHEN_AddTrackersToTorrent_THEN_ShouldPostAllAndUrlList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/addTrackers":
                         request.RequestUri!.ToString().Should().Be("http://localhost/torrents/addTrackers");
@@ -66,7 +66,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.4");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/addTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -89,7 +89,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.4");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/addTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -114,7 +114,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/addTrackers":
                         addTrackerRequestCount++;
@@ -128,7 +128,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.AddTrackersToTorrentAsync(TorrentSelector.AllTorrents(), new[] { "udp://a" }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support adding trackers to all torrents in a single request.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support adding trackers to all torrents in a single request.");
             addTrackerRequestCount.Should().Be(0);
         }
 
@@ -142,7 +142,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/addTrackers":
                         addTrackerRequestCount++;
@@ -156,19 +156,19 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHashes(["hash1", "hash2"]), new[] { "udp://a" }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support adding trackers to multiple torrents in a single request.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support adding trackers to multiple torrents in a single request.");
             addTrackerRequestCount.Should().Be(0);
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndNonSuccess_WHEN_AddTrackersToTorrent_THEN_ShouldReturnFailure()
+        public async Task GIVEN_SupportedApiVersionAndNonSuccess_WHEN_AddTrackersToTorrent_THEN_ShouldReturnFailure()
         {
             _handler.Responder = (request, _) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.2"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/addTrackers":
                         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest)
@@ -187,14 +187,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndDefaultAll_WHEN_AddTrackersToTorrent_THEN_ShouldPostHashList()
+        public async Task GIVEN_SupportedApiVersionAndDefaultAll_WHEN_AddTrackersToTorrent_THEN_ShouldPostHashList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/addTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -210,14 +210,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndMultipleHashes_WHEN_AddTrackersToTorrent_THEN_ShouldPostPipeSeparatedHashList()
+        public async Task GIVEN_SupportedApiVersionAndMultipleHashes_WHEN_AddTrackersToTorrent_THEN_ShouldPostPipeSeparatedHashList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/addTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -280,14 +280,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_EditTracker_THEN_ShouldPostModernFields()
+        public async Task GIVEN_SupportedApiVersion_WHEN_EditTracker_THEN_ShouldPostModernFields()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+                        return CreateResponse(HttpStatusCode.OK, "2.13.0");
 
                     case "/torrents/editTracker":
                         request.RequestUri!.ToString().Should().Be("http://localhost/torrents/editTracker");
@@ -311,7 +311,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.4");
+                        return CreateResponse(HttpStatusCode.OK, "2.12.1");
 
                     case "/torrents/editTracker":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -336,7 +336,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.1"));
 
                     case "/torrents/editTracker":
                         editTrackerRequestCount++;
@@ -350,7 +350,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.EditTrackerAsync("hash", "udp://old", null, 2, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support editing tracker tiers.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.12.1 does not support editing tracker tiers.");
             editTrackerRequestCount.Should().Be(0);
         }
 
@@ -404,14 +404,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndAllTrue_WHEN_RemoveTrackers_THEN_ShouldPostPipeSeparatedUrls()
+        public async Task GIVEN_SupportedApiVersionAndAllTrue_WHEN_RemoveTrackers_THEN_ShouldPostPipeSeparatedUrls()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/removeTrackers":
                         request.RequestUri!.ToString().Should().Be("http://localhost/torrents/removeTrackers");
@@ -435,7 +435,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.4");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/removeTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -460,7 +460,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/removeTrackers":
                         removeTrackerRequestCount++;
@@ -474,7 +474,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.RemoveTrackersAsync(TorrentSelector.FromHashes(["hash1", "hash2"]), new[] { "udp://a" }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support removing trackers from multiple torrents in a single request.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support removing trackers from multiple torrents in a single request.");
             removeTrackerRequestCount.Should().Be(0);
         }
 
@@ -486,7 +486,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/removeTrackers":
                         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict)
@@ -505,14 +505,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndDefaultAll_WHEN_RemoveTrackers_THEN_ShouldPostHashList()
+        public async Task GIVEN_SupportedApiVersionAndDefaultAll_WHEN_RemoveTrackers_THEN_ShouldPostHashList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/removeTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -535,7 +535,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.4");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/removeTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);
@@ -551,14 +551,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndMultipleHashes_WHEN_RemoveTrackers_THEN_ShouldPostPipeSeparatedHashList()
+        public async Task GIVEN_SupportedApiVersionAndMultipleHashes_WHEN_RemoveTrackers_THEN_ShouldPostPipeSeparatedHashList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
                 switch (request.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.2");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/removeTrackers":
                         var body = await request.Content!.ReadAsStringAsync(cancellationToken);

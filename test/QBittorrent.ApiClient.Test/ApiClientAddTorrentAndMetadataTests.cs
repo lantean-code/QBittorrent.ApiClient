@@ -57,7 +57,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/torrents/add":
                         req.Content.Should().BeOfType<MultipartFormDataContent>();
@@ -195,7 +195,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
 
                     case "/torrents/add":
                         addRequestCount++;
@@ -213,7 +213,7 @@ namespace QBittorrent.ApiClient.Test
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support add-torrent downloader selection.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.13.0 does not support add-torrent downloader selection.");
             addRequestCount.Should().Be(0);
         }
 
@@ -227,7 +227,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
 
                     case "/torrents/add":
                         addRequestCount++;
@@ -245,8 +245,38 @@ namespace QBittorrent.ApiClient.Test
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support add-torrent file priorities.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.7 does not support add-torrent file priorities.");
             addRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_SupportedApiVersionAndFilePriorities_WHEN_AddTorrent_THEN_ShouldPostFilePriorities()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.11.8");
+
+                    case "/torrents/add":
+                        var parts = (req.Content as MultipartFormDataContent)!.ToList();
+                        parts.Should().ContainSingle();
+                        parts[0].Headers.ContentDisposition!.Name.Should().Be("filePriorities");
+                        (await parts[0].ReadAsStringAsync(ct)).Should().Be("0,1");
+                        return CreateResponse(HttpStatusCode.OK, "{}");
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                FilePriorities = new[] { Priority.DoNotDownload, Priority.Normal }
+            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().NotBeNull();
         }
 
         [Fact]
@@ -281,14 +311,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersionAndDownloaderWithoutFilePriorities_WHEN_AddTorrent_THEN_ShouldPostDownloaderWithoutProbingFailure()
+        public async Task GIVEN_SupportedApiVersionAndDownloaderWithoutFilePriorities_WHEN_AddTorrent_THEN_ShouldPostDownloaderWithoutProbingFailure()
         {
             _handler.Responder = async (req, ct) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/torrents/add":
                         var parts = (req.Content as MultipartFormDataContent)!.ToList();
@@ -717,14 +747,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_FetchTorrentMetadata_THEN_ShouldReturnResolvedMetadata()
+        public async Task GIVEN_SupportedApiVersion_WHEN_FetchTorrentMetadata_THEN_ShouldReturnResolvedMetadata()
         {
             _handler.Responder = async (req, ct) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/fetchMetadata":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -800,7 +830,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/fetchMetadata":
                         return Task.FromResult(CreateResponse(
@@ -837,7 +867,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/fetchMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.Accepted, "{}"));
@@ -867,7 +897,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/fetchMetadata":
                         metadataRequestCount++;
@@ -881,7 +911,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent metadata APIs.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support torrent metadata APIs.");
             metadataRequestCount.Should().Be(0);
         }
 
@@ -920,7 +950,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/fetchMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.NotFound, "missing"));
@@ -943,7 +973,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/fetchMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "not-json"));
@@ -966,7 +996,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/fetchMetadata":
                         return Task.FromResult(CreateResponse(
@@ -1015,7 +1045,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/fetchMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "null"));
@@ -1038,7 +1068,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/parseMetadata":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -1134,7 +1164,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/parseMetadata":
                         metadataRequestCount++;
@@ -1150,7 +1180,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent metadata APIs.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support torrent metadata APIs.");
             metadataRequestCount.Should().Be(0);
         }
 
@@ -1191,7 +1221,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
@@ -1216,7 +1246,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, """[{ "hash": "Hash1" }]"""));
@@ -1241,7 +1271,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(
@@ -1282,7 +1312,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(
@@ -1328,7 +1358,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[null]"));
@@ -1346,7 +1376,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_SaveTorrentMetadata_THEN_ShouldReturnTorrentBytes()
+        public async Task GIVEN_SupportedApiVersion_WHEN_SaveTorrentMetadata_THEN_ShouldReturnTorrentBytes()
         {
             var expected = Encoding.UTF8.GetBytes("saved-torrent");
 
@@ -1355,7 +1385,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.15.1");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/saveMetadata":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -1385,7 +1415,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/saveMetadata":
                         metadataRequestCount++;
@@ -1399,7 +1429,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent metadata APIs.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support torrent metadata APIs.");
             metadataRequestCount.Should().Be(0);
         }
 
@@ -1438,7 +1468,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
 
                     case "/torrents/saveMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.NotFound, "missing"));

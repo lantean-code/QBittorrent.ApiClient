@@ -573,7 +573,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
 
                     case "/clientdata/load":
                         loadRequestCount++;
@@ -587,7 +587,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.LoadClientDataAsync(["QbtMud.Test"], cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support the client data API.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.13.0 does not support the client data API.");
             loadRequestCount.Should().Be(0);
         }
 
@@ -685,7 +685,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
 
                     case "/clientdata/store":
                         storeRequestCount++;
@@ -702,7 +702,7 @@ namespace QBittorrent.ApiClient.Test
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support the client data API.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.13.0 does not support the client data API.");
             storeRequestCount.Should().Be(0);
         }
 
@@ -946,7 +946,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_GetProcessInfo_THEN_ShouldDeserialize()
+        public async Task GIVEN_SupportedApiVersion_WHEN_GetProcessInfo_THEN_ShouldDeserialize()
         {
             _handler.Responder = (req, _) =>
             {
@@ -978,7 +978,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.0"));
 
                     case "/app/processInfo":
                         processInfoRequestCount++;
@@ -992,7 +992,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support process info.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.15.0 does not support process info.");
             processInfoRequestCount.Should().Be(0);
         }
 
@@ -1598,14 +1598,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_GetDirectoryContentEntries_THEN_ShouldQueryWithMetadataAndReturnEntries()
+        public async Task GIVEN_SupportedApiVersion_WHEN_GetDirectoryContentEntries_THEN_ShouldQueryWithMetadataAndReturnEntries()
         {
             _handler.Responder = (req, _) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/app/getDirectoryContent":
                         req.Method.Should().Be(HttpMethod.Get);
@@ -1651,7 +1651,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
 
                     case "/app/getDirectoryContent":
                         directoryRequestCount++;
@@ -1665,7 +1665,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetDirectoryContentEntriesAsync("/data", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support directory metadata responses.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.7 does not support directory metadata responses.");
             directoryRequestCount.Should().Be(0);
         }
 

@@ -47,7 +47,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.2"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/info":
                         req.Method.Should().Be(HttpMethod.Get);
@@ -88,7 +88,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.2"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/info":
                         req.Method.Should().Be(HttpMethod.Get);
@@ -120,7 +120,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
 
                     case "/torrents/info":
                         req.Method.Should().Be(HttpMethod.Get);
@@ -153,7 +153,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
 
                     case "/torrents/info":
                         torrentInfoRequestCount++;
@@ -170,7 +170,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetTorrentListAsync(includeFiles: true, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support including torrent file data in torrent list responses.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.7 does not support including torrent file data in torrent list responses.");
             torrentInfoRequestCount.Should().Be(0);
         }
 
@@ -1122,7 +1122,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ModernApiVersion_WHEN_GetTorrentPieceAvailability_THEN_ShouldGETAndReturnCounts()
+        public async Task GIVEN_SupportedApiVersion_WHEN_GetTorrentPieceAvailability_THEN_ShouldGETAndReturnCounts()
         {
             _handler.Responder = (req, _) =>
             {
@@ -1156,7 +1156,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.0"));
 
                     case "/torrents/pieceAvailability":
                         availabilityRequestCount++;
@@ -1170,7 +1170,7 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.4 does not support torrent piece availability.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.15.0 does not support torrent piece availability.");
             availabilityRequestCount.Should().Be(0);
         }
 

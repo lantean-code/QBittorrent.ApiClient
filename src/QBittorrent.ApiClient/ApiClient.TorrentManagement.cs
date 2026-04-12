@@ -760,18 +760,21 @@ namespace QBittorrent.ApiClient
         {
             ArgumentNullException.ThrowIfNull(selector);
 
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (!profileResult.TryGetValue(out var profile))
+            if (shareLimitAction is not null)
             {
-                return profileResult.Failure.ToResult();
-            }
+                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+                if (!profileResult.TryGetValue(out var profile))
+                {
+                    return profileResult.Failure.ToResult();
+                }
 
-            if (profile.RequiresShareLimitAction && (shareLimitAction is null))
-            {
-                return CreateUnsupportedCompatibilityFailure(
-                    nameof(SetTorrentShareLimitAsync),
-                    profile,
-                    $"qBittorrent Web API {profile.WebApiVersion} requires shareLimitAction when setting share limits.").ToResult();
+                if (!profile.SupportsTorrentShareLimitAction)
+                {
+                    return CreateUnsupportedCompatibilityFailure(
+                        nameof(SetTorrentShareLimitAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support shareLimitAction when setting share limits.").ToResult();
+                }
             }
 
             var content = new FormUrlEncodedBuilder()
@@ -780,9 +783,9 @@ namespace QBittorrent.ApiClient
                 .Add("seedingTimeLimit", seedingTimeLimit)
                 .Add("inactiveSeedingTimeLimit", inactiveSeedingTimeLimit);
 
-            if (profile.RequiresShareLimitAction)
+            if (shareLimitAction is not null)
             {
-                content.Add("shareLimitAction", shareLimitAction!.Value);
+                content.Add("shareLimitAction", shareLimitAction.Value);
             }
 
             var form = content.ToFormUrlEncodedContent();
