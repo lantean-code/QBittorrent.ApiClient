@@ -450,7 +450,7 @@ namespace QBittorrent.ApiClient
         /// <param name="ratioLimit">The ratio limit.</param>
         /// <param name="seedingTimeLimit">The seeding-time limit in whole minutes.</param>
         /// <param name="inactiveSeedingTimeLimit">The inactive-seeding-time limit in whole minutes.</param>
-        /// <param name="shareLimitAction">The action to take when limits are reached.</param>
+        /// <param name="shareLimitAction">The action to take when limits are reached. Required by qBittorrent Web API 2.12.0 and later, and unsupported before 2.12.0.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> SetTorrentShareLimitAsync(TorrentSelector selector, float ratioLimit, int seedingTimeLimit, int inactiveSeedingTimeLimit, ShareLimitAction? shareLimitAction = null, CancellationToken cancellationToken = default);

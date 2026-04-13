@@ -128,7 +128,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ActionOmitted_WHEN_SetTorrentShareLimit_THEN_ShouldOmitActionFieldWithoutVersionProbe()
+        public async Task GIVEN_ApiVersionBeforeShareLimitActionRequirementAndActionOmitted_WHEN_SetTorrentShareLimit_THEN_ShouldOmitActionField()
         {
             var ratio = 1.5f.ToString();
             var seed = 2.ToString();
@@ -138,6 +138,9 @@ namespace QBittorrent.ApiClient.Test
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.11.10");
+
                     case "/torrents/setShareLimits":
                         var form = await req.Content!.ReadAsStringAsync(ct);
                         var parts = form.Split('&').ToDictionary(
@@ -167,6 +170,34 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_ApiVersionWithShareLimitActionRequirementAndActionOmitted_WHEN_SetTorrentShareLimit_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var setShareLimitsRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.0"));
+
+                    case "/torrents/setShareLimits":
+                        setShareLimitsRequestCount++;
+                        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.12.0 requires shareLimitAction when setting share limits.");
+            setShareLimitsRequestCount.Should().Be(0);
+        }
+
+        [Fact]
         public async Task GIVEN_SupportedApiVersionAndAction_WHEN_SetTorrentShareLimit_THEN_ShouldIncludeActionField()
         {
             _handler.Responder = async (req, ct) =>
@@ -181,7 +212,7 @@ namespace QBittorrent.ApiClient.Test
                         form.Should().Contain("ratioLimit=");
                         form.Should().Contain("seedingTimeLimit=");
                         form.Should().Contain("inactiveSeedingTimeLimit=");
-                        form.Should().Contain("shareLimitAction=1");
+                        form.Should().Contain("shareLimitAction=Remove");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
                     default:
@@ -207,7 +238,7 @@ namespace QBittorrent.ApiClient.Test
                         form.Should().Contain("ratioLimit=-2");
                         form.Should().Contain("seedingTimeLimit=-2");
                         form.Should().Contain("inactiveSeedingTimeLimit=-1");
-                        form.Should().Contain("shareLimitAction=1");
+                        form.Should().Contain("shareLimitAction=Remove");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
                     default:

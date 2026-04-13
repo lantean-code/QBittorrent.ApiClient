@@ -760,21 +760,28 @@ namespace QBittorrent.ApiClient
         {
             ArgumentNullException.ThrowIfNull(selector);
 
-            if (shareLimitAction is not null)
+            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
+            if (!profileResult.TryGetValue(out var profile))
             {
-                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-                if (!profileResult.TryGetValue(out var profile))
-                {
-                    return profileResult.Failure.ToResult();
-                }
+                return profileResult.Failure.ToResult();
+            }
 
-                if (!profile.SupportsTorrentShareLimitAction)
+            if (profile.RequiresTorrentShareLimitAction)
+            {
+                if (shareLimitAction is null)
                 {
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(SetTorrentShareLimitAsync),
                         profile,
-                        $"qBittorrent Web API {profile.WebApiVersion} does not support shareLimitAction when setting share limits.").ToResult();
+                        $"qBittorrent Web API {profile.WebApiVersion} requires shareLimitAction when setting share limits.").ToResult();
                 }
+            }
+            else if (shareLimitAction is not null)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(SetTorrentShareLimitAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support shareLimitAction when setting share limits.").ToResult();
             }
 
             var content = new FormUrlEncodedBuilder()
@@ -785,7 +792,7 @@ namespace QBittorrent.ApiClient
 
             if (shareLimitAction is not null)
             {
-                content.Add("shareLimitAction", shareLimitAction.Value);
+                content.Add("shareLimitAction", shareLimitAction.Value.ToString());
             }
 
             var form = content.ToFormUrlEncodedContent();
