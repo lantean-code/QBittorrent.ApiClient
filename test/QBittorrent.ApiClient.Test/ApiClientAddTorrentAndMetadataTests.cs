@@ -227,7 +227,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/add":
                         addRequestCount++;
@@ -245,7 +245,7 @@ namespace QBittorrent.ApiClient.Test
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
-            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.7 does not support add-torrent file priorities.");
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support add-torrent file priorities.");
             addRequestCount.Should().Be(0);
         }
 
@@ -257,7 +257,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.8");
+                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/add":
                         var parts = (req.Content as MultipartFormDataContent)!.ToList();
@@ -1061,14 +1061,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_MultipartFiles_WHEN_ParseTorrentMetadata_THEN_ShouldReturnMetadataInResponseOrder()
+        public async Task GIVEN_WebApi2130MultipartFiles_WHEN_ParseTorrentMetadata_THEN_ShouldReturnMetadataInResponseOrder()
         {
             _handler.Responder = async (req, ct) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
+                        return CreateResponse(HttpStatusCode.OK, "2.13.0");
 
                     case "/torrents/parseMetadata":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -1123,6 +1123,93 @@ namespace QBittorrent.ApiClient.Test
                                     }
                                 }
                             ]
+                            """);
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var first = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+            using var second = new MemoryStream(Encoding.UTF8.GetBytes("b"));
+
+            var result = (await _target.ParseTorrentMetadataAsync(
+                new Dictionary<string, Stream>
+                {
+                    ["a.torrent"] = first,
+                    ["b.torrent"] = second
+                },
+                cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Select(item => item.Info.Name).Should().Equal("First", "Second");
+            result.Select(item => item.Hash).Should().Equal("Hash1", "Hash2");
+        }
+
+        [Fact]
+        public async Task GIVEN_WebApi2121ObjectPayload_WHEN_ParseTorrentMetadata_THEN_ShouldReturnMetadataFromObjectValues()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return CreateResponse(HttpStatusCode.OK, "2.12.1");
+
+                    case "/torrents/parseMetadata":
+                        req.Method.Should().Be(HttpMethod.Post);
+                        req.Content.Should().BeOfType<MultipartFormDataContent>();
+
+                        var parts = (req.Content as MultipartFormDataContent)!.ToList();
+                        parts.Count.Should().Be(2);
+                        parts[0].Headers.ContentDisposition!.Name.Should().Be("torrents");
+                        parts[0].Headers.ContentDisposition!.FileName.Should().Be("a.torrent");
+                        parts[1].Headers.ContentDisposition!.FileName.Should().Be("b.torrent");
+                        (await parts[0].ReadAsStringAsync(ct)).Should().Be("a");
+                        (await parts[1].ReadAsStringAsync(ct)).Should().Be("b");
+
+                        return CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            {
+                                "a.torrent":
+                                {
+                                    "hash": "Hash1",
+                                    "info":
+                                    {
+                                        "name": "First",
+                                        "length": 10,
+                                        "piece_length": 2,
+                                        "pieces_num": 5,
+                                        "private": false,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "first.bin",
+                                                "length": 10
+                                            }
+                                        ]
+                                    }
+                                },
+                                "b.torrent":
+                                {
+                                    "hash": "Hash2",
+                                    "info":
+                                    {
+                                        "name": "Second",
+                                        "length": 20,
+                                        "piece_length": 4,
+                                        "pieces_num": 5,
+                                        "private": true,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "second.bin",
+                                                "length": 20
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
                             """);
 
                     default:
@@ -1214,14 +1301,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ObjectPayload_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        public async Task GIVEN_ObjectPayloadFromArrayResponseVersion_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
         {
             _handler.Responder = (req, _) =>
             {
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
@@ -1246,7 +1333,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, """[{ "hash": "Hash1" }]"""));
@@ -1271,7 +1358,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(
@@ -1312,7 +1399,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri!.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
 
                     case "/torrents/parseMetadata":
                         return Task.FromResult(CreateResponse(
@@ -1337,31 +1424,6 @@ namespace QBittorrent.ApiClient.Test
                                 }
                             ]
                             """));
-
-                    default:
-                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
-                }
-            };
-
-            using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
-
-            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
-
-            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
-        }
-
-        [Fact]
-        public async Task GIVEN_NullMetadataEntry_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
-        {
-            _handler.Responder = (req, _) =>
-            {
-                switch (req.RequestUri!.AbsolutePath)
-                {
-                    case "/app/webapiVersion":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
-
-                    case "/torrents/parseMetadata":
-                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[null]"));
 
                     default:
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");

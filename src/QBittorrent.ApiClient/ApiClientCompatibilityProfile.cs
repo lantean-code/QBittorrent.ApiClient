@@ -5,13 +5,14 @@ namespace QBittorrent.ApiClient
         private static readonly Version _rssFeedRefreshIntervalMinimumVersion = new(2, 11, 5);
         private static readonly Version _directoryContentMetadataMinimumVersion = new(2, 11, 8);
         private static readonly Version _torrentListIncludeFilesMinimumVersion = new(2, 11, 8);
-        private static readonly Version _torrentAddFilePrioritiesMinimumVersion = new(2, 11, 8);
+        private static readonly Version _torrentAddFilePrioritiesMinimumVersion = new(2, 11, 9);
         private static readonly Version _torrentMetadataMinimumVersion = new(2, 11, 9);
         private static readonly Version _trackerBatchOperationsMinimumVersion = new(2, 11, 9);
         private static readonly Version _trackerAllValueMinimumVersion = new(2, 11, 9);
         private static readonly Version _reannounceUrlsMinimumVersion = new(2, 11, 10);
         private static readonly Version _torrentShareLimitActionRequiredMinimumVersion = new(2, 12, 0);
         private static readonly Version _torrentCommentEditingMinimumVersion = new(2, 12, 1);
+        private static readonly Version _torrentMetadataArrayResponseMinimumVersion = new(2, 13, 0);
         private static readonly Version _trackerTierEditingMinimumVersion = new(2, 13, 0);
         private static readonly Version _clientDataMinimumVersion = new(2, 13, 1);
         private static readonly Version _torrentAddDownloaderMinimumVersion = new(2, 13, 1);
@@ -36,6 +37,7 @@ namespace QBittorrent.ApiClient
             SupportsTorrentPieceAvailability = webApiVersion >= _torrentPieceAvailabilityMinimumVersion;
             SupportsTorrentCommentEditing = webApiVersion >= _torrentCommentEditingMinimumVersion;
             SupportsTorrentMetadata = webApiVersion >= _torrentMetadataMinimumVersion;
+            SupportsTorrentMetadataArrayResponse = webApiVersion >= _torrentMetadataArrayResponseMinimumVersion;
             RequiresTorrentShareLimitAction = webApiVersion >= _torrentShareLimitActionRequiredMinimumVersion;
             TrackerAllValue = webApiVersion >= _trackerAllValueMinimumVersion
                 ? "all"
@@ -71,6 +73,8 @@ namespace QBittorrent.ApiClient
         public bool SupportsTorrentCommentEditing { get; }
 
         public bool SupportsTorrentMetadata { get; }
+
+        public bool SupportsTorrentMetadataArrayResponse { get; }
 
         public bool RequiresTorrentShareLimitAction { get; }
 

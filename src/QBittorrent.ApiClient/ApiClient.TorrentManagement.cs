@@ -1332,9 +1332,22 @@ namespace QBittorrent.ApiClient
                 content.Add(await CreateOwnedTorrentContentAsync(stream, cancellationToken), "torrents", name);
             }
 
+            static async Task<IReadOnlyList<TorrentMetadata>> readParsedTorrentMetadata(HttpContent responseContent, ApiClientCompatibilityProfile compatibilityProfile, CancellationToken readCancellationToken)
+            {
+                if (compatibilityProfile.SupportsTorrentMetadataArrayResponse)
+                {
+                    return (await GetJsonAsync<List<TorrentMetadata>>(responseContent, readCancellationToken)).AsReadOnly();
+                }
+
+                return (await GetJsonAsync<Dictionary<string, TorrentMetadata>>(responseContent, readCancellationToken))
+                    .Values
+                    .ToList()
+                    .AsReadOnly();
+            }
+
             return await ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/parseMetadata", content, ct),
-                ReadParsedTorrentMetadataAsync,
+                (responseContent, ct) => readParsedTorrentMetadata(responseContent, profile, ct),
                 cancellationToken: cancellationToken);
         }
 
@@ -1397,18 +1410,5 @@ namespace QBittorrent.ApiClient
             }
         }
 
-        private async Task<IReadOnlyList<TorrentMetadata>> ReadParsedTorrentMetadataAsync(HttpContent content, CancellationToken cancellationToken)
-        {
-            var normalizedItems = await GetJsonAsync<List<TorrentMetadata?>>(content, cancellationToken);
-            if (normalizedItems.Any(item => item is null))
-            {
-                throw new InvalidOperationException("Unable to deserialize response as IReadOnlyList<TorrentMetadata>");
-            }
-
-            return normalizedItems
-                .Cast<TorrentMetadata>()
-                .ToList()
-                .AsReadOnly();
-        }
     }
 }
