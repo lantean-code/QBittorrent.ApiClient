@@ -79,7 +79,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetFilePriorityAsync("h1", new[] { 1, 2, 3 }, (Priority)7, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetFilePriorityAsync("h1", [1, 2, 3], (Priority)7, cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]

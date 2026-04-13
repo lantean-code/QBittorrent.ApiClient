@@ -43,8 +43,8 @@ namespace QBittorrent.ApiClient.Models
             Comment = comment;
             TorrentFilePath = torrentFilePath;
             Source = source;
-            Trackers = trackers ?? Array.Empty<string>();
-            UrlSeeds = urlSeeds ?? Array.Empty<string>();
+            Trackers = trackers ?? [];
+            UrlSeeds = urlSeeds ?? [];
             TimeStarted = timeStarted;
             TimeFinished = timeFinished;
             ErrorMessage = errorMessage;

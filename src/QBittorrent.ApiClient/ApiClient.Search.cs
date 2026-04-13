@@ -33,7 +33,7 @@ namespace QBittorrent.ApiClient
             var query = new QueryBuilder();
             query.Add("id", id);
 
-            async Task<ApiResult<SearchStatus?>> HandleSearchStatusResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static async Task<ApiResult<SearchStatus?>> handleSearchStatusResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 using (response)
                 {
@@ -42,18 +42,19 @@ namespace QBittorrent.ApiClient
                         return ApiResult<SearchStatus?>.Success(null);
                     }
 
-                    return await CreateResultAsync(operation, response, ReadSearchStatus, currentCancellationToken);
+                    return await CreateResultAsync(operation, response, readSearchStatus, currentCancellationToken);
                 }
 
-                async Task<SearchStatus?> ReadSearchStatus(HttpContent content, CancellationToken readCancellationToken)
+                static async Task<SearchStatus?> readSearchStatus(HttpContent content, CancellationToken readCancellationToken)
                 {
-                    return (await GetJsonListAsync<SearchStatus>(content, readCancellationToken)).FirstOrDefault();
+                    var statuses = await GetJsonListAsync<SearchStatus>(content, readCancellationToken);
+                    return statuses.Count > 0 ? statuses[0] : null;
                 }
             }
 
             return ExecuteAsync(
                 ct => _httpClient.GetAsync($"search/status{query}", ct),
-                HandleSearchStatusResponse,
+                handleSearchStatusResponse,
                 cancellationToken: cancellationToken);
         }
 
@@ -78,16 +79,16 @@ namespace QBittorrent.ApiClient
                 query.Add("offset", offset.Value);
             }
 
-            Task<ApiResult<SearchResults>> HandleSearchResultsResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static Task<ApiResult<SearchResults>> handleSearchResultsResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
-                return CreateResultAsync(operation, response, ReadSearchResults, currentCancellationToken, CreateSearchResultsFailure);
+                return CreateResultAsync(operation, response, readSearchResults, currentCancellationToken, createSearchResultsFailure);
 
-                Task<SearchResults> ReadSearchResults(HttpContent content, CancellationToken readCancellationToken)
+                static Task<SearchResults> readSearchResults(HttpContent content, CancellationToken readCancellationToken)
                 {
                     return GetJsonAsync<SearchResults>(content, readCancellationToken);
                 }
 
-                ApiFailure? CreateSearchResultsFailure(HttpStatusCode statusCode, string? responseBody)
+                ApiFailure? createSearchResultsFailure(HttpStatusCode statusCode, string? responseBody)
                 {
                     return statusCode switch
                     {
@@ -118,7 +119,7 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(
                 ct => _httpClient.GetAsync($"search/results{query}", ct),
-                HandleSearchResultsResponse,
+                handleSearchResultsResponse,
                 cancellationToken: cancellationToken);
         }
 
@@ -128,11 +129,11 @@ namespace QBittorrent.ApiClient
                 .Add("id", id)
                 .ToFormUrlEncodedContent();
 
-            Task<ApiResult> HandleDeleteSearchResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static Task<ApiResult> handleDeleteSearchResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
-                return CreateResultAsync(response, operation, currentCancellationToken, CreateDeleteSearchFailure);
+                return CreateResultAsync(response, operation, currentCancellationToken, createDeleteSearchFailure);
 
-                ApiFailure? CreateDeleteSearchFailure(HttpStatusCode statusCode, string? responseBody)
+                ApiFailure? createDeleteSearchFailure(HttpStatusCode statusCode, string? responseBody)
                 {
                     return statusCode == HttpStatusCode.NotFound
                         ? new ApiFailure
@@ -151,22 +152,22 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(
                 ct => _httpClient.PostAsync("search/delete", content, ct),
-                HandleDeleteSearchResponse,
+                handleDeleteSearchResponse,
                 cancellationToken: cancellationToken);
         }
 
         public Task<ApiResult<IReadOnlyList<SearchPlugin>>> GetSearchPluginsAsync(CancellationToken cancellationToken = default)
         {
-            Task<ApiResult<IReadOnlyList<SearchPlugin>>> HandleGetSearchPluginsResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            Task<ApiResult<IReadOnlyList<SearchPlugin>>> handleGetSearchPluginsResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
-                return CreateResultAsync(operation, response, ReadSearchPlugins, currentCancellationToken, CreateSearchPluginsFailure);
+                return CreateResultAsync(operation, response, readSearchPlugins, currentCancellationToken, createSearchPluginsFailure);
 
-                Task<IReadOnlyList<SearchPlugin>> ReadSearchPlugins(HttpContent content, CancellationToken readCancellationToken)
+                Task<IReadOnlyList<SearchPlugin>> readSearchPlugins(HttpContent content, CancellationToken readCancellationToken)
                 {
                     return GetJsonListAsync<SearchPlugin>(content, readCancellationToken);
                 }
 
-                ApiFailure? CreateSearchPluginsFailure(HttpStatusCode statusCode, string? responseBody)
+                ApiFailure? createSearchPluginsFailure(HttpStatusCode statusCode, string? responseBody)
                 {
                     return statusCode == HttpStatusCode.Forbidden && responseBody is not null
                         ? new ApiFailure
@@ -185,7 +186,7 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(
                 ct => _httpClient.GetAsync("search/plugins", ct),
-                HandleGetSearchPluginsResponse,
+                handleGetSearchPluginsResponse,
                 cancellationToken: cancellationToken);
         }
 

@@ -333,7 +333,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.SequentialDownload.Should().BeTrue();
             torrent.FirstLastPiecePriority.Should().BeFalse();
             torrent.Category.Should().Be("Movies");
-            torrent.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
+            torrent.Tags.Should().BeEquivalentTo(["tag1", "tag2"]);
             torrent.SuperSeeding.Should().BeTrue();
             torrent.ForceStart.Should().BeFalse();
             torrent.SavePath.Should().Be("/save");
@@ -388,7 +388,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.Files[0].Progress.Should().Be(0.4);
             torrent.Files[0].Priority.Should().Be(Priority.Normal);
             torrent.Files[0].IsSeed.Should().BeTrue();
-            torrent.Files[0].PieceRange.Should().BeEquivalentTo(new[] { 2, 3 });
+            torrent.Files[0].PieceRange.Should().BeEquivalentTo([2, 3]);
             torrent.Files[0].Availability.Should().Be(1.7);
         }
 
@@ -921,7 +921,7 @@ namespace QBittorrent.ApiClient.Test
             result[0].Progress.Should().Be(0.5);
             result[0].Priority.Should().Be((Priority)7);
             result[0].IsSeed.Should().BeTrue();
-            result[0].PieceRange.Should().BeEquivalentTo(new[] { 2, 5 });
+            result[0].PieceRange.Should().BeEquivalentTo([2, 5]);
             result[0].Availability.Should().Be(1.2);
         }
 

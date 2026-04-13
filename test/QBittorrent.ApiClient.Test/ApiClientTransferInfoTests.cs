@@ -312,7 +312,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.BanPeersAsync(Array.Empty<PeerId>(), cancellationToken: TestContext.Current.CancellationToken);
+            await _target.BanPeersAsync([], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -323,7 +323,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("conflict")
             });
 
-            var result = await _target.BanPeersAsync(Array.Empty<PeerId>(), cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.BanPeersAsync([], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Conflict, userMessage: "conflict");
         }

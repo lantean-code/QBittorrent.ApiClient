@@ -1193,7 +1193,7 @@ namespace QBittorrent.ApiClient.Test
                 var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
                 body.Should().StartWith("json=");
 
-                var json = body.Substring("json=".Length);
+                var json = body["json=".Length..];
                 json.Should().Contain("\"max_ratio\":1.23456789012345");
                 json.Should().NotContain("\"max_ratio\":\"1.23456789012345\"");
 
@@ -1219,7 +1219,7 @@ namespace QBittorrent.ApiClient.Test
                 var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
                 body.Should().StartWith("json=");
 
-                var json = body.Substring("json=".Length);
+                var json = body["json=".Length..];
                 json.Should().Contain("\"auto_delete_mode\":1");
                 json.Should().Contain("\"bittorrent_protocol\":2");
                 json.Should().Contain("\"disk_io_read_mode\":1");

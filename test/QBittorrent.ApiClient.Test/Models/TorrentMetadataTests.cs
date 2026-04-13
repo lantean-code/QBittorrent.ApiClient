@@ -40,7 +40,7 @@ namespace QBittorrent.ApiClient.Test.Models
                 pieceLength: 16,
                 piecesNum: 7,
                 @private: true,
-                files: Array.Empty<TorrentMetadataFile>());
+                files: []);
 
             action.Should().Throw<JsonException>()
                 .WithMessage("The torrent metadata info payload did not include a valid name.");

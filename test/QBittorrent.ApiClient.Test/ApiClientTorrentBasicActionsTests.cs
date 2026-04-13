@@ -248,7 +248,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_EmptyHashes_WHEN_SetTorrentSavePath_THEN_ShouldThrowArgumentException()
         {
-            var action = async () => await _target.SetTorrentSavePathAsync(TorrentSelector.FromHashes(Array.Empty<string>()), "/path", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentSavePathAsync(TorrentSelector.FromHashes([]), "/path", cancellationToken: TestContext.Current.CancellationToken);
 
             var exception = await action.Should().ThrowAsync<ArgumentException>();
             exception.Which.ParamName.Should().Be("hashes");
@@ -364,7 +364,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_EmptyHashes_WHEN_SetTorrentDownloadPath_THEN_ShouldThrowArgumentException()
         {
-            var action = async () => await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHashes(Array.Empty<string>()), "temp", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentDownloadPathAsync(TorrentSelector.FromHashes([]), "temp", cancellationToken: TestContext.Current.CancellationToken);
 
             var exception = await action.Should().ThrowAsync<ArgumentException>();
             exception.Which.ParamName.Should().Be("hashes");

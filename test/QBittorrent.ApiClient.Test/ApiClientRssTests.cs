@@ -522,7 +522,7 @@ namespace QBittorrent.ApiClient.Test
                 var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
                 decoded.Should().StartWith("ruleName=r1&ruleDef=");
 
-                var json = decoded.Substring("ruleName=r1&ruleDef=".Length);
+                var json = decoded["ruleName=r1&ruleDef=".Length..];
                 var expectedJson = System.Text.Json.JsonSerializer.Serialize(new AutoDownloadingRule(), SerializerOptions.Options);
 
                 json.Should().Be(expectedJson);
@@ -542,7 +542,7 @@ namespace QBittorrent.ApiClient.Test
                 req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
 
                 var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
-                var json = decoded.Substring("ruleName=r1&ruleDef=".Length);
+                var json = decoded["ruleName=r1&ruleDef=".Length..];
 
                 json.Should().Contain("\"ratio_limit\":1.23456789012345");
                 json.Should().NotContain("\"ratio_limit\":\"1.23456789012345\"");
@@ -570,7 +570,7 @@ namespace QBittorrent.ApiClient.Test
                 req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
 
                 var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
-                var json = decoded.Substring("ruleName=r1&ruleDef=".Length);
+                var json = decoded["ruleName=r1&ruleDef=".Length..];
 
                 json.Should().Contain("\"torrentContentLayout\":\"Subfolder\"");
                 json.Should().Contain("\"operating_mode\":\"Forced\"");

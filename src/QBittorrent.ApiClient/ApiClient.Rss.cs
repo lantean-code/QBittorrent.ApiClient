@@ -169,7 +169,7 @@ namespace QBittorrent.ApiClient
             var query = new QueryBuilder()
                 .Add("ruleName", ruleName);
 
-            async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ReadMatchingArticles(HttpContent content, CancellationToken currentCancellationToken)
+            static async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> readMatchingArticles(HttpContent content, CancellationToken currentCancellationToken)
             {
                 var dictionary = await GetJsonDictionaryAsync<string, List<string>>(content, currentCancellationToken);
                 return dictionary.ToDictionary(d => d.Key, d => (IReadOnlyList<string>)d.Value.AsReadOnly()).AsReadOnly();
@@ -177,7 +177,7 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync<IReadOnlyDictionary<string, IReadOnlyList<string>>>(
                 ct => _httpClient.GetAsync($"rss/matchingArticles{query}", ct),
-                ReadMatchingArticles,
+                readMatchingArticles,
                 cancellationToken: cancellationToken);
         }
     }

@@ -34,7 +34,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.AddTorrentWebSeedsAsync("h123", new[] { "a", "b", "c" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.AddTorrentWebSeedsAsync("h123", ["a", "b", "c"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("bad")
             });
 
-            var result = await _target.AddTorrentWebSeedsAsync("h", new[] { "u" }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.AddTorrentWebSeedsAsync("h", ["u"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadRequest, userMessage: "bad");
         }
@@ -62,7 +62,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.RemoveTorrentWebSeedsAsync("h1", new[] { "http://e1", "http://e2" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.RemoveTorrentWebSeedsAsync("h1", ["http://e1", "http://e2"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("conflict")
             });
 
-            var result = await _target.RemoveTorrentWebSeedsAsync("h", new[] { "u" }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.RemoveTorrentWebSeedsAsync("h", ["u"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Conflict, userMessage: "conflict");
         }
@@ -233,7 +233,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            await _target.ReannounceTorrentsAsync(TorrentSelector.FromHashes(["h1", "h2"]), urls: new[] { "http://t1", "http://t2" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.ReannounceTorrentsAsync(TorrentSelector.FromHashes(["h1", "h2"]), urls: ["http://t1", "http://t2"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -257,7 +257,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: new[] { "http://t1" }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: ["http://t1"], cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
             failure.UserMessage.Should().Be("qBittorrent Web API 2.11.9 does not support tracker-targeted reannounce URLs.");
@@ -285,7 +285,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: new[] { "http://t1" }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: ["http://t1"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
             reannounceRequestCount.Should().Be(0);

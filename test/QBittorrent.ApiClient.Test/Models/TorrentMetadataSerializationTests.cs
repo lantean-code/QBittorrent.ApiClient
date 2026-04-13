@@ -467,9 +467,9 @@ namespace QBittorrent.ApiClient.Test.Models
                     pieceLength: 16,
                     piecesNum: 7,
                     @private: false,
-                    files: Array.Empty<TorrentMetadataFile>()),
-                trackers: Array.Empty<TorrentMetadataTracker>(),
-                webSeeds: Array.Empty<string>(),
+                    files: []),
+                trackers: [],
+                webSeeds: [],
                 createdBy: null,
                 creationDate: null,
                 comment: null);

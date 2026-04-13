@@ -173,13 +173,13 @@ namespace QBittorrent.ApiClient.Test
             result.FullUpdate.Should().BeTrue();
             result.Torrents.Should().NotBeNull();
             result.Torrents.Should().ContainKey("hash1");
-            result.TorrentsRemoved.Should().BeEquivalentTo(new[] { "hash-removed" });
+            result.TorrentsRemoved.Should().BeEquivalentTo(["hash-removed"]);
             result.Categories.Should().ContainKey("Movies");
-            result.CategoriesRemoved.Should().BeEquivalentTo(new[] { "OldCategory" });
-            result.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
-            result.TagsRemoved.Should().BeEquivalentTo(new[] { "oldTag" });
+            result.CategoriesRemoved.Should().BeEquivalentTo(["OldCategory"]);
+            result.Tags.Should().BeEquivalentTo(["tag1", "tag2"]);
+            result.TagsRemoved.Should().BeEquivalentTo(["oldTag"]);
             result.Trackers.Should().ContainKey("udp://tracker");
-            result.TrackersRemoved.Should().BeEquivalentTo(new[] { "udp://removed" });
+            result.TrackersRemoved.Should().BeEquivalentTo(["udp://removed"]);
 
             var torrent = result.Torrents["hash1"];
             torrent.Hash.Should().Be("hash1");
@@ -198,7 +198,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.EstimatedTimeOfArrival.Should().Be(120);
             torrent.State.Should().Be(TorrentState.Downloading);
             torrent.Category.Should().Be("Movies");
-            torrent.Tags.Should().BeEquivalentTo(new[] { "tag1", "tag2" });
+            torrent.Tags.Should().BeEquivalentTo(["tag1", "tag2"]);
             torrent.SavePath.Should().Be("/downloads");
             torrent.DownloadPath.Should().Be("/downloads/incomplete");
             torrent.ContentPath.Should().Be("/downloads/content");
@@ -414,7 +414,7 @@ namespace QBittorrent.ApiClient.Test
             result.FullUpdate.Should().BeTrue();
             result.RequestId.Should().Be(7);
             result.ShowFlags.Should().BeTrue();
-            result.PeersRemoved.Should().BeEquivalentTo(new[] { "peer-old" });
+            result.PeersRemoved.Should().BeEquivalentTo(["peer-old"]);
             result.Peers.Should().ContainKey("peer1");
             var peer = result.Peers!["peer1"];
             peer.Client.Should().Be("Client");

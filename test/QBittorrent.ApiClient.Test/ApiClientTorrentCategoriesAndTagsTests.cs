@@ -189,7 +189,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.AddTorrentTagsAsync(TorrentSelector.FromHashes(["h1", "h2"]), new[] { "one", "two", "three" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.AddTorrentTagsAsync(TorrentSelector.FromHashes(["h1", "h2"]), ["one", "two", "three"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -203,7 +203,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.SetTorrentTagsAsync(TorrentSelector.AllTorrents(), new[] { "a", "b" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.SetTorrentTagsAsync(TorrentSelector.AllTorrents(), ["a", "b"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -217,7 +217,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.RemoveTorrentTagsAsync(TorrentSelector.AllTorrents(), new[] { "a", "b" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.RemoveTorrentTagsAsync(TorrentSelector.AllTorrents(), ["a", "b"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]
@@ -247,7 +247,7 @@ namespace QBittorrent.ApiClient.Test
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
-            await _target.CreateTagsAsync(new[] { "a", "b", "c" }, cancellationToken: TestContext.Current.CancellationToken);
+            await _target.CreateTagsAsync(["a", "b", "c"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
         [Fact]

@@ -6,7 +6,7 @@ namespace QBittorrent.ApiClient
     {
         public Task<ApiResult<bool>> CheckAuthStateAsync(CancellationToken cancellationToken = default)
         {
-            static async Task<ApiResult<bool>> HandleAuthStateResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static async Task<ApiResult<bool>> handleAuthStateResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 using (response)
                 {
@@ -27,7 +27,7 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(
                 ct => _httpClient.GetAsync("app/version", ct),
-                HandleAuthStateResponse,
+                handleAuthStateResponse,
                 cancellationToken: cancellationToken);
         }
 
@@ -38,11 +38,11 @@ namespace QBittorrent.ApiClient
                 .Add("password", password)
                 .ToFormUrlEncodedContent();
 
-            async Task<ApiResult> HandleLoginResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static async Task<ApiResult> handleLoginResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 using (response)
                 {
-                    var failure = await TryCreateFailureAsync(operation, response, currentCancellationToken, CreateLoginFailure);
+                    var failure = await TryCreateFailureAsync(operation, response, currentCancellationToken, createLoginFailure);
                     if (failure is not null)
                     {
                         return failure.ToResult();
@@ -51,13 +51,13 @@ namespace QBittorrent.ApiClient
                     var responseContent = await response.Content.ReadAsStringAsync(currentCancellationToken);
                     if (responseContent == "Fails.")
                     {
-                        return CreateLoginFailure(HttpStatusCode.BadRequest, responseContent)!.ToResult();
+                        return createLoginFailure(HttpStatusCode.BadRequest, responseContent)!.ToResult();
                     }
 
                     return ApiResult.Success();
                 }
 
-                ApiFailure? CreateLoginFailure(HttpStatusCode statusCode, string? responseBody)
+                ApiFailure? createLoginFailure(HttpStatusCode statusCode, string? responseBody)
                 {
                     return statusCode switch
                     {
@@ -88,7 +88,7 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(
                 ct => _httpClient.PostAsync("auth/login", content, ct),
-                HandleLoginResponse,
+                handleLoginResponse,
                 cancellationToken: cancellationToken);
         }
 

@@ -82,7 +82,7 @@ namespace QBittorrent.ApiClient.Test.Converters
         public void GIVEN_List_WHEN_Write_THEN_ShouldOutputSingleJsonStringCommaJoined()
         {
             var options = CreateOptions();
-            IReadOnlyList<string> value = new[] { "a", "b", "c" };
+            IReadOnlyList<string> value = ["a", "b", "c"];
 
             var json = JsonSerializer.Serialize(value, options);
 
@@ -93,7 +93,7 @@ namespace QBittorrent.ApiClient.Test.Converters
         public void GIVEN_EmptyList_WHEN_Write_THEN_ShouldOutputEmptyJsonString()
         {
             var options = CreateOptions();
-            IReadOnlyList<string> value = Array.Empty<string>();
+            IReadOnlyList<string> value = [];
 
             var json = JsonSerializer.Serialize(value, options);
 

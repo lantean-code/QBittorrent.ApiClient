@@ -5,7 +5,7 @@ namespace QBittorrent.ApiClient.Models
     /// </summary>
     public sealed record TorrentSelector
     {
-        private static readonly TorrentSelector _allTorrents = new TorrentSelector(true, null);
+        private static readonly TorrentSelector _allTorrents = new(true, null);
 
         /// <summary>
         /// Gets a value indicating whether all torrents are selected.

@@ -52,7 +52,7 @@ namespace QBittorrent.ApiClient
             }
 
             var queryString = new StringBuilder();
-            for (int i = 0; i < _parameters.Count; i++)
+            for (var i = 0; i < _parameters.Count; i++)
             {
                 var kvp = _parameters[i];
                 if (i == 0)

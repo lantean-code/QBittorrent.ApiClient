@@ -171,7 +171,7 @@ namespace QBittorrent.ApiClient.Test
         {
             var backing = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("a", "1")
+                new("a", "1")
             };
 
             var builder = new FormUrlEncodedBuilder(backing);

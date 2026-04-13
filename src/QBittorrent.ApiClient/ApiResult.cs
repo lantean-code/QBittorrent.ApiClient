@@ -21,10 +21,7 @@ namespace QBittorrent.ApiClient
         /// Gets a value indicating whether the operation succeeded.
         /// </summary>
         [MemberNotNullWhen(false, nameof(Failure))]
-        public bool IsSuccess
-        {
-            get { return Failure is null; }
-        }
+        public bool IsSuccess => Failure is null;
 
         /// <summary>
         /// Creates a successful result.
@@ -97,10 +94,7 @@ namespace QBittorrent.ApiClient
         /// </summary>
         [MemberNotNullWhen(true, nameof(Value))]
         [MemberNotNullWhen(false, nameof(Failure))]
-        public bool IsSuccess
-        {
-            get { return Failure is null; }
-        }
+        public bool IsSuccess => Failure is null;
 
         /// <summary>
         /// Creates a successful result.

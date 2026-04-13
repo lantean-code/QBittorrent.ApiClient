@@ -36,7 +36,7 @@ namespace QBittorrent.ApiClient.Models
             Message = message;
             NextAnnounce = nextAnnounce;
             MinAnnounce = minAnnounce;
-            Endpoints = endpoints ?? Array.Empty<TrackerEndpoint>();
+            Endpoints = endpoints ?? [];
         }
 
         /// <summary>

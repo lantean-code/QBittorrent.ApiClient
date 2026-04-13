@@ -105,8 +105,8 @@ namespace QBittorrent.ApiClient.Test
                 StartSeeding = false,
                 Comment = "hello",
                 Source = "mysrc",
-                Trackers = new[] { "t1", "t2" },
-                UrlSeeds = new[] { "u1", "u2" },
+                Trackers = ["t1", "t2"],
+                UrlSeeds = ["u1", "u2"],
                 Format = TorrentFormat.V2,
                 OptimizeAlignment = true,
                 PaddedFileSizeLimit = 4096
@@ -319,8 +319,8 @@ namespace QBittorrent.ApiClient.Test
             list[0].Comment.Should().Be("Comment");
             list[0].TorrentFilePath.Should().Be("/output.torrent");
             list[0].Source.Should().Be("Source");
-            list[0].Trackers.Should().BeEquivalentTo(new[] { "t1", "t2" });
-            list[0].UrlSeeds.Should().BeEquivalentTo(new[] { "u1", "u2" });
+            list[0].Trackers.Should().BeEquivalentTo(["t1", "t2"]);
+            list[0].UrlSeeds.Should().BeEquivalentTo(["u1", "u2"]);
             list[0].TimeStarted.Should().Be("2024-01-01 00:01");
             list[0].TimeFinished.Should().Be("2024-01-01 00:02");
             list[0].ErrorMessage.Should().Be("ErrorMessage");
@@ -394,13 +394,13 @@ namespace QBittorrent.ApiClient.Test
 
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new ByteArrayContent(new byte[] { 1, 2 })
+                    Content = new ByteArrayContent([1, 2])
                 });
             };
 
             var bytes = (await _target.GetTorrentCreationTaskFileAsync("abc", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
-            bytes.Should().Equal(new byte[] { 1, 2 });
+            bytes.Should().Equal([1, 2]);
         }
 
         [Fact]

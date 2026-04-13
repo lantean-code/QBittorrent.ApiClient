@@ -452,9 +452,11 @@ namespace QBittorrent.ApiClient
                 content.AddString("cookie", addTorrentParams.Cookie!);
             }
 
-            async Task<ApiResult<AddTorrentResult>> HandleAddTorrentResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            var expectedTorrentCount = (addTorrentParams.Torrents?.Count ?? 0) + (addTorrentParams.Urls?.Count() ?? 0);
+
+            async Task<ApiResult<AddTorrentResult>> handleAddTorrentResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
-                async Task<AddTorrentResult> ReadAddTorrentResult(HttpContent httpContent, CancellationToken readCancellationToken)
+                async Task<AddTorrentResult> readAddTorrentResult(HttpContent httpContent, CancellationToken readCancellationToken)
                 {
                     var payload = await httpContent.ReadAsStringAsync(readCancellationToken);
 
@@ -474,14 +476,13 @@ namespace QBittorrent.ApiClient
                     var result = DeserializeJson<AddTorrentResult>(payload);
                     if (result is null)
                     {
-                        var count = (addTorrentParams.Torrents?.Count ?? 0) + (addTorrentParams.Urls?.Count() ?? 0);
-                        return new AddTorrentResult(0, count);
+                        return new AddTorrentResult(0, expectedTorrentCount);
                     }
 
                     return result;
                 }
 
-                ApiFailure? CreateAddTorrentFailure(HttpStatusCode statusCode, string? responseBody)
+                ApiFailure? createAddTorrentFailure(HttpStatusCode statusCode, string? responseBody)
                 {
                     return statusCode switch
                     {
@@ -519,12 +520,12 @@ namespace QBittorrent.ApiClient
                     };
                 }
 
-                return await CreateResultAsync(operation, response, ReadAddTorrentResult, currentCancellationToken, CreateAddTorrentFailure);
+                return await CreateResultAsync(operation, response, readAddTorrentResult, currentCancellationToken, createAddTorrentFailure);
             }
 
             return await ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/add", content, ct),
-                HandleAddTorrentResponse,
+                handleAddTorrentResponse,
                 cancellationToken: cancellationToken);
         }
 
@@ -847,9 +848,9 @@ namespace QBittorrent.ApiClient
                 .Add("path", path)
                 .ToFormUrlEncodedContent();
 
-            Task<ApiResult> HandleSetTorrentSavePathResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static Task<ApiResult> handleSetTorrentSavePathResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
-                ApiFailure? CreateSetTorrentPathFailure(HttpStatusCode statusCode, string? responseBody)
+                ApiFailure? createSetTorrentPathFailure(HttpStatusCode statusCode, string? responseBody)
                 {
                     if (statusCode == HttpStatusCode.Forbidden
                         && responseBody is not null
@@ -884,12 +885,12 @@ namespace QBittorrent.ApiClient
                     return null;
                 }
 
-                return CreateResultAsync(response, operation, currentCancellationToken, CreateSetTorrentPathFailure);
+                return CreateResultAsync(response, operation, currentCancellationToken, createSetTorrentPathFailure);
             }
 
             return ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/setSavePath", content, ct),
-                HandleSetTorrentSavePathResponse,
+                handleSetTorrentSavePathResponse,
                 cancellationToken: cancellationToken);
         }
 
@@ -900,9 +901,9 @@ namespace QBittorrent.ApiClient
                 .Add("path", path ?? string.Empty)
                 .ToFormUrlEncodedContent();
 
-            Task<ApiResult> HandleSetTorrentDownloadPathResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static Task<ApiResult> handleSetTorrentDownloadPathResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
-                ApiFailure? CreateSetTorrentPathFailure(HttpStatusCode statusCode, string? responseBody)
+                ApiFailure? createSetTorrentPathFailure(HttpStatusCode statusCode, string? responseBody)
                 {
                     if (statusCode == HttpStatusCode.Forbidden
                         && responseBody is not null
@@ -937,12 +938,12 @@ namespace QBittorrent.ApiClient
                     return null;
                 }
 
-                return CreateResultAsync(response, operation, currentCancellationToken, CreateSetTorrentPathFailure);
+                return CreateResultAsync(response, operation, currentCancellationToken, createSetTorrentPathFailure);
             }
 
             return ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/setDownloadPath", content, ct),
-                HandleSetTorrentDownloadPathResponse,
+                handleSetTorrentDownloadPathResponse,
                 cancellationToken: cancellationToken);
         }
 
@@ -1287,7 +1288,7 @@ namespace QBittorrent.ApiClient
                 content.Add("downloader", downloader!);
             }
 
-            static async Task<ApiResult<TorrentMetadata>> HandleFetchMetadataResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static async Task<ApiResult<TorrentMetadata>> handleFetchMetadataResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 if (response.StatusCode == HttpStatusCode.Accepted)
                 {
@@ -1303,7 +1304,7 @@ namespace QBittorrent.ApiClient
 
             return await ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/fetchMetadata", content.ToFormUrlEncodedContent(), ct),
-                HandleFetchMetadataResponse,
+                handleFetchMetadataResponse,
                 cancellationToken: cancellationToken);
         }
 

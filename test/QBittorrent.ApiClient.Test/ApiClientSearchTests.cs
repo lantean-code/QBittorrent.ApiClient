@@ -34,7 +34,7 @@ namespace QBittorrent.ApiClient.Test
                 };
             };
 
-            var id = (await _target.StartSearchAsync("My pattern", new[] { "a", "b", "c" }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var id = (await _target.StartSearchAsync("My pattern", ["a", "b", "c"], cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             id.Should().Be(123);
         }
@@ -47,7 +47,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("bad")
             });
 
-            var result = await _target.StartSearchAsync("p", new[] { "x" }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.StartSearchAsync("p", ["x"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadRequest, userMessage: "bad");
         }
@@ -60,7 +60,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("{\"name\":\"search\"}")
             });
 
-            var result = await _target.StartSearchAsync("p", new[] { "x" }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.StartSearchAsync("p", ["x"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.UnexpectedResponse,
@@ -75,7 +75,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("{\"id\":\"search\"}")
             });
 
-            var result = await _target.StartSearchAsync("p", new[] { "x" }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.StartSearchAsync("p", ["x"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.UnexpectedResponse,

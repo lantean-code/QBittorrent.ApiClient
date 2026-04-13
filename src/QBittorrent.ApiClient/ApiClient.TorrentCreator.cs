@@ -66,7 +66,7 @@ namespace QBittorrent.ApiClient
                 builder.Add("paddedFileSizeLimit", request.PaddedFileSizeLimit.Value);
             }
 
-            static async Task<string> ReadTaskId(HttpContent content, CancellationToken currentCancellationToken)
+            static async Task<string> readTaskId(HttpContent content, CancellationToken currentCancellationToken)
             {
                 var rawPayload = await content.ReadAsStringAsync(currentCancellationToken);
                 if (string.IsNullOrWhiteSpace(rawPayload))
@@ -87,7 +87,7 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(
                 ct => _httpClient.PostAsync("torrentcreator/addTask", builder.ToFormUrlEncodedContent(), ct),
-                ReadTaskId,
+                readTaskId,
                 cancellationToken: cancellationToken);
         }
 

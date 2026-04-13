@@ -462,14 +462,14 @@ namespace QBittorrent.ApiClient
             return await content.ReadFromJsonAsync(GetJsonTypeInfo<T>(), cancellationToken) ?? throw new InvalidOperationException($"Unable to deserialize response as {typeof(T).Name}");
         }
 
-        private async Task<IReadOnlyList<T>> GetJsonListAsync<T>(HttpContent content, CancellationToken cancellationToken)
+        private static async Task<IReadOnlyList<T>> GetJsonListAsync<T>(HttpContent content, CancellationToken cancellationToken)
         {
             var items = await GetJsonAsync<List<T>>(content, cancellationToken);
 
             return items.AsReadOnly();
         }
 
-        private async Task<IReadOnlyDictionary<TKey, TValue>> GetJsonDictionaryAsync<TKey, TValue>(HttpContent content, CancellationToken cancellationToken) where TKey : notnull
+        private static async Task<IReadOnlyDictionary<TKey, TValue>> GetJsonDictionaryAsync<TKey, TValue>(HttpContent content, CancellationToken cancellationToken) where TKey : notnull
         {
             var items = await GetJsonAsync<Dictionary<TKey, TValue>>(content, cancellationToken);
 

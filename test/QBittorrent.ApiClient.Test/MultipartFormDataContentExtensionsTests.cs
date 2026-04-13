@@ -8,7 +8,7 @@ namespace QBittorrent.ApiClient.Test
 
         public MultipartFormDataContentExtensionsTests()
         {
-            _target = new MultipartFormDataContent();
+            _target = [];
         }
 
         [Fact]

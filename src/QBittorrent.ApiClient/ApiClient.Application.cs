@@ -71,14 +71,14 @@ namespace QBittorrent.ApiClient
                 contentBuilder.Add("keys", serializedKeys);
             }
 
-            static async Task<IReadOnlyDictionary<string, JsonElement>> ReadClientData(HttpContent content, CancellationToken currentCancellationToken)
+            static async Task<IReadOnlyDictionary<string, JsonElement>> readClientData(HttpContent content, CancellationToken currentCancellationToken)
             {
                 return await GetJsonAsync<Dictionary<string, JsonElement>>(content, currentCancellationToken);
             }
 
             return await ExecuteAsync(
                 ct => _httpClient.PostAsync("clientdata/load", contentBuilder.ToFormUrlEncodedContent(), ct),
-                ReadClientData,
+                readClientData,
                 cancellationToken: cancellationToken);
         }
 

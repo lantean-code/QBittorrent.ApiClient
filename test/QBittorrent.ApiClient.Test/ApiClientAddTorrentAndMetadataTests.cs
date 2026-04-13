@@ -31,7 +31,7 @@ namespace QBittorrent.ApiClient.Test
 
                 var urlsPart = parts.Single();
                 urlsPart.Headers.ContentDisposition!.Name.Should().Be("urls");
-                (await urlsPart.ReadAsStringAsync()).Should().Be("u1\nu2");
+                (await urlsPart.ReadAsStringAsync(ct)).Should().Be("u1\nu2");
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -41,7 +41,7 @@ namespace QBittorrent.ApiClient.Test
 
             var p = new AddTorrentParams
             {
-                Urls = new[] { "u1", "u2" }
+                Urls = ["u1", "u2"]
             };
 
             var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
@@ -64,7 +64,7 @@ namespace QBittorrent.ApiClient.Test
 
                         var parts = (req.Content as MultipartFormDataContent)!.ToList();
 
-                        async Task<string> ReadAsync(string name)
+                        async Task<string> readAsync(string name)
                         {
                             var part = parts.Single(p => p.Headers.ContentDisposition!.Name == name);
                             return await part.ReadAsStringAsync(ct);
@@ -75,33 +75,33 @@ namespace QBittorrent.ApiClient.Test
                         parts.Any(p => p.Headers.ContentDisposition!.Name == "torrents" &&
                                        p.Headers.ContentDisposition!.FileName == "b.torrent").Should().BeTrue();
 
-                        (await ReadAsync("skip_checking")).Should().Be("true");
-                        (await ReadAsync("sequentialDownload")).Should().Be("false");
-                        (await ReadAsync("firstLastPiecePrio")).Should().Be("true");
-                        (await ReadAsync("addToTopOfQueue")).Should().Be("true");
-                        (await ReadAsync("forced")).Should().Be("false");
-                        (await ReadAsync("stopped")).Should().Be("true");
-                        (await ReadAsync("savepath")).Should().Be("/save");
-                        (await ReadAsync("downloadPath")).Should().Be("/dl");
-                        (await ReadAsync("useDownloadPath")).Should().Be("true");
-                        (await ReadAsync("category")).Should().Be("Movies");
-                        (await ReadAsync("tags")).Should().Be("one,two");
-                        (await ReadAsync("rename")).Should().Be("renamed");
-                        (await ReadAsync("upLimit")).Should().Be("123");
-                        (await ReadAsync("dlLimit")).Should().Be("456");
-                        (await ReadAsync("ratioLimit")).Should().Be("1.5");
-                        (await ReadAsync("seedingTimeLimit")).Should().Be("90");
-                        (await ReadAsync("inactiveSeedingTimeLimit")).Should().Be("30");
-                        (await ReadAsync("shareLimitAction")).Should().Be("Remove");
-                        (await ReadAsync("autoTMM")).Should().Be("true");
-                        (await ReadAsync("stopCondition")).Should().Be("FilesChecked");
-                        (await ReadAsync("contentLayout")).Should().Be("Subfolder");
-                        (await ReadAsync("downloader")).Should().Be("curl");
-                        (await ReadAsync("filePriorities")).Should().Be("0,1");
-                        (await ReadAsync("ssl_certificate")).Should().Be("cert");
-                        (await ReadAsync("ssl_private_key")).Should().Be("key");
-                        (await ReadAsync("ssl_dh_params")).Should().Be("dh");
-                        (await ReadAsync("cookie")).Should().Be("sessionid=123");
+                        (await readAsync("skip_checking")).Should().Be("true");
+                        (await readAsync("sequentialDownload")).Should().Be("false");
+                        (await readAsync("firstLastPiecePrio")).Should().Be("true");
+                        (await readAsync("addToTopOfQueue")).Should().Be("true");
+                        (await readAsync("forced")).Should().Be("false");
+                        (await readAsync("stopped")).Should().Be("true");
+                        (await readAsync("savepath")).Should().Be("/save");
+                        (await readAsync("downloadPath")).Should().Be("/dl");
+                        (await readAsync("useDownloadPath")).Should().Be("true");
+                        (await readAsync("category")).Should().Be("Movies");
+                        (await readAsync("tags")).Should().Be("one,two");
+                        (await readAsync("rename")).Should().Be("renamed");
+                        (await readAsync("upLimit")).Should().Be("123");
+                        (await readAsync("dlLimit")).Should().Be("456");
+                        (await readAsync("ratioLimit")).Should().Be("1.5");
+                        (await readAsync("seedingTimeLimit")).Should().Be("90");
+                        (await readAsync("inactiveSeedingTimeLimit")).Should().Be("30");
+                        (await readAsync("shareLimitAction")).Should().Be("Remove");
+                        (await readAsync("autoTMM")).Should().Be("true");
+                        (await readAsync("stopCondition")).Should().Be("FilesChecked");
+                        (await readAsync("contentLayout")).Should().Be("Subfolder");
+                        (await readAsync("downloader")).Should().Be("curl");
+                        (await readAsync("filePriorities")).Should().Be("0,1");
+                        (await readAsync("ssl_certificate")).Should().Be("cert");
+                        (await readAsync("ssl_private_key")).Should().Be("key");
+                        (await readAsync("ssl_dh_params")).Should().Be("dh");
+                        (await readAsync("cookie")).Should().Be("sessionid=123");
 
                         return new HttpResponseMessage(HttpStatusCode.OK)
                         {
@@ -130,7 +130,7 @@ namespace QBittorrent.ApiClient.Test
                 DownloadPath = "/dl",
                 UseDownloadPath = true,
                 Category = "Movies",
-                Tags = new[] { "one", "two" },
+                Tags = ["one", "two"],
                 RenameTorrent = "renamed",
                 UploadLimit = 123,
                 DownloadLimit = 456,
@@ -142,7 +142,7 @@ namespace QBittorrent.ApiClient.Test
                 StopCondition = StopCondition.FilesChecked,
                 ContentLayout = TorrentContentLayout.Subfolder,
                 Downloader = "curl",
-                FilePriorities = new[] { (Priority)0, (Priority)1 },
+                FilePriorities = [(Priority)0, (Priority)1],
                 SslCertificate = "cert",
                 SslPrivateKey = "key",
                 SslDhParams = "dh",
@@ -176,7 +176,7 @@ namespace QBittorrent.ApiClient.Test
 
             var parameters = new AddTorrentParams
             {
-                Urls = new[] { "u" },
+                Urls = ["u"],
                 RatioLimit = 1.23456789012345
             };
 
@@ -208,7 +208,7 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await _target.AddTorrentAsync(new AddTorrentParams
             {
-                Urls = new[] { "u1" },
+                Urls = ["u1"],
                 Downloader = "plugin"
             }, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -240,8 +240,8 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await _target.AddTorrentAsync(new AddTorrentParams
             {
-                Urls = new[] { "u1" },
-                FilePriorities = new[] { Priority.DoNotDownload }
+                Urls = ["u1"],
+                FilePriorities = [Priority.DoNotDownload]
             }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -273,7 +273,7 @@ namespace QBittorrent.ApiClient.Test
 
             var result = (await _target.AddTorrentAsync(new AddTorrentParams
             {
-                FilePriorities = new[] { Priority.DoNotDownload, Priority.Normal }
+                FilePriorities = [Priority.DoNotDownload, Priority.Normal]
             }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();
@@ -302,7 +302,7 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await _target.AddTorrentAsync(new AddTorrentParams
             {
-                Urls = new[] { "u1" },
+                Urls = ["u1"],
                 Downloader = "plugin"
             }, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -343,12 +343,12 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_CallerOwnedTorrentStream_WHEN_AddTorrent_THEN_ShouldLeaveStreamReadableAtOriginalPosition()
         {
-            _handler.Responder = async (req, _) =>
+            _handler.Responder = async (req, ct) =>
             {
                 var torrentPart = (req.Content as MultipartFormDataContent)!.Single(
                     p => p.Headers.ContentDisposition!.Name == "torrents");
 
-                (await torrentPart.ReadAsStringAsync()).Should().Be("bc");
+                (await torrentPart.ReadAsStringAsync(ct)).Should().Be("bc");
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -422,7 +422,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent(string.Empty)
             });
 
-            var p = new AddTorrentParams { Urls = new[] { "u" } };
+            var p = new AddTorrentParams { Urls = ["u"] };
 
             var result = await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -440,7 +440,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("some failed")
             });
 
-            var p = new AddTorrentParams { Urls = new[] { "u" } };
+            var p = new AddTorrentParams { Urls = ["u"] };
 
             var result = await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -458,7 +458,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("invalid")
             });
 
-            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.ValidationFailed,
@@ -471,7 +471,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest));
 
-            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.ValidationFailed,
@@ -490,7 +490,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("unsupported")
             });
 
-            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.UnsupportedData,
@@ -503,7 +503,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.UnsupportedMediaType));
 
-            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(
                 kind: ApiFailureKind.UnsupportedData,
@@ -519,7 +519,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage((HttpStatusCode)418));
 
-            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.UnexpectedResponse,
@@ -535,7 +535,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent(string.Empty)
             });
 
-            var p = new AddTorrentParams { Urls = new[] { "u" } };
+            var p = new AddTorrentParams { Urls = ["u"] };
 
             var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
@@ -550,7 +550,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("Ok.")
             });
 
-            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.SuccessCount.Should().Be(1);
             result.FailureCount.Should().Be(0);
@@ -565,7 +565,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("Fails.")
             });
 
-            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.SuccessCount.Should().Be(0);
             result.FailureCount.Should().Be(1);
@@ -587,12 +587,12 @@ namespace QBittorrent.ApiClient.Test
                     """)
             });
 
-            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.SuccessCount.Should().Be(1);
             result.FailureCount.Should().Be(2);
             result.PendingCount.Should().Be(3);
-            result.AddedTorrentIds.Should().BeEquivalentTo(new[] { "hash1", "hash2" });
+            result.AddedTorrentIds.Should().BeEquivalentTo(["hash1", "hash2"]);
             result.SupportsAsync.Should().BeTrue();
         }
 
@@ -607,7 +607,7 @@ namespace QBittorrent.ApiClient.Test
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes("x"));
             var parameters = new AddTorrentParams
             {
-                Urls = new[] { "u1", "u2" },
+                Urls = ["u1", "u2"],
                 Torrents = new Dictionary<string, Stream> { ["file.torrent"] = stream }
             };
 
@@ -627,7 +627,7 @@ namespace QBittorrent.ApiClient.Test
 
             var parameters = new AddTorrentParams
             {
-                Urls = new[] { "u1", "u2" }
+                Urls = ["u1", "u2"]
             };
 
             var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
@@ -675,7 +675,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (_, _) => throw new HttpRequestException("add failed");
 
-            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = new[] { "u" } }, cancellationToken: TestContext.Current.CancellationToken);
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(
                 kind: ApiFailureKind.NoResponse,
@@ -1498,37 +1498,13 @@ namespace QBittorrent.ApiClient.Test
 
         private sealed class UnreadableStream : Stream
         {
-            public override bool CanRead
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool CanRead => false;
 
-            public override bool CanSeek
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool CanSeek => false;
 
-            public override bool CanWrite
-            {
-                get
-                {
-                    return false;
-                }
-            }
+            public override bool CanWrite => false;
 
-            public override long Length
-            {
-                get
-                {
-                    throw new NotSupportedException();
-                }
-            }
+            public override long Length => throw new NotSupportedException();
 
             public override long Position
             {

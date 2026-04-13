@@ -19,15 +19,9 @@ namespace QBittorrent.ApiClient
             _context = new QBittorrentJsonSerializerContext(_defaultOptions);
         }
 
-        internal static JsonSerializerOptions Options
-        {
-            get { return new JsonSerializerOptions(_context.Options); }
-        }
+        internal static JsonSerializerOptions Options => new(_context.Options);
 
-        internal static QBittorrentJsonSerializerContext Context
-        {
-            get { return _context; }
-        }
+        internal static QBittorrentJsonSerializerContext Context => _context;
 
         internal static JsonTypeInfo<T> GetTypeInfo<T>()
         {

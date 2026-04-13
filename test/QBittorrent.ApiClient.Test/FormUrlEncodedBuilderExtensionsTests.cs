@@ -208,7 +208,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_PipeSeparatedValues_WHEN_AddPipeSeparated_THEN_ShouldJoinAndEncodeProperly()
         {
-            _target.AddPipeSeparated("ids", new[] { "a", "b c", "d|e" });
+            _target.AddPipeSeparated("ids", ["a", "b c", "d|e"]);
 
             var parameters = _target.GetParameters();
             parameters.Count.Should().Be(1);
@@ -222,7 +222,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public async Task GIVEN_CommaSeparatedValues_WHEN_AddCommaSeparated_THEN_ShouldJoinAndEncodeProperly()
         {
-            _target.AddCommaSeparated("items", new[] { 1, 2, 3 });
+            _target.AddCommaSeparated("items", [1, 2, 3]);
 
             var parameters = _target.GetParameters();
             parameters.Count.Should().Be(1);

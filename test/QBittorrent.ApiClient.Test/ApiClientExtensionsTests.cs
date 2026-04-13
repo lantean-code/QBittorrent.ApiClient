@@ -40,7 +40,7 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
-                .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
 
             var result = (await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
@@ -54,7 +54,7 @@ namespace QBittorrent.ApiClient.Test
 
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
-                .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent> { expectedTorrent }));
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([expectedTorrent]));
 
             var result = (await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
@@ -84,9 +84,9 @@ namespace QBittorrent.ApiClient.Test
         {
             var torrents = new List<Torrent>
             {
-                new Torrent(category: "UsedCategory"),
-                new Torrent(category: "UsedCategory"),
-                new Torrent(category: null)
+                new(category: "UsedCategory"),
+                new(category: "UsedCategory"),
+                new(category: null)
             };
 
             var categories = new Dictionary<string, Category>
@@ -134,7 +134,7 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
-                .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(ApiResult<IReadOnlyDictionary<string, Category>>.FailureResult(new ApiFailure
@@ -154,7 +154,7 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
-                .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyDictionary<string, Category>>(new Dictionary<string, Category>
@@ -180,8 +180,8 @@ namespace QBittorrent.ApiClient.Test
         {
             var torrents = new List<Torrent>
             {
-                new Torrent(tags: new List<string> { "UsedTag", "OtherUsedTag", "UsedTag" }),
-                new Torrent(tags: null)
+                new(tags: ["UsedTag", "OtherUsedTag", "UsedTag"]),
+                new(tags: null)
             };
 
             var tags = new List<string>
@@ -230,7 +230,7 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
-                .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(ApiResult<IReadOnlyList<string>>.FailureResult(new ApiFailure
@@ -250,10 +250,10 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
-                .Returns(SuccessResult<IReadOnlyList<Torrent>>(new List<Torrent>()));
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
-                .Returns(SuccessResult<IReadOnlyList<string>>(new List<string> { "UnusedTag" }));
+                .Returns(SuccessResult<IReadOnlyList<string>>(["UnusedTag"]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.DeleteTagsAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(ApiResult.FailureResult(new ApiFailure

@@ -9,8 +9,8 @@ namespace QBittorrent.ApiClient.Models
     [JsonConverter(typeof(SaveLocationJsonConverter))]
     public sealed record SaveLocation
     {
-        private static readonly SaveLocation _watchedFolder = new SaveLocation(SaveLocationKind.WatchedFolder, null);
-        private static readonly SaveLocation _defaultFolder = new SaveLocation(SaveLocationKind.DefaultFolder, null);
+        private static readonly SaveLocation _watchedFolder = new(SaveLocationKind.WatchedFolder, null);
+        private static readonly SaveLocation _defaultFolder = new(SaveLocationKind.DefaultFolder, null);
 
         /// <summary>
         /// Gets the save-location kind.
