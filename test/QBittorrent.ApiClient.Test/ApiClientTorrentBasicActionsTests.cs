@@ -98,7 +98,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_SetTorrentComment_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTorrentCommentEditing_WHEN_SetTorrentComment_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var commentRequestCount = 0;
 

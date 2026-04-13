@@ -113,7 +113,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndIncludeFilesFalse_WHEN_GetTorrentList_THEN_ShouldOmitIncludeFilesQuery()
+        public async Task GIVEN_ApiVersionBeforeTorrentListIncludeFilesAndIncludeFilesFalse_WHEN_GetTorrentList_THEN_ShouldOmitIncludeFilesQuery()
         {
             _handler.Responder = (req, _) =>
             {
@@ -144,7 +144,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndIncludeFilesTrue_WHEN_GetTorrentList_THEN_ShouldFailWithoutCallingTorrentEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTorrentListIncludeFilesAndIncludeFilesTrue_WHEN_GetTorrentList_THEN_ShouldFailWithoutCallingTorrentEndpoint()
         {
             var torrentInfoRequestCount = 0;
 
@@ -1147,7 +1147,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_GetTorrentPieceAvailability_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTorrentPieceAvailability_WHEN_GetTorrentPieceAvailability_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var availabilityRequestCount = 0;
 

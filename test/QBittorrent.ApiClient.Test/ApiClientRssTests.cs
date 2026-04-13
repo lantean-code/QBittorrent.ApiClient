@@ -95,7 +95,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeRssFeedRefreshIntervalAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var addFeedRequestCount = 0;
 
@@ -240,7 +240,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_SetRssFeedRefreshInterval_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeRssFeedRefreshInterval_WHEN_SetRssFeedRefreshInterval_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var setIntervalRequestCount = 0;
 

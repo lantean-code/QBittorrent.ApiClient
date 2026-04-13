@@ -256,7 +256,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndAction_WHEN_SetTorrentShareLimit_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeShareLimitActionRequirementAndAction_WHEN_SetTorrentShareLimit_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var setShareLimitsRequestCount = 0;
 

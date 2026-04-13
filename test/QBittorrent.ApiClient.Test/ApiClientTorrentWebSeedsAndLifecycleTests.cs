@@ -237,7 +237,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndUrls_WHEN_ReannounceTorrents_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTargetedReannounceUrlsAndUrls_WHEN_ReannounceTorrents_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var reannounceRequestCount = 0;
 

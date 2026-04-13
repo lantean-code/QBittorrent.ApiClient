@@ -564,7 +564,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_LoadClientData_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeClientData_WHEN_LoadClientData_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var loadRequestCount = 0;
 
@@ -676,7 +676,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_StoreClientData_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeClientData_WHEN_StoreClientData_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var storeRequestCount = 0;
 
@@ -969,7 +969,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_GetProcessInfo_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeProcessInfo_WHEN_GetProcessInfo_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var processInfoRequestCount = 0;
 
@@ -1377,7 +1377,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_RotateApiKey_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeApiKeyManagement_WHEN_RotateApiKey_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var rotateRequestCount = 0;
 
@@ -1454,7 +1454,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_DeleteApiKey_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeApiKeyManagement_WHEN_DeleteApiKey_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var deleteRequestCount = 0;
 
@@ -1642,7 +1642,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_GetDirectoryContentEntries_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeDirectoryContentMetadata_WHEN_GetDirectoryContentEntries_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var directoryRequestCount = 0;
 

@@ -12,6 +12,7 @@
 - Test namespace mirrors the product namespace with `.Test` inserted before the final segment.
 - Test method names use Given-When-Then:
   - `GIVEN_StateOfItem_WHEN_PerformingOperation_THEN_ShouldBeExpectedState`
+- Do not use vague `Legacy` or `Modern` labels in test names for qBittorrent Web API version boundaries; name the specific feature or requirement boundary instead.
 
 ## Test Class Structure
 - For non-component unit tests, use a readonly field named `_target` only when one shared constructor setup genuinely serves most tests in the class.

@@ -59,7 +59,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndSingleHash_WHEN_AddTrackersToTorrent_THEN_ShouldPostSingleHashAndUrlList()
+        public async Task GIVEN_ApiVersionBeforeTrackerBatchOperationsAndSingleHash_WHEN_AddTrackersToTorrent_THEN_ShouldPostSingleHashAndUrlList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
@@ -82,7 +82,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndNullAll_WHEN_AddTrackersToTorrent_THEN_ShouldPostSingleHashAndUrlList()
+        public async Task GIVEN_ApiVersionBeforeTrackerBatchOperationsAndDefaultAllValue_WHEN_AddTrackersToTorrent_THEN_ShouldPostSingleHashAndUrlList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
@@ -105,7 +105,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndAllTrue_WHEN_AddTrackersToTorrent_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTrackerBatchOperationsAndAllTrue_WHEN_AddTrackersToTorrent_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var addTrackerRequestCount = 0;
 
@@ -133,7 +133,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndMultipleHashes_WHEN_AddTrackersToTorrent_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTrackerBatchOperationsAndMultipleHashes_WHEN_AddTrackersToTorrent_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var addTrackerRequestCount = 0;
 
@@ -280,7 +280,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_SupportedApiVersion_WHEN_EditTracker_THEN_ShouldPostModernFields()
+        public async Task GIVEN_ApiVersionWithTrackerTierEditing_WHEN_EditTracker_THEN_ShouldPostTierEditingFields()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
@@ -304,7 +304,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_EditTracker_THEN_ShouldPostLegacyFields()
+        public async Task GIVEN_ApiVersionBeforeTrackerTierEditing_WHEN_EditTracker_THEN_ShouldPostPreTierEditingFields()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
@@ -327,7 +327,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndTier_WHEN_EditTracker_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTrackerTierEditingAndTier_WHEN_EditTracker_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var editTrackerRequestCount = 0;
 
@@ -428,7 +428,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndAllTrue_WHEN_RemoveTrackers_THEN_ShouldUseLegacyAllValue()
+        public async Task GIVEN_ApiVersionBeforeTrackerAllValueAndAllTrue_WHEN_RemoveTrackers_THEN_ShouldUseAsteriskAllValue()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
@@ -451,7 +451,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndMultipleHashes_WHEN_RemoveTrackers_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTrackerBatchOperationsAndMultipleHashes_WHEN_RemoveTrackers_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var removeTrackerRequestCount = 0;
 
@@ -479,7 +479,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndNonSuccess_WHEN_RemoveTrackers_THEN_ShouldReturnFailure()
+        public async Task GIVEN_ApiVersionBeforeTrackerBatchOperationsAndNonSuccess_WHEN_RemoveTrackers_THEN_ShouldReturnFailure()
         {
             _handler.Responder = (request, _) =>
             {
@@ -528,7 +528,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndNullAll_WHEN_RemoveTrackers_THEN_ShouldPostSingleHashAndUrlList()
+        public async Task GIVEN_ApiVersionBeforeTrackerBatchOperationsAndDefaultAllValue_WHEN_RemoveTrackers_THEN_ShouldPostSingleHashAndUrlList()
         {
             _handler.Responder = async (request, cancellationToken) =>
             {

@@ -186,7 +186,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndDownloader_WHEN_AddTorrent_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeAddTorrentDownloaderAndDownloader_WHEN_AddTorrent_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var addRequestCount = 0;
 
@@ -218,7 +218,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersionAndFilePriorities_WHEN_AddTorrent_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeAddTorrentFilePrioritiesAndFilePriorities_WHEN_AddTorrent_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var addRequestCount = 0;
 
@@ -543,7 +543,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyOkPayload_WHEN_AddTorrent_THEN_ShouldReturnSingleSuccess()
+        public async Task GIVEN_TextOkPayload_WHEN_AddTorrent_THEN_ShouldReturnSingleSuccess()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -558,7 +558,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyFailsPayload_WHEN_AddTorrent_THEN_ShouldReturnSingleFailure()
+        public async Task GIVEN_TextFailsPayload_WHEN_AddTorrent_THEN_ShouldReturnSingleFailure()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -888,7 +888,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_FetchTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTorrentMetadata_WHEN_FetchTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var metadataRequestCount = 0;
 
@@ -1155,7 +1155,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_ParseTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTorrentMetadata_WHEN_ParseTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var metadataRequestCount = 0;
 
@@ -1406,7 +1406,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LegacyApiVersion_WHEN_SaveTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
+        public async Task GIVEN_ApiVersionBeforeTorrentMetadata_WHEN_SaveTorrentMetadata_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var metadataRequestCount = 0;
 
