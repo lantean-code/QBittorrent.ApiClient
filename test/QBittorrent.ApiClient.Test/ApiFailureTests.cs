@@ -69,5 +69,24 @@ namespace QBittorrent.ApiClient.Test
             result.IsSuccess.Should().BeFalse();
             result.Failure.Should().BeSameAs(target);
         }
+
+        [Fact]
+        public void GIVEN_Failure_WHEN_ToDualPayloadResult_THEN_ShouldReturnFailedDualPayloadResult()
+        {
+            var target = new ApiFailure
+            {
+                Kind = ApiFailureKind.AuthenticationRejected,
+                Operation = "Operation",
+                UserMessage = "UserMessage",
+            };
+
+            var result = target.ToResult<int, string>();
+
+            result.IsSuccess.Should().BeFalse();
+            result.IsPending.Should().BeFalse();
+            result.IsFailure.Should().BeTrue();
+            result.Failure.Should().BeSameAs(target);
+        }
+
     }
 }

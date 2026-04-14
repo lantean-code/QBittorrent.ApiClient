@@ -367,7 +367,7 @@ namespace QBittorrent.ApiClient
         /// <summary>Adds one or more torrents.</summary>
         /// <param name="addTorrentParams">The torrent-add parameters.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A result with the outcome of the add-torrent request.</returns>
+        /// <returns>A result with the outcome of the add-torrent request. When qBittorrent accepts the request but still has pending additions, the result is pending and exposes the initial <see cref="AddTorrentResult" /> snapshot via <see cref="ApiResult{T}.PendingValue" />. qBittorrent does not provide a follow-up add-operation status endpoint, so later async failures are observed indirectly when expected torrents do not appear in the normal torrent state views.</returns>
         Task<ApiResult<AddTorrentResult>> AddTorrentAsync(AddTorrentParams addTorrentParams, CancellationToken cancellationToken = default);
 
         /// <summary>Adds one or more trackers to one or more torrents.</summary>
@@ -653,8 +653,8 @@ namespace QBittorrent.ApiClient
         /// <param name="source">The torrent source URI or hash.</param>
         /// <param name="downloader">The optional search plugin downloader to use.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A result with the resolved torrent metadata. When qBittorrent accepts the request but has not completed it yet, the result fails with <see cref="ApiFailureKind.OperationPending" />.</returns>
-        Task<ApiResult<TorrentMetadata>> FetchTorrentMetadataAsync(string source, string? downloader = null, CancellationToken cancellationToken = default);
+        /// <returns>A result with the resolved torrent metadata. When qBittorrent accepts the request but has not completed it yet, the result is pending and exposes <see cref="FetchTorrentMetadataPendingResult" /> via <see cref="ApiResult{TSuccess, TPending}.PendingValue" />.</returns>
+        Task<ApiResult<TorrentMetadata, FetchTorrentMetadataPendingResult>> FetchTorrentMetadataAsync(string source, string? downloader = null, CancellationToken cancellationToken = default);
 
         /// <summary>Parses torrent metadata from uploaded torrent files.</summary>
         /// <param name="torrents">The torrent files keyed by file name.</param>
@@ -813,7 +813,7 @@ namespace QBittorrent.ApiClient
         /// <param name="id">The search identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the search status, or <see langword="null" /> when the search no longer exists.</returns>
-        Task<ApiResult<SearchStatus?>> GetSearchStatusAsync(int id, CancellationToken cancellationToken = default);
+        Task<ApiResult<SearchStatus>> GetSearchStatusAsync(int id, CancellationToken cancellationToken = default);
 
         /// <summary>Gets the status of all retained searches.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>

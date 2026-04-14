@@ -28,27 +28,50 @@ namespace QBittorrent.ApiClient
             return ExecuteAsync(ct => _httpClient.PostAsync("search/stop", content, ct), cancellationToken: cancellationToken);
         }
 
-        public Task<ApiResult<SearchStatus?>> GetSearchStatusAsync(int id, CancellationToken cancellationToken = default)
+        public Task<ApiResult<SearchStatus>> GetSearchStatusAsync(int id, CancellationToken cancellationToken = default)
         {
             var query = new QueryBuilder();
             query.Add("id", id);
 
-            static async Task<ApiResult<SearchStatus?>> handleSearchStatusResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            static async Task<ApiResult<SearchStatus>> handleSearchStatusResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 using (response)
                 {
                     if (response.StatusCode == HttpStatusCode.NotFound)
                     {
-                        return ApiResult<SearchStatus?>.Success(null);
+                        return CreateSearchMissingFailure(operation).ToResult<SearchStatus>();
                     }
 
-                    return await CreateResultAsync(operation, response, readSearchStatus, currentCancellationToken);
+                    var result = await CreateResultAsync(operation, response, readSearchStatuses, currentCancellationToken);
+                    if (result.IsFailure)
+                    {
+                        return result.Failure.ToResult<SearchStatus>();
+                    }
+
+                    if (!result.TryGetValue(out var statuses))
+                    {
+                        throw new InvalidOperationException("Expected a completed search-status result.");
+                    }
+
+                    return statuses.Count == 0
+                        ? CreateSearchMissingFailure(operation).ToResult<SearchStatus>()
+                        : ApiResult.CreateSuccess(statuses[0]);
                 }
 
-                static async Task<SearchStatus?> readSearchStatus(HttpContent content, CancellationToken readCancellationToken)
+                static async Task<IReadOnlyList<SearchStatus>> readSearchStatuses(HttpContent content, CancellationToken readCancellationToken)
                 {
-                    var statuses = await GetJsonListAsync<SearchStatus>(content, readCancellationToken);
-                    return statuses.Count > 0 ? statuses[0] : null;
+                    return await GetJsonListAsync<SearchStatus>(content, readCancellationToken);
+                }
+
+                static ApiFailure CreateSearchMissingFailure(string operation)
+                {
+                    return new ApiFailure
+                    {
+                        Kind = ApiFailureKind.NotFound,
+                        Operation = operation,
+                        UserMessage = "The search job could not be found.",
+                        Reason = SearchFailureReason.SearchMissing,
+                    };
                 }
             }
 

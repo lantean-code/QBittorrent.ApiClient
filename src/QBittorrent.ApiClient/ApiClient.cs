@@ -39,9 +39,14 @@ namespace QBittorrent.ApiClient
             CancellationToken cancellationToken = default)
         {
             var sendResult = await SendAsync(operation, sendRequest, cancellationToken);
-            if (!sendResult.TryGetValue(out var response))
+            if (sendResult.IsFailure)
             {
                 return sendResult.Failure.ToResult();
+            }
+
+            if (!sendResult.TryGetValue(out var response))
+            {
+                throw new InvalidOperationException("Expected a completed send result.");
             }
 
             return await handleResponse(response, operation, cancellationToken);
@@ -52,11 +57,39 @@ namespace QBittorrent.ApiClient
             Func<HttpResponseMessage, string, CancellationToken, Task<ApiResult<T>>> handleResponse,
             [CallerMemberName] string operation = "",
             CancellationToken cancellationToken = default)
+            where T : notnull
         {
             var sendResult = await SendAsync(operation, sendRequest, cancellationToken);
-            if (!sendResult.TryGetValue(out var response))
+            if (sendResult.IsFailure)
             {
                 return sendResult.Failure.ToResult<T>();
+            }
+
+            if (!sendResult.TryGetValue(out var response))
+            {
+                throw new InvalidOperationException("Expected a completed send result.");
+            }
+
+            return await handleResponse(response, operation, cancellationToken);
+        }
+
+        private async Task<ApiResult<TSuccess, TPending>> ExecuteAsync<TSuccess, TPending>(
+            Func<CancellationToken, Task<HttpResponseMessage>> sendRequest,
+            Func<HttpResponseMessage, string, CancellationToken, Task<ApiResult<TSuccess, TPending>>> handleResponse,
+            [CallerMemberName] string operation = "",
+            CancellationToken cancellationToken = default)
+            where TSuccess : notnull
+            where TPending : notnull
+        {
+            var sendResult = await SendAsync(operation, sendRequest, cancellationToken);
+            if (sendResult.IsFailure)
+            {
+                return sendResult.Failure.ToResult<TSuccess, TPending>();
+            }
+
+            if (!sendResult.TryGetValue(out var response))
+            {
+                throw new InvalidOperationException("Expected a completed send result.");
             }
 
             return await handleResponse(response, operation, cancellationToken);
@@ -67,6 +100,7 @@ namespace QBittorrent.ApiClient
             Func<HttpContent, CancellationToken, Task<T>> readValue,
             [CallerMemberName] string operation = "",
             CancellationToken cancellationToken = default)
+            where T : notnull
         {
             return ExecuteAsync(
                 sendRequest,
@@ -79,7 +113,7 @@ namespace QBittorrent.ApiClient
         {
             try
             {
-                return ApiResult<HttpResponseMessage>.Success(await sendRequest(cancellationToken));
+                return ApiResult.CreateSuccess(await sendRequest(cancellationToken));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -124,9 +158,14 @@ namespace QBittorrent.ApiClient
         private async Task<ApiResult<ApiClientCompatibilityProfile>> ResolveCompatibilityProfileAsync(string operation, CancellationToken cancellationToken)
         {
             var apiVersionResult = await GetRawApiVersionAsync(cancellationToken);
-            if (!apiVersionResult.TryGetValue(out var rawApiVersion))
+            if (apiVersionResult.IsFailure)
             {
                 return apiVersionResult.Failure.ToResult<ApiClientCompatibilityProfile>();
+            }
+
+            if (!apiVersionResult.TryGetValue(out var rawApiVersion))
+            {
+                throw new InvalidOperationException("Expected a completed API version result.");
             }
 
             rawApiVersion = NormalizeResponseBody(rawApiVersion);
@@ -135,7 +174,7 @@ namespace QBittorrent.ApiClient
                 return CreateCompatibilityResolutionFailure(operation, rawApiVersion).ToResult<ApiClientCompatibilityProfile>();
             }
 
-            return ApiResult<ApiClientCompatibilityProfile>.Success(new ApiClientCompatibilityProfile(parsedApiVersion));
+            return ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(parsedApiVersion));
         }
 
         private async Task HydrateCompatibilityProfileAsync(string? rawApiVersion, CancellationToken cancellationToken = default)
@@ -176,7 +215,7 @@ namespace QBittorrent.ApiClient
             {
                 var failure = await TryCreateFailureAsync(operation, response, cancellationToken, createFailure);
                 return failure is null
-                    ? ApiResult.Success()
+                    ? ApiResult.CreateSuccess()
                     : failure.ToResult();
             }
         }
@@ -187,6 +226,7 @@ namespace QBittorrent.ApiClient
             Func<HttpContent, CancellationToken, Task<T>> readValue,
             CancellationToken cancellationToken,
             Func<HttpStatusCode, string?, ApiFailure?>? createFailure = null)
+            where T : notnull
         {
             using (response)
             {
@@ -198,7 +238,7 @@ namespace QBittorrent.ApiClient
 
                 try
                 {
-                    return ApiResult<T>.Success(await readValue(response.Content, cancellationToken));
+                    return ApiResult.CreateSuccess(await readValue(response.Content, cancellationToken));
                 }
                 catch (JsonException exception)
                 {
@@ -207,6 +247,51 @@ namespace QBittorrent.ApiClient
                 catch (InvalidOperationException exception) when (exception.Message.StartsWith("Unable to deserialize response as ", StringComparison.Ordinal))
                 {
                     return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
+                }
+            }
+        }
+
+        private static async Task<ApiResult<T>> CreatePendingResultAsync<T>(
+            string operation,
+            HttpResponseMessage response,
+            Func<HttpContent, CancellationToken, Task<T>> readPendingValue,
+            CancellationToken cancellationToken)
+            where T : notnull
+        {
+            using (response)
+            {
+                try
+                {
+                    return ApiResult.CreatePending(await readPendingValue(response.Content, cancellationToken));
+                }
+                catch (JsonException exception)
+                {
+                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
+                }
+            }
+        }
+
+        private static async Task<ApiResult<TSuccess, TPending>> CreatePendingResultAsync<TSuccess, TPending>(
+            string operation,
+            HttpResponseMessage response,
+            Func<HttpContent, CancellationToken, Task<TPending>> readPendingValue,
+            CancellationToken cancellationToken)
+            where TSuccess : notnull
+            where TPending : notnull
+        {
+            using (response)
+            {
+                try
+                {
+                    return ApiResult.CreatePending<TSuccess, TPending>(await readPendingValue(response.Content, cancellationToken));
+                }
+                catch (JsonException exception)
+                {
+                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<TSuccess, TPending>();
+                }
+                catch (InvalidOperationException exception) when (exception.Message.StartsWith("Unable to deserialize response as ", StringComparison.Ordinal))
+                {
+                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<TSuccess, TPending>();
                 }
             }
         }
@@ -384,20 +469,6 @@ namespace QBittorrent.ApiClient
                 UserMessage = "The request timed out before qBittorrent responded.",
                 Detail = exception.Message,
                 IsTransient = true,
-            };
-        }
-
-        private static ApiFailure CreateOperationPendingFailure(string operation, HttpStatusCode statusCode, string? responseBody)
-        {
-            return new ApiFailure
-            {
-                Kind = ApiFailureKind.OperationPending,
-                Operation = operation,
-                StatusCode = statusCode,
-                UserMessage = "qBittorrent accepted the request, but the operation has not completed yet. Retry the request.",
-                Detail = responseBody,
-                IsTransient = true,
-                ResponseBody = responseBody,
             };
         }
 

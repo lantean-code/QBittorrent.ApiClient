@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
@@ -10,6 +12,7 @@ namespace QBittorrent.ApiClient.Models
         /// <summary>
         /// Gets a value indicating whether all torrents are selected.
         /// </summary>
+        [MemberNotNullWhen(false, nameof(Hashes))]
         public bool All { get; }
 
         /// <summary>

@@ -12,12 +12,12 @@ namespace QBittorrent.ApiClient
                 {
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        return ApiResult<bool>.Success(true);
+                        return ApiResult.CreateSuccess(true);
                     }
 
                     if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
                     {
-                        return ApiResult<bool>.Success(false);
+                        return ApiResult.CreateSuccess(false);
                     }
 
                     var failure = await TryCreateFailureAsync(operation, response, currentCancellationToken);
@@ -54,7 +54,7 @@ namespace QBittorrent.ApiClient
                         return createLoginFailure(HttpStatusCode.BadRequest, responseContent)!.ToResult();
                     }
 
-                    return ApiResult.Success();
+                    return ApiResult.CreateSuccess();
                 }
 
                 ApiFailure? createLoginFailure(HttpStatusCode statusCode, string? responseBody)

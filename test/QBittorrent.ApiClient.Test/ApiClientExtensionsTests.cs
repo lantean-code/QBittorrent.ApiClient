@@ -15,12 +15,13 @@ namespace QBittorrent.ApiClient.Test
 
         private static Task<ApiResult> SuccessResult()
         {
-            return Task.FromResult(ApiResult.Success());
+            return Task.FromResult(ApiResult.CreateSuccess());
         }
 
         private static Task<ApiResult<T>> SuccessResult<T>(T value)
+            where T : notnull
         {
-            return Task.FromResult(ApiResult<T>.Success(value));
+            return Task.FromResult(ApiResult.CreateSuccess(value));
         }
 
         private static bool MatchesHash(TorrentSelector selector, string hash)
@@ -36,15 +37,15 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_HashAndNoMatchingTorrent_WHEN_GetTorrent_THEN_ShouldReturnNull()
+        public async Task GIVEN_HashAndNoMatchingTorrent_WHEN_GetTorrent_THEN_ShouldReturnNotFoundFailure()
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
 
-            var result = (await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken);
 
-            result.Should().BeNull();
+            result.ShouldFailWith(kind: ApiFailureKind.NotFound, userMessage: "The torrent could not be found.");
         }
 
         [Fact]
@@ -67,7 +68,7 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(ApiResult<IReadOnlyList<Torrent>>.FailureResult(new ApiFailure
+                .Returns(Task.FromResult(ApiResult.CreateFailure<IReadOnlyList<Torrent>>(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
                     Operation = "GetTorrentListAsync",
@@ -117,7 +118,7 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(ApiResult<IReadOnlyList<Torrent>>.FailureResult(new ApiFailure
+                .Returns(Task.FromResult(ApiResult.CreateFailure<IReadOnlyList<Torrent>>(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
                     Operation = "GetTorrentListAsync",
@@ -137,7 +138,7 @@ namespace QBittorrent.ApiClient.Test
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(ApiResult<IReadOnlyDictionary<string, Category>>.FailureResult(new ApiFailure
+                .Returns(Task.FromResult(ApiResult.CreateFailure<IReadOnlyDictionary<string, Category>>(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
                     Operation = "GetAllCategoriesAsync",
@@ -163,7 +164,7 @@ namespace QBittorrent.ApiClient.Test
                 }));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.RemoveCategoriesAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(ApiResult.FailureResult(new ApiFailure
+                .Returns(Task.FromResult(ApiResult.CreateFailure(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
                     Operation = "RemoveCategoriesAsync",
@@ -213,7 +214,7 @@ namespace QBittorrent.ApiClient.Test
         {
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(ApiResult<IReadOnlyList<Torrent>>.FailureResult(new ApiFailure
+                .Returns(Task.FromResult(ApiResult.CreateFailure<IReadOnlyList<Torrent>>(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
                     Operation = "GetTorrentListAsync",
@@ -233,7 +234,7 @@ namespace QBittorrent.ApiClient.Test
                 .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(ApiResult<IReadOnlyList<string>>.FailureResult(new ApiFailure
+                .Returns(Task.FromResult(ApiResult.CreateFailure<IReadOnlyList<string>>(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
                     Operation = "GetAllTagsAsync",
@@ -256,7 +257,7 @@ namespace QBittorrent.ApiClient.Test
                 .Returns(SuccessResult<IReadOnlyList<string>>(["UnusedTag"]));
             Mock.Get(_target)
                 .Setup(apiClient => apiClient.DeleteTagsAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(ApiResult.FailureResult(new ApiFailure
+                .Returns(Task.FromResult(ApiResult.CreateFailure(new ApiFailure
                 {
                     Kind = ApiFailureKind.ServerError,
                     Operation = "DeleteTagsAsync",

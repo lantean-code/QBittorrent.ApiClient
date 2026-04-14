@@ -44,7 +44,7 @@ namespace QBittorrent.ApiClient
                 return builder.Add(key, allValue);
             }
 
-            return builder.Add(key, JoinWithInvariant(selector.Hashes!, '|'));
+            return builder.Add(key, JoinWithInvariant(selector.Hashes, '|'));
         }
 
         public static FormUrlEncodedBuilder AddPipeSeparated<T>(this FormUrlEncodedBuilder builder, string key, IEnumerable<T> values)

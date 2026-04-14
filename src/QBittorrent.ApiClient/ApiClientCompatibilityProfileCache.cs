@@ -31,7 +31,7 @@ namespace QBittorrent.ApiClient
 
             if (TryGetValue(cacheKey, out var cachedProfile))
             {
-                return ApiResult<ApiClientCompatibilityProfile>.Success(cachedProfile);
+                return ApiResult.CreateSuccess(cachedProfile);
             }
 
             var semaphore = GetOrAddLock(cacheKey);
@@ -41,7 +41,7 @@ namespace QBittorrent.ApiClient
             {
                 if (TryGetValue(cacheKey, out cachedProfile))
                 {
-                    return ApiResult<ApiClientCompatibilityProfile>.Success(cachedProfile);
+                    return ApiResult.CreateSuccess(cachedProfile);
                 }
 
                 var profileResult = await valueFactory(cancellationToken);
@@ -74,13 +74,18 @@ namespace QBittorrent.ApiClient
                 _profiles.TryRemove(cacheKey, out _);
 
                 var profileResult = await valueFactory(cancellationToken);
-                if (!profileResult.TryGetValue(out var profile))
+                if (profileResult.IsFailure)
                 {
                     return profileResult.Failure.ToResult();
                 }
 
+                if (!profileResult.TryGetValue(out var profile))
+                {
+                    throw new InvalidOperationException("Expected a completed compatibility-profile result.");
+                }
+
                 _profiles[cacheKey] = profile;
-                return ApiResult.Success();
+                return ApiResult.CreateSuccess();
             }
             finally
             {

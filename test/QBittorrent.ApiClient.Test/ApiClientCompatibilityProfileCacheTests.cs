@@ -176,7 +176,7 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await target.GetOrAddAsync(
                 "http://localhost/api/v2/",
-                _ => Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.Success(expectedProfile)),
+                _ => Task.FromResult(ApiResult.CreateSuccess(expectedProfile)),
                 TestContext.Current.CancellationToken);
 
             result.GetValueOrThrow().Should().BeSameAs(expectedProfile);
@@ -198,7 +198,7 @@ namespace QBittorrent.ApiClient.Test
                 _ =>
                 {
                     factoryCallCount++;
-                    return Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.Success(new ApiClientCompatibilityProfile(new Version(2, 15, 2))));
+                    return Task.FromResult(ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 15, 2))));
                 },
                 TestContext.Current.CancellationToken);
 
@@ -217,7 +217,7 @@ namespace QBittorrent.ApiClient.Test
                 _ =>
                 {
                     factoryCallCount++;
-                    return Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.FailureResult(new ApiFailure
+                    return Task.FromResult(ApiResult.CreateFailure<ApiClientCompatibilityProfile>(new ApiFailure
                     {
                         Kind = ApiFailureKind.ServerError,
                         Operation = "GetOrAddAsync",
@@ -236,7 +236,7 @@ namespace QBittorrent.ApiClient.Test
                 _ =>
                 {
                     factoryCallCount++;
-                    return Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.Success(successProfile));
+                    return Task.FromResult(ApiResult.CreateSuccess(successProfile));
                 },
                 TestContext.Current.CancellationToken);
 
@@ -253,12 +253,12 @@ namespace QBittorrent.ApiClient.Test
 
             (await target.GetOrAddAsync(
                 "http://localhost-a/api/v2/",
-                _ => Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.Success(firstProfile)),
+                _ => Task.FromResult(ApiResult.CreateSuccess(firstProfile)),
                 TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await target.GetOrAddAsync(
                 "http://localhost-b/api/v2/",
-                _ => Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.Success(secondProfile)),
+                _ => Task.FromResult(ApiResult.CreateSuccess(secondProfile)),
                 TestContext.Current.CancellationToken)).ShouldSucceed();
 
             target.TryGetValue("http://localhost-a/api/v2/", out var cachedFirstProfile).Should().BeTrue();
@@ -277,7 +277,7 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await target.RefreshAsync(
                 "http://localhost-a/api/v2/",
-                _ => Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.Success(new ApiClientCompatibilityProfile(new Version(2, 15, 2)))),
+                _ => Task.FromResult(ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 15, 2)))),
                 TestContext.Current.CancellationToken);
 
             result.ShouldSucceed();
@@ -313,7 +313,7 @@ namespace QBittorrent.ApiClient.Test
                 {
                     firstFactoryStarted.SetResult(true);
                     await releaseFirstFactory.Task.WaitAsync(TestContext.Current.CancellationToken);
-                    return ApiResult<ApiClientCompatibilityProfile>.Success(new ApiClientCompatibilityProfile(new Version(2, 13, 1)));
+                    return ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 13, 1)));
                 },
                 TestContext.Current.CancellationToken);
 
@@ -324,7 +324,7 @@ namespace QBittorrent.ApiClient.Test
                 _ =>
                 {
                     secondFactoryStarted.SetResult(true);
-                    return Task.FromResult(ApiResult<ApiClientCompatibilityProfile>.Success(new ApiClientCompatibilityProfile(new Version(2, 15, 2))));
+                    return Task.FromResult(ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 15, 2))));
                 },
                 TestContext.Current.CancellationToken);
 

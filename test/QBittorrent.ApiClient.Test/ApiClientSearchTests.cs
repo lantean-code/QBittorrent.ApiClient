@@ -97,7 +97,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_Id_WHEN_GetSearchStatus_THEN_ShouldGETWithIdAndReturnNullOnEmpty()
+        public async Task GIVEN_Id_WHEN_GetSearchStatus_THEN_ShouldGETWithIdAndReturnNotFoundOnEmpty()
         {
             _handler.Responder = (req, _) =>
             {
@@ -109,9 +109,9 @@ namespace QBittorrent.ApiClient.Test
                 });
             };
 
-            var status = (await _target.GetSearchStatusAsync(5, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = await _target.GetSearchStatusAsync(5, cancellationToken: TestContext.Current.CancellationToken);
 
-            status.Should().BeNull();
+            result.ShouldFailWith(kind: ApiFailureKind.NotFound, userMessage: "The search job could not be found.");
         }
 
         [Fact]
@@ -137,20 +137,19 @@ namespace QBittorrent.ApiClient.Test
 
             var status = (await _target.GetSearchStatusAsync(5, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
-            status.Should().NotBeNull();
-            status!.Id.Should().Be(5);
+            status.Id.Should().Be(5);
             status.Status.Should().Be(SearchJobStatus.Running);
             status.Total.Should().Be(12);
         }
 
         [Fact]
-        public async Task GIVEN_NotFound_WHEN_GetSearchStatus_THEN_ShouldReturnNull()
+        public async Task GIVEN_NotFound_WHEN_GetSearchStatus_THEN_ShouldReturnFailure()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
 
-            var status = (await _target.GetSearchStatusAsync(1, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = await _target.GetSearchStatusAsync(1, cancellationToken: TestContext.Current.CancellationToken);
 
-            status.Should().BeNull();
+            result.ShouldFailWith(kind: ApiFailureKind.NotFound, userMessage: "The search job could not be found.");
         }
 
         [Fact]

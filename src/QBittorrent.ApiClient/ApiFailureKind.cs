@@ -56,11 +56,6 @@ namespace QBittorrent.ApiClient
         Timeout,
 
         /// <summary>
-        /// The operation was accepted by qBittorrent but has not completed yet.
-        /// </summary>
-        OperationPending,
-
-        /// <summary>
         /// The server returned an error response.
         /// </summary>
         ServerError,

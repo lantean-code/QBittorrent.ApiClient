@@ -597,6 +597,45 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_AcceptedAsyncResultPayload_WHEN_AddTorrent_THEN_ShouldReturnPendingResult()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Accepted)
+            {
+                Content = new StringContent("""
+                    {
+                        "success_count": 1,
+                        "failure_count": 2,
+                        "pending_count": 3,
+                        "added_torrent_ids": [ "hash1", "hash2" ]
+                    }
+                    """)
+            });
+
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
+
+            var pendingResult = result.GetPendingValueOrThrow();
+
+            pendingResult.SuccessCount.Should().Be(1);
+            pendingResult.FailureCount.Should().Be(2);
+            pendingResult.PendingCount.Should().Be(3);
+            pendingResult.AddedTorrentIds.Should().BeEquivalentTo(["hash1", "hash2"]);
+            pendingResult.SupportsAsync.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GIVEN_AcceptedInvalidJson_WHEN_AddTorrent_THEN_ShouldReturnUnexpectedResponseFailure()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Accepted)
+            {
+                Content = new StringContent("not-json")
+            });
+
+            var result = await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
         public async Task GIVEN_NullJsonPayload_WHEN_AddTorrent_THEN_ShouldFallbackToFailureCountFromInputSize()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
@@ -800,7 +839,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = (await _target.FetchTorrentMetadataAsync("magnet:?xt=urn:btih:abc", "plugin", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.FetchTorrentMetadataAsync("magnet:?xt=urn:btih:abc", "plugin", cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.InfoHashV1.Should().Be("InfoHashV1");
             result.InfoHashV2.Should().Be("InfoHashV2");
@@ -823,7 +862,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_AcceptedResponseWithIdentifiers_WHEN_FetchTorrentMetadata_THEN_ShouldReturnOperationPendingFailure()
+        public async Task GIVEN_AcceptedResponseWithIdentifiers_WHEN_FetchTorrentMetadata_THEN_ShouldReturnPendingResult()
         {
             _handler.Responder = (req, _) =>
             {
@@ -850,17 +889,15 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
-            var failure = result.ShouldFailWith(
-                kind: ApiFailureKind.OperationPending,
-                statusCode: HttpStatusCode.Accepted,
-                userMessage: "qBittorrent accepted the request, but the operation has not completed yet. Retry the request.");
+            var pendingResult = result.GetPendingValueOrThrow();
 
-            failure.IsTransient.Should().BeTrue();
-            failure.ResponseBody.Should().Contain("InfoHashV1");
+            pendingResult.InfoHashV1.Should().Be("InfoHashV1");
+            pendingResult.InfoHashV2.Should().Be("InfoHashV2");
+            pendingResult.Hash.Should().Be("Hash");
         }
 
         [Fact]
-        public async Task GIVEN_AcceptedEmptyObject_WHEN_FetchTorrentMetadata_THEN_ShouldReturnOperationPendingFailure()
+        public async Task GIVEN_AcceptedEmptyObject_WHEN_FetchTorrentMetadata_THEN_ShouldReturnPendingResultWithEmptyValues()
         {
             _handler.Responder = (req, _) =>
             {
@@ -879,12 +916,80 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
-            var failure = result.ShouldFailWith(
-                kind: ApiFailureKind.OperationPending,
-                statusCode: HttpStatusCode.Accepted,
-                userMessage: "qBittorrent accepted the request, but the operation has not completed yet. Retry the request.");
+            var pendingResult = result.GetPendingValueOrThrow();
 
-            failure.ResponseBody.Should().Be("{}");
+            pendingResult.InfoHashV1.Should().BeNull();
+            pendingResult.InfoHashV2.Should().BeNull();
+            pendingResult.Hash.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task GIVEN_AcceptedNullPayload_WHEN_FetchTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.Accepted, "null"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_AcceptedInvalidJson_WHEN_FetchTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
+
+                    case "/torrents/fetchMetadata":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.Accepted, "not-json"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_RequestException_WHEN_FetchTorrentMetadata_THEN_ShouldReturnNoResponseFailure()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri!.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
+
+                    case "/torrents/fetchMetadata":
+                        throw new HttpRequestException("fetch failed");
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.NoResponse, userMessage: "fetch failed");
         }
 
         [Fact]

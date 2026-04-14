@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
-    /// Represents the outcome reported by qBittorrent after an add-torrent request.
+    /// Represents the outcome snapshot reported by qBittorrent after an add-torrent request.
     /// </summary>
     public record AddTorrentResult
     {
@@ -38,19 +38,19 @@ namespace QBittorrent.ApiClient.Models
         public int SuccessCount { get; }
 
         /// <summary>
-        /// Gets the failure count.
+        /// Gets the number of torrents that qBittorrent reported as failed during the initial add request.
         /// </summary>
         [JsonPropertyName("failure_count")]
         public int FailureCount { get; }
 
         /// <summary>
-        /// Gets the pending count.
+        /// Gets the number of torrents that qBittorrent accepted for asynchronous processing during the initial add request.
         /// </summary>
         [JsonPropertyName("pending_count")]
         public int PendingCount { get; }
 
         /// <summary>
-        /// Gets the added torrent IDs.
+        /// Gets the IDs of torrents that qBittorrent reported as added during the initial add request.
         /// </summary>
         [JsonPropertyName("added_torrent_ids")]
         public IReadOnlyList<string> AddedTorrentIds { get; }

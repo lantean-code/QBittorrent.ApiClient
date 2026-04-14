@@ -13,6 +13,7 @@ namespace QBittorrent.ApiClient
     [JsonSerializable(typeof(Category))]
     [JsonSerializable(typeof(DirectoryContentEntry))]
     [JsonSerializable(typeof(FileData))]
+    [JsonSerializable(typeof(FetchTorrentMetadataPendingResult))]
     [JsonSerializable(typeof(GlobalTransferStatistics))]
     [JsonSerializable(typeof(Log))]
     [JsonSerializable(typeof(MainData))]

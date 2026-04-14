@@ -18,7 +18,7 @@ namespace QBittorrent.ApiClient
 
             if (!string.IsNullOrWhiteSpace(request.TorrentFilePath))
             {
-                builder.Add("torrentFilePath", request.TorrentFilePath!);
+                builder.Add("torrentFilePath", request.TorrentFilePath);
             }
             if (request.PieceSize.HasValue)
             {
@@ -34,11 +34,11 @@ namespace QBittorrent.ApiClient
             }
             if (!string.IsNullOrWhiteSpace(request.Comment))
             {
-                builder.Add("comment", request.Comment!);
+                builder.Add("comment", request.Comment);
             }
             if (!string.IsNullOrWhiteSpace(request.Source))
             {
-                builder.Add("source", request.Source!);
+                builder.Add("source", request.Source);
             }
             if (request.Trackers is not null)
             {

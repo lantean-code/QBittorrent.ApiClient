@@ -17,7 +17,7 @@ namespace QBittorrent.ApiClient
         {
             if (_compatibilityProfileCache.TryGetValue(GetCompatibilityProfileCacheKey(), out var compatibilityProfile))
             {
-                return ApiResult<string>.Success(compatibilityProfile.WebApiVersion.ToString());
+                return ApiResult.CreateSuccess(compatibilityProfile.WebApiVersion.ToString());
             }
 
             var result = await GetRawApiVersionAsync(cancellationToken);
@@ -51,9 +51,14 @@ namespace QBittorrent.ApiClient
                 .ToArray() ?? [];
 
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (!profileResult.TryGetValue(out var profile))
+            if (profileResult.IsFailure)
             {
                 return profileResult.Failure.ToResult<IReadOnlyDictionary<string, JsonElement>>();
+            }
+
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
             }
 
             if (!profile.SupportsClientData)
@@ -103,9 +108,14 @@ namespace QBittorrent.ApiClient
             }
 
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (!profileResult.TryGetValue(out var profile))
+            if (profileResult.IsFailure)
             {
                 return profileResult.Failure.ToResult();
+            }
+
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
             }
 
             if (!profile.SupportsClientData)
@@ -171,9 +181,14 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult<ProcessInfo>> GetProcessInfoAsync(CancellationToken cancellationToken = default)
         {
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (!profileResult.TryGetValue(out var profile))
+            if (profileResult.IsFailure)
             {
                 return profileResult.Failure.ToResult<ProcessInfo>();
+            }
+
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
             }
 
             if (!profile.SupportsProcessInfo)
@@ -239,9 +254,14 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult<ApiKey>> RotateAPIKeyAsync(CancellationToken cancellationToken = default)
         {
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (!profileResult.TryGetValue(out var profile))
+            if (profileResult.IsFailure)
             {
                 return profileResult.Failure.ToResult<ApiKey>();
+            }
+
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
             }
 
             if (!profile.SupportsApiKeyManagement)
@@ -261,9 +281,14 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult> DeleteAPIKeyAsync(CancellationToken cancellationToken = default)
         {
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (!profileResult.TryGetValue(out var profile))
+            if (profileResult.IsFailure)
             {
                 return profileResult.Failure.ToResult();
+            }
+
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
             }
 
             if (!profile.SupportsApiKeyManagement)
@@ -299,9 +324,14 @@ namespace QBittorrent.ApiClient
             ArgumentException.ThrowIfNullOrWhiteSpace(directoryPath);
 
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (!profileResult.TryGetValue(out var profile))
+            if (profileResult.IsFailure)
             {
                 return profileResult.Failure.ToResult<IReadOnlyList<DirectoryContentEntry>>();
+            }
+
+            if (!profileResult.TryGetValue(out var profile))
+            {
+                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
             }
 
             if (!profile.SupportsDirectoryContentMetadata)

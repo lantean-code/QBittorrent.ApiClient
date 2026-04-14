@@ -13,23 +13,33 @@ namespace QBittorrent.ApiClient
         /// <param name="apiClient">The API client.</param>
         /// <param name="hash">The torrent hash.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A task that returns the matching torrent, or <see langword="null" /> when no torrent matches.</returns>
-        public static async Task<ApiResult<Torrent?>> GetTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
+        /// <returns>A task that returns the matching torrent.</returns>
+        public static async Task<ApiResult<Torrent>> GetTorrentAsync(this IApiClient apiClient, string hash, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(apiClient);
 
             var torrents = await apiClient.GetTorrentListAsync(selector: TorrentSelector.FromHash(hash), cancellationToken: cancellationToken);
+            if (torrents.IsFailure)
+            {
+                return torrents.Failure.ToResult<Torrent>();
+            }
+
             if (!torrents.TryGetValue(out var torrentList))
             {
-                return torrents.Failure.ToResult<Torrent?>();
+                throw new InvalidOperationException("Expected a completed torrent-list result.");
             }
 
             if (torrentList.Count == 0)
             {
-                return ApiResult<Torrent?>.Success(null);
+                return new ApiFailure
+                {
+                    Kind = ApiFailureKind.NotFound,
+                    Operation = nameof(GetTorrentAsync),
+                    UserMessage = "The torrent could not be found.",
+                }.ToResult<Torrent>();
             }
 
-            return ApiResult<Torrent?>.Success(torrentList[0]);
+            return ApiResult.CreateSuccess(torrentList[0]);
         }
 
         /// <summary>
@@ -44,14 +54,24 @@ namespace QBittorrent.ApiClient
 
             var torrents = await apiClient.GetTorrentListAsync(cancellationToken: cancellationToken);
             var categories = await apiClient.GetAllCategoriesAsync(cancellationToken);
-            if (!torrents.TryGetValue(out var torrentList))
+            if (torrents.IsFailure)
             {
                 return torrents.Failure.ToResult<IEnumerable<string>>();
             }
 
-            if (!categories.TryGetValue(out var categoryDictionary))
+            if (categories.IsFailure)
             {
                 return categories.Failure.ToResult<IEnumerable<string>>();
+            }
+
+            if (!torrents.TryGetValue(out var torrentList))
+            {
+                throw new InvalidOperationException("Expected a completed torrent-list result.");
+            }
+
+            if (!categories.TryGetValue(out var categoryDictionary))
+            {
+                throw new InvalidOperationException("Expected a completed categories result.");
             }
 
             var selectedCategories = torrentList.Select(t => t.Category).Distinct().ToList();
@@ -59,12 +79,12 @@ namespace QBittorrent.ApiClient
             var unusedCategories = categoryDictionary.Values.Select(v => v.Name).Except(selectedCategories).Where(v => v is not null).Select(v => v!).ToArray();
 
             var removeResult = await apiClient.RemoveCategoriesAsync(unusedCategories, cancellationToken);
-            if (!removeResult.IsSuccess)
+            if (removeResult.IsFailure)
             {
                 return removeResult.Failure.ToResult<IEnumerable<string>>();
             }
 
-            return ApiResult<IEnumerable<string>>.Success(unusedCategories);
+            return ApiResult.CreateSuccess<IEnumerable<string>>(unusedCategories);
         }
 
         /// <summary>
@@ -79,14 +99,24 @@ namespace QBittorrent.ApiClient
 
             var torrents = await apiClient.GetTorrentListAsync(cancellationToken: cancellationToken);
             var tags = await apiClient.GetAllTagsAsync(cancellationToken);
-            if (!torrents.TryGetValue(out var torrentList))
+            if (torrents.IsFailure)
             {
                 return torrents.Failure.ToResult<IEnumerable<string>>();
             }
 
-            if (!tags.TryGetValue(out var tagList))
+            if (tags.IsFailure)
             {
                 return tags.Failure.ToResult<IEnumerable<string>>();
+            }
+
+            if (!torrents.TryGetValue(out var torrentList))
+            {
+                throw new InvalidOperationException("Expected a completed torrent-list result.");
+            }
+
+            if (!tags.TryGetValue(out var tagList))
+            {
+                throw new InvalidOperationException("Expected a completed tags result.");
             }
 
             var selectedTags = torrentList.Where(t => t.Tags is not null).SelectMany(t => t.Tags!).Distinct().ToList();
@@ -94,12 +124,12 @@ namespace QBittorrent.ApiClient
             var unusedTags = tagList.Except(selectedTags).ToArray();
 
             var deleteResult = await apiClient.DeleteTagsAsync(unusedTags, cancellationToken);
-            if (!deleteResult.IsSuccess)
+            if (deleteResult.IsFailure)
             {
                 return deleteResult.Failure.ToResult<IEnumerable<string>>();
             }
 
-            return ApiResult<IEnumerable<string>>.Success(unusedTags);
+            return ApiResult.CreateSuccess<IEnumerable<string>>(unusedTags);
         }
     }
 }
