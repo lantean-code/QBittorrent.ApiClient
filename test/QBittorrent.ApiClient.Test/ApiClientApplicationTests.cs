@@ -1105,7 +1105,7 @@ namespace QBittorrent.ApiClient.Test
                         "disk_io_read_mode": 0,
                         "disk_io_type": 3,
                         "disk_io_write_mode": 1,
-                        "dyndns_service": 1,
+                        "dyndns_service": -1,
                         "encryption": 2,
                         "hostname_cache_ttl": 300,
                         "lsd": true,
@@ -1133,7 +1133,7 @@ namespace QBittorrent.ApiClient.Test
             result.DiskIoReadMode.Should().Be(DiskIoReadMode.DisableOsCache);
             result.DiskIoType.Should().Be(DiskIoType.SimplePreadPwrite);
             result.DiskIoWriteMode.Should().Be(DiskIoWriteMode.EnableOsCache);
-            result.DyndnsService.Should().Be(DyndnsService.NoIp);
+            result.DyndnsService.Should().Be(DyndnsService.None);
             result.Encryption.Should().Be(EncryptionMode.DisableEncryption);
             result.HostnameCacheTtl.Should().Be(300);
             result.Lsd.Should().BeTrue();
@@ -1225,7 +1225,7 @@ namespace QBittorrent.ApiClient.Test
                 json.Should().Contain("\"disk_io_read_mode\":1");
                 json.Should().Contain("\"disk_io_type\":2");
                 json.Should().Contain("\"disk_io_write_mode\":2");
-                json.Should().Contain("\"dyndns_service\":0");
+                json.Should().Contain("\"dyndns_service\":-1");
                 json.Should().Contain("\"encryption\":1");
                 json.Should().Contain("\"hostname_cache_ttl\":300");
                 json.Should().Contain("\"lsd\":true");
@@ -1255,7 +1255,7 @@ namespace QBittorrent.ApiClient.Test
                 DiskIoReadMode = DiskIoReadMode.EnableOsCache,
                 DiskIoType = DiskIoType.PosixCompliant,
                 DiskIoWriteMode = DiskIoWriteMode.WriteThrough,
-                DyndnsService = DyndnsService.DynDns,
+                DyndnsService = DyndnsService.None,
                 Encryption = EncryptionMode.RequireEncryption,
                 HostnameCacheTtl = 300,
                 Lsd = true,

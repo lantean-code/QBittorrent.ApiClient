@@ -12,114 +12,114 @@ namespace QBittorrent.ApiClient.Models
         /// qBittorrent could not determine the torrent state.
         /// </summary>
         [JsonStringEnumMemberName("unknown")]
-        Unknown,
+        Unknown = -1,
 
         /// <summary>
         /// The torrent is force-started and downloading.
         /// </summary>
         [JsonStringEnumMemberName("forcedDL")]
-        ForcedDownloading,
+        ForcedDownloading = 0,
 
         /// <summary>
         /// The torrent is downloading.
         /// </summary>
         [JsonStringEnumMemberName("downloading")]
-        Downloading,
+        Downloading = 1,
 
         /// <summary>
         /// The torrent is force-started and downloading metadata.
         /// </summary>
         [JsonStringEnumMemberName("forcedMetaDL")]
-        ForcedDownloadingMetadata,
+        ForcedDownloadingMetadata = 2,
 
         /// <summary>
         /// The torrent is downloading metadata.
         /// </summary>
         [JsonStringEnumMemberName("metaDL")]
-        DownloadingMetadata,
+        DownloadingMetadata = 3,
 
         /// <summary>
         /// The torrent is stalled while downloading.
         /// </summary>
         [JsonStringEnumMemberName("stalledDL")]
-        StalledDownloading,
+        StalledDownloading = 4,
 
         /// <summary>
         /// The torrent is force-started and uploading.
         /// </summary>
         [JsonStringEnumMemberName("forcedUP")]
-        ForcedUploading,
+        ForcedUploading = 5,
 
         /// <summary>
         /// The torrent is uploading.
         /// </summary>
         [JsonStringEnumMemberName("uploading")]
-        Uploading,
+        Uploading = 6,
 
         /// <summary>
         /// The torrent is stalled while uploading.
         /// </summary>
         [JsonStringEnumMemberName("stalledUP")]
-        StalledUploading,
+        StalledUploading = 7,
 
         /// <summary>
         /// qBittorrent is checking the torrent resume data.
         /// </summary>
         [JsonStringEnumMemberName("checkingResumeData")]
-        CheckingResumeData,
+        CheckingResumeData = 8,
 
         /// <summary>
         /// The torrent is queued for downloading.
         /// </summary>
         [JsonStringEnumMemberName("queuedDL")]
-        QueuedDownloading,
+        QueuedDownloading = 9,
 
         /// <summary>
         /// The torrent is queued for uploading.
         /// </summary>
         [JsonStringEnumMemberName("queuedUP")]
-        QueuedUploading,
+        QueuedUploading = 10,
 
         /// <summary>
         /// qBittorrent is checking an uploading torrent.
         /// </summary>
         [JsonStringEnumMemberName("checkingUP")]
-        CheckingUploading,
+        CheckingUploading = 11,
 
         /// <summary>
         /// qBittorrent is checking a downloading torrent.
         /// </summary>
         [JsonStringEnumMemberName("checkingDL")]
-        CheckingDownloading,
+        CheckingDownloading = 12,
 
         /// <summary>
         /// The torrent is stopped before completion.
         /// </summary>
         [JsonStringEnumMemberName("stoppedDL")]
-        StoppedDownloading,
+        StoppedDownloading = 13,
 
         /// <summary>
         /// The torrent is stopped after completion.
         /// </summary>
         [JsonStringEnumMemberName("stoppedUP")]
-        StoppedUploading,
+        StoppedUploading = 14,
 
         /// <summary>
         /// The torrent content is being moved.
         /// </summary>
         [JsonStringEnumMemberName("moving")]
-        Moving,
+        Moving = 15,
 
         /// <summary>
         /// The torrent has missing files.
         /// </summary>
         [JsonStringEnumMemberName("missingFiles")]
-        MissingFiles,
+        MissingFiles = 16,
 
         /// <summary>
         /// The torrent is in an error state.
         /// </summary>
         [JsonStringEnumMemberName("error")]
-        Error
+        Error = 17
     }
 }

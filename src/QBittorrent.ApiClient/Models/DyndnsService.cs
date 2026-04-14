@@ -6,6 +6,11 @@ namespace QBittorrent.ApiClient.Models
     public enum DyndnsService
     {
         /// <summary>
+        /// Disables dynamic DNS service updates.
+        /// </summary>
+        None = -1,
+
+        /// <summary>
         /// Uses the DynDNS service.
         /// </summary>
         DynDns = 0,

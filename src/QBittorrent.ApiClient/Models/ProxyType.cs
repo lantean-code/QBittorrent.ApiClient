@@ -11,24 +11,24 @@ namespace QBittorrent.ApiClient.Models
         /// <summary>
         /// Disables proxy usage.
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
         /// Uses an HTTP proxy.
         /// </summary>
         [JsonStringEnumMemberName("HTTP")]
-        Http,
+        Http = 1,
 
         /// <summary>
         /// Uses a SOCKS5 proxy.
         /// </summary>
         [JsonStringEnumMemberName("SOCKS5")]
-        Socks5,
+        Socks5 = 2,
 
         /// <summary>
         /// Uses a SOCKS4 proxy.
         /// </summary>
         [JsonStringEnumMemberName("SOCKS4")]
-        Socks4
+        Socks4 = 5
     }
 }
