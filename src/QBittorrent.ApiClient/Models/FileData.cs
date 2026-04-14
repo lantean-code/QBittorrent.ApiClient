@@ -17,7 +17,7 @@ namespace QBittorrent.ApiClient.Models
             long size,
             double progress,
             Priority priority,
-            bool isSeed,
+            bool? isSeed,
             IReadOnlyList<int> pieceRange,
             double availability)
         {
@@ -62,10 +62,10 @@ namespace QBittorrent.ApiClient.Models
         public Priority Priority { get; }
 
         /// <summary>
-        /// Gets a value indicating whether seed.
+        /// Gets a value indicating whether the torrent is seeding or complete, when reported by qBittorrent.
         /// </summary>
         [JsonPropertyName("is_seed")]
-        public bool IsSeed { get; }
+        public bool? IsSeed { get; }
 
         /// <summary>
         /// Gets the piece range.

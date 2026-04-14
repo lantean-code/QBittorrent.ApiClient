@@ -297,7 +297,6 @@ namespace QBittorrent.ApiClient.Test
                                         "size": 38,
                                         "progress": 0.4,
                                         "priority": 1,
-                                        "is_seed": true,
                                         "piece_range": [ 2, 3 ],
                                         "availability": 1.7
                                     }
@@ -387,7 +386,7 @@ namespace QBittorrent.ApiClient.Test
             torrent.Files[0].Size.Should().Be(38);
             torrent.Files[0].Progress.Should().Be(0.4);
             torrent.Files[0].Priority.Should().Be(Priority.Normal);
-            torrent.Files[0].IsSeed.Should().BeTrue();
+            torrent.Files[0].IsSeed.Should().BeNull();
             torrent.Files[0].PieceRange.Should().BeEquivalentTo([2, 3]);
             torrent.Files[0].Availability.Should().Be(1.7);
         }
@@ -923,6 +922,37 @@ namespace QBittorrent.ApiClient.Test
             result[0].IsSeed.Should().BeTrue();
             result[0].PieceRange.Should().BeEquivalentTo([2, 5]);
             result[0].Availability.Should().Be(1.2);
+        }
+
+        [Fact]
+        public async Task GIVEN_FileDataPayloadWithoutIsSeed_WHEN_GetTorrentContents_THEN_ShouldDeserializeIsSeedAsNull()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                req.Method.Should().Be(HttpMethod.Get);
+                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""
+                        [
+                            {
+                                "index": 1,
+                                "name": "FileName",
+                                "size": 1000,
+                                "progress": 0.5,
+                                "priority": 7,
+                                "piece_range": [2, 5],
+                                "availability": 1.2
+                            }
+                        ]
+                        """)
+                });
+            };
+
+            var result = (await _target.GetTorrentContentsAsync("abc", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().ContainSingle();
+            result[0].IsSeed.Should().BeNull();
         }
 
         [Fact]

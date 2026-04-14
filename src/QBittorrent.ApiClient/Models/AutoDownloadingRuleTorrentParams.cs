@@ -119,7 +119,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets or sets a value indicating whether automatic torrent management is enabled.
         /// </summary>
         [JsonPropertyName("use_auto_tmm")]
-        public bool UseAutoTmm { get; set; }
+        public bool? UseAutoTmm { get; set; }
 
         /// <summary>
         /// Gets or sets the content layout.

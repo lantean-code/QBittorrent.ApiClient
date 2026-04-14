@@ -613,6 +613,7 @@ namespace QBittorrent.ApiClient.Test
                 var torrentParams = jsonDocument.RootElement.GetProperty("torrentParams");
                 torrentParams.GetProperty("use_download_path").GetBoolean().Should().BeTrue();
                 torrentParams.GetProperty("add_to_top_of_queue").GetBoolean().Should().BeFalse();
+                torrentParams.GetProperty("use_auto_tmm").GetBoolean().Should().BeFalse();
                 torrentParams.GetProperty("ssl_certificate").GetString().Should().Be("cert");
                 torrentParams.GetProperty("ssl_private_key").GetString().Should().Be("key");
                 torrentParams.GetProperty("ssl_dh_params").GetString().Should().Be("dh");
@@ -626,6 +627,7 @@ namespace QBittorrent.ApiClient.Test
                 {
                     UseDownloadPath = true,
                     AddToTopOfQueue = false,
+                    UseAutoTmm = false,
                     SslCertificate = "cert",
                     SslPrivateKey = "key",
                     SslDhParams = "dh"
@@ -747,6 +749,28 @@ namespace QBittorrent.ApiClient.Test
             torrentParams.SslCertificate.Should().Be("cert");
             torrentParams.SslPrivateKey.Should().Be("key");
             torrentParams.SslDhParams.Should().Be("dh");
+        }
+
+        [Fact]
+        public async Task GIVEN_RuleWithOptionalTorrentParamsOmitted_WHEN_GetAllRssAutoDownloadingRules_THEN_ShouldDeserializeNullOptionalValues()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""
+                    {
+                        "rule1":
+                        {
+                            "torrentParams":
+                            {
+                            }
+                        }
+                    }
+                    """)
+            });
+
+            var dict = (await _target.GetAllRssAutoDownloadingRulesAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            dict["rule1"].TorrentParams.UseAutoTmm.Should().BeNull();
         }
 
         [Fact]
