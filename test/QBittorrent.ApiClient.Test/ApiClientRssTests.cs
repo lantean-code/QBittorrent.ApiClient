@@ -552,7 +552,7 @@ namespace QBittorrent.ApiClient.Test
 
             var rule = new AutoDownloadingRule
             {
-                TorrentParams = new TorrentParams
+                TorrentParams = new AutoDownloadingRuleTorrentParams
                 {
                     RatioLimit = 1.23456789012345
                 }
@@ -575,6 +575,8 @@ namespace QBittorrent.ApiClient.Test
                 json.Should().Contain("\"torrentContentLayout\":\"Subfolder\"");
                 json.Should().Contain("\"operating_mode\":\"Forced\"");
                 json.Should().Contain("\"content_layout\":\"NoSubfolder\"");
+                json.Should().Contain("\"stop_condition\":\"FilesChecked\"");
+                json.Should().Contain("\"share_limit_action\":\"RemoveWithContent\"");
                 json.Should().NotContain("\"operating_mode\":1");
                 json.Should().NotContain("\"content_layout\":2");
 
@@ -584,10 +586,49 @@ namespace QBittorrent.ApiClient.Test
             var rule = new AutoDownloadingRule
             {
                 TorrentContentLayout = TorrentContentLayout.Subfolder,
-                TorrentParams = new TorrentParams
+                TorrentParams = new AutoDownloadingRuleTorrentParams
                 {
                     OperatingMode = TorrentOperatingMode.Forced,
-                    ContentLayout = TorrentContentLayout.NoSubfolder
+                    ContentLayout = TorrentContentLayout.NoSubfolder,
+                    StopCondition = StopCondition.FilesChecked,
+                    ShareLimitAction = ShareLimitAction.RemoveWithContent
+                }
+            };
+
+            (await _target.SetRssAutoDownloadingRuleAsync("r1", rule, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_RuleWithCompleteTorrentParams_WHEN_SetRssAutoDownloadingRule_THEN_ShouldSerializeQbittorrentTorrentParams()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                req.Method.Should().Be(HttpMethod.Post);
+                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
+
+                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var json = decoded["ruleName=r1&ruleDef=".Length..];
+
+                using var jsonDocument = System.Text.Json.JsonDocument.Parse(json);
+                var torrentParams = jsonDocument.RootElement.GetProperty("torrentParams");
+                torrentParams.GetProperty("use_download_path").GetBoolean().Should().BeTrue();
+                torrentParams.GetProperty("add_to_top_of_queue").GetBoolean().Should().BeFalse();
+                torrentParams.GetProperty("ssl_certificate").GetString().Should().Be("cert");
+                torrentParams.GetProperty("ssl_private_key").GetString().Should().Be("key");
+                torrentParams.GetProperty("ssl_dh_params").GetString().Should().Be("dh");
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            var rule = new AutoDownloadingRule
+            {
+                TorrentParams = new AutoDownloadingRuleTorrentParams
+                {
+                    UseDownloadPath = true,
+                    AddToTopOfQueue = false,
+                    SslCertificate = "cert",
+                    SslPrivateKey = "key",
+                    SslDhParams = "dh"
                 }
             };
 
@@ -642,6 +683,70 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(
                 kind: ApiFailureKind.UnexpectedResponse,
                 userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_RuleWithQbittorrentTorrentParams_WHEN_GetAllRssAutoDownloadingRules_THEN_ShouldDeserializeTorrentParams()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""
+                    {
+                        "rule1":
+                        {
+                            "torrentParams":
+                            {
+                                "category": "category",
+                                "tags": ["tag"],
+                                "save_path": "/save",
+                                "use_download_path": true,
+                                "download_path": "/download",
+                                "operating_mode": "Forced",
+                                "add_to_top_of_queue": false,
+                                "stopped": true,
+                                "stop_condition": "FilesChecked",
+                                "skip_checking": true,
+                                "content_layout": "NoSubfolder",
+                                "use_auto_tmm": true,
+                                "upload_limit": 10,
+                                "download_limit": 20,
+                                "seeding_time_limit": 30,
+                                "inactive_seeding_time_limit": 40,
+                                "share_limit_action": "RemoveWithContent",
+                                "ratio_limit": 1.5,
+                                "ssl_certificate": "cert",
+                                "ssl_private_key": "key",
+                                "ssl_dh_params": "dh"
+                            }
+                        }
+                    }
+                    """)
+            });
+
+            var dict = (await _target.GetAllRssAutoDownloadingRulesAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            var torrentParams = dict["rule1"].TorrentParams;
+            torrentParams.Category.Should().Be("category");
+            torrentParams.Tags.Should().Equal("tag");
+            torrentParams.SavePath.Should().Be("/save");
+            torrentParams.UseDownloadPath.Should().BeTrue();
+            torrentParams.DownloadPath.Should().Be("/download");
+            torrentParams.OperatingMode.Should().Be(TorrentOperatingMode.Forced);
+            torrentParams.AddToTopOfQueue.Should().BeFalse();
+            torrentParams.Stopped.Should().BeTrue();
+            torrentParams.StopCondition.Should().Be(StopCondition.FilesChecked);
+            torrentParams.SkipChecking.Should().BeTrue();
+            torrentParams.ContentLayout.Should().Be(TorrentContentLayout.NoSubfolder);
+            torrentParams.UseAutoTmm.Should().BeTrue();
+            torrentParams.UploadLimit.Should().Be(10);
+            torrentParams.DownloadLimit.Should().Be(20);
+            torrentParams.SeedingTimeLimit.Should().Be(30);
+            torrentParams.InactiveSeedingTimeLimit.Should().Be(40);
+            torrentParams.ShareLimitAction.Should().Be(ShareLimitAction.RemoveWithContent);
+            torrentParams.RatioLimit.Should().Be(1.5);
+            torrentParams.SslCertificate.Should().Be("cert");
+            torrentParams.SslPrivateKey.Should().Be("key");
+            torrentParams.SslDhParams.Should().Be("dh");
         }
 
         [Fact]

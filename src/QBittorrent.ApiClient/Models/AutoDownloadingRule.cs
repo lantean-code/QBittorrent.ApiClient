@@ -111,7 +111,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets or sets the torrent params.
         /// </summary>
         [JsonPropertyName("torrentParams")]
-        public TorrentParams TorrentParams { get; set; }
+        public AutoDownloadingRuleTorrentParams TorrentParams { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether regex is used.

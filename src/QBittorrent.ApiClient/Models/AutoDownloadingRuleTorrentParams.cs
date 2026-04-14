@@ -3,14 +3,14 @@ using System.Text.Json.Serialization;
 namespace QBittorrent.ApiClient.Models
 {
     /// <summary>
-    /// Represents shared torrent parameters used by qBittorrent features.
+    /// Represents torrent parameters used by RSS auto-downloading rules.
     /// </summary>
-    public record TorrentParams
+    public record AutoDownloadingRuleTorrentParams
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="TorrentParams" /> class.
+        /// Initializes a new instance of the <see cref="AutoDownloadingRuleTorrentParams" /> class.
         /// </summary>
-        public TorrentParams()
+        public AutoDownloadingRuleTorrentParams()
         {
             Category = "";
             DownloadPath = "";
@@ -37,6 +37,12 @@ namespace QBittorrent.ApiClient.Models
         public string DownloadPath { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the download path is used.
+        /// </summary>
+        [JsonPropertyName("use_download_path")]
+        public bool? UseDownloadPath { get; set; }
+
+        /// <summary>
         /// Gets or sets the inactive seeding time limit in minutes.
         /// </summary>
         [JsonPropertyName("inactive_seeding_time_limit")]
@@ -49,10 +55,23 @@ namespace QBittorrent.ApiClient.Models
         public TorrentOperatingMode OperatingMode { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether the torrent is added to the top of the queue.
+        /// </summary>
+        [JsonPropertyName("add_to_top_of_queue")]
+        public bool? AddToTopOfQueue { get; set; }
+
+        /// <summary>
         /// Gets or sets the share ratio limit as a unitless ratio value.
         /// </summary>
         [JsonPropertyName("ratio_limit")]
         public double? RatioLimit { get; set; }
+
+        /// <summary>
+        /// Gets or sets the action to take when the share limits are reached.
+        /// </summary>
+        [JsonPropertyName("share_limit_action")]
+        [JsonConverter(typeof(JsonStringEnumConverter<ShareLimitAction>))]
+        public ShareLimitAction? ShareLimitAction { get; set; }
 
         /// <summary>
         /// Gets or sets the save path.
@@ -79,6 +98,12 @@ namespace QBittorrent.ApiClient.Models
         public bool? Stopped { get; set; }
 
         /// <summary>
+        /// Gets or sets the condition that stops the torrent after it is added.
+        /// </summary>
+        [JsonPropertyName("stop_condition")]
+        public StopCondition? StopCondition { get; set; }
+
+        /// <summary>
         /// Gets or sets the torrent tags.
         /// </summary>
         [JsonPropertyName("tags")]
@@ -101,5 +126,23 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("content_layout")]
         public TorrentContentLayout? ContentLayout { get; set; }
+
+        /// <summary>
+        /// Gets or sets the SSL certificate.
+        /// </summary>
+        [JsonPropertyName("ssl_certificate")]
+        public string? SslCertificate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the SSL private key.
+        /// </summary>
+        [JsonPropertyName("ssl_private_key")]
+        public string? SslPrivateKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the SSL Diffie-Hellman parameters.
+        /// </summary>
+        [JsonPropertyName("ssl_dh_params")]
+        public string? SslDhParams { get; set; }
     }
 }

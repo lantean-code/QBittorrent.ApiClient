@@ -9,6 +9,7 @@ namespace QBittorrent.ApiClient
     [JsonSerializable(typeof(ApiKey))]
     [JsonSerializable(typeof(ApplicationCookie))]
     [JsonSerializable(typeof(AutoDownloadingRule))]
+    [JsonSerializable(typeof(AutoDownloadingRuleTorrentParams))]
     [JsonSerializable(typeof(BuildInfo))]
     [JsonSerializable(typeof(Category))]
     [JsonSerializable(typeof(DirectoryContentEntry))]
