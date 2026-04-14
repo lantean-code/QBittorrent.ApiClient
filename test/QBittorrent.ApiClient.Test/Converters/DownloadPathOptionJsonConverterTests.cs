@@ -50,8 +50,8 @@ namespace QBittorrent.ApiClient.Test.Converters
             var result = JsonSerializer.Deserialize<DownloadPathOption>(json, options);
 
             result.Should().NotBeNull();
-            result!.Enabled.Should().BeFalse();
-            result.Path.Should().BeNull();
+            result?.Enabled.Should().BeFalse();
+            result?.Path.Should().BeNull();
         }
 
         [Fact]
@@ -63,8 +63,8 @@ namespace QBittorrent.ApiClient.Test.Converters
             var result = JsonSerializer.Deserialize<DownloadPathOption>(json, options);
 
             result.Should().NotBeNull();
-            result!.Enabled.Should().BeTrue();
-            result.Path.Should().BeNull();
+            result?.Enabled.Should().BeTrue();
+            result?.Path.Should().BeNull();
         }
 
         [Fact]
@@ -76,8 +76,8 @@ namespace QBittorrent.ApiClient.Test.Converters
             var result = JsonSerializer.Deserialize<DownloadPathOption>(json, options);
 
             result.Should().NotBeNull();
-            result!.Enabled.Should().BeTrue();
-            result.Path.Should().Be("/downloads");
+            result?.Enabled.Should().BeTrue();
+            result?.Path.Should().Be("/downloads");
         }
 
         [Fact]
@@ -86,7 +86,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var options = CreateOptions();
             var json = "123"; // number token, not supported
 
-            var act = () => JsonSerializer.Deserialize<DownloadPathOption>(json, options)!;
+            var act = () =>
+            {
+                JsonSerializer.Deserialize<DownloadPathOption>(json, options);
+            };
 
             var ex = act.Should().Throw<JsonException>();
             ex.Which.Message.Should().Contain("Unexpected token");
@@ -173,10 +176,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var original = new DownloadPathOption(true, "/data");
 
             var json = JsonSerializer.Serialize(original, options);
-            var round = JsonSerializer.Deserialize<DownloadPathOption>(json, options)!;
+            var round = JsonSerializer.Deserialize<DownloadPathOption>(json, options);
 
-            round.Enabled.Should().BeTrue();
-            round.Path.Should().Be("/data");
+            round?.Enabled.Should().BeTrue();
+            round?.Path.Should().Be("/data");
         }
     }
 }

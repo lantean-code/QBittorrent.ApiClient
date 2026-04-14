@@ -140,8 +140,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/transfer/setSpeedLimitsMode");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/transfer/setSpeedLimitsMode");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("mode=1");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -154,8 +154,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/transfer/setSpeedLimitsMode");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/transfer/setSpeedLimitsMode");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("mode=0");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -169,7 +169,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/transfer/toggleSpeedLimitsMode");
+                req.RequestUri?.ToString().Should().Be("http://localhost/transfer/toggleSpeedLimitsMode");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
             };
 
@@ -221,9 +221,9 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/transfer/setDownloadLimit");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/transfer/setDownloadLimit");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("limit=5000");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -276,9 +276,9 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/transfer/setUploadLimit");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/transfer/setUploadLimit");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("limit=9001");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -305,9 +305,9 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/transfer/banPeers");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/transfer/banPeers");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("peers=");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };

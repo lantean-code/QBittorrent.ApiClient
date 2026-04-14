@@ -35,10 +35,10 @@ namespace QBittorrent.ApiClient.Test
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             capturedRequest.Should().NotBeNull();
-            capturedRequest!.Method.Should().Be(HttpMethod.Post);
-            capturedRequest.RequestUri!.ToString().Should().Be("http://localhost/api/v2/test");
+            capturedRequest?.Method.Should().Be(HttpMethod.Post);
+            capturedRequest?.RequestUri?.ToString().Should().Be("http://localhost/api/v2/test");
 
-            var payload = await capturedRequest.Content!.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            var payload = await (capturedRequest?.Content).ReadAsStringOrNullAsync(TestContext.Current.CancellationToken);
             payload.Should().Be("key=value");
         }
 
@@ -63,8 +63,8 @@ namespace QBittorrent.ApiClient.Test
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             capturedRequest.Should().NotBeNull();
-            capturedRequest!.Method.Should().Be(HttpMethod.Get);
-            capturedRequest.RequestUri!.ToString().Should().Be("http://localhost/api/v2/test?first=one&second=two");
+            capturedRequest?.Method.Should().Be(HttpMethod.Get);
+            capturedRequest?.RequestUri?.ToString().Should().Be("http://localhost/api/v2/test?first=one&second=two");
         }
 
         public void Dispose()

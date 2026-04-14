@@ -22,8 +22,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/addFolder");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("path=%2Ffeeds%2Ftv");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/addFolder");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("path=%2Ffeeds%2Ftv");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -49,8 +49,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/addFeed");
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/addFeed");
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("url=http://feed&path=");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -63,7 +63,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("url=http://feed&path=/podcasts");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -76,13 +76,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.5");
 
                     case "/rss/addFeed":
-                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                         body.Should().Be("url=http://feed&path=/podcasts&refreshInterval=60");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -101,7 +101,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
@@ -129,7 +129,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -167,8 +167,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/removeItem");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("path=%2Ffeeds%2Ftv");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/removeItem");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("path=%2Ffeeds%2Ftv");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -180,8 +180,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/moveItem");
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/moveItem");
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("itemPath=/feeds/tv&destPath=/feeds/news");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -207,8 +207,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setFeedURL");
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/setFeedURL");
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("path=/feeds/tv&url=http://example.com");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -221,13 +221,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.5");
 
                     case "/rss/setFeedRefreshInterval":
-                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                         body.Should().Be("path=/feeds/tv&refreshInterval=120");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -246,7 +246,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.4"));
@@ -274,7 +274,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -313,8 +313,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/rss/items");
-                req.RequestUri!.Query.Should().BeEmpty();
+                req.RequestUri?.AbsolutePath.Should().Be("/rss/items");
+                req.RequestUri?.Query.Should().BeEmpty();
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("{}")
@@ -332,7 +332,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/items?withData=True");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/items?withData=True");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("{}")
@@ -351,7 +351,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/items?withData=True");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/items?withData=True");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -398,16 +398,16 @@ namespace QBittorrent.ApiClient.Test
             item.Uid.Should().Be("Uid");
             item.Url.Should().Be("https://example.com/feed");
             item.Articles.Should().ContainSingle();
-            item.Articles![0].Category.Should().Be("Category");
-            item.Articles[0].Comments.Should().Be("Comments");
-            item.Articles[0].Date.Should().Be("2024-01-01");
-            item.Articles[0].Description.Should().Be("Description");
-            item.Articles[0].Id.Should().Be("ArticleId");
-            item.Articles[0].Link.Should().Be("https://example.com/article");
-            item.Articles[0].Thumbnail.Should().Be("https://example.com/image.png");
-            item.Articles[0].Title.Should().Be("Title");
-            item.Articles[0].TorrentURL.Should().Be("magnet:?xt=urn:btih:hash");
-            item.Articles[0].IsRead.Should().BeTrue();
+            item.Articles?[0].Category.Should().Be("Category");
+            item.Articles?[0].Comments.Should().Be("Comments");
+            item.Articles?[0].Date.Should().Be("2024-01-01");
+            item.Articles?[0].Description.Should().Be("Description");
+            item.Articles?[0].Id.Should().Be("ArticleId");
+            item.Articles?[0].Link.Should().Be("https://example.com/article");
+            item.Articles?[0].Thumbnail.Should().Be("https://example.com/image.png");
+            item.Articles?[0].Title.Should().Be("Title");
+            item.Articles?[0].TorrentURL.Should().Be("magnet:?xt=urn:btih:hash");
+            item.Articles?[0].IsRead.Should().BeTrue();
         }
 
         [Fact]
@@ -416,7 +416,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/items?withData=True");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/items?withData=True");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -477,8 +477,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/markAsRead");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("itemPath=%2Ffeeds%2Ftv");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/markAsRead");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("itemPath=%2Ffeeds%2Ftv");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -490,7 +490,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("itemPath=/feeds/tv&articleId=a1");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -503,8 +503,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/refreshItem");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("itemPath=%2Ffeeds%2Ftv");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/refreshItem");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("itemPath=%2Ffeeds%2Ftv");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -517,12 +517,12 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/setRule");
 
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().StartWith("ruleName=r1&ruleDef=");
 
-                var json = decoded["ruleName=r1&ruleDef=".Length..];
+                var json = decoded?.Substring("ruleName=r1&ruleDef=".Length);
                 var expectedJson = System.Text.Json.JsonSerializer.Serialize(new AutoDownloadingRule(), SerializerOptions.Options);
 
                 json.Should().Be(expectedJson);
@@ -539,10 +539,10 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/setRule");
 
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
-                var json = decoded["ruleName=r1&ruleDef=".Length..];
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
+                var json = decoded?.Substring("ruleName=r1&ruleDef=".Length);
 
                 json.Should().Contain("\"ratio_limit\":1.23456789012345");
                 json.Should().NotContain("\"ratio_limit\":\"1.23456789012345\"");
@@ -567,10 +567,10 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/setRule");
 
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
-                var json = decoded["ruleName=r1&ruleDef=".Length..];
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
+                var json = decoded?.Substring("ruleName=r1&ruleDef=".Length);
 
                 json.Should().Contain("\"torrentContentLayout\":\"Subfolder\"");
                 json.Should().Contain("\"operating_mode\":\"Forced\"");
@@ -604,10 +604,15 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/setRule");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/setRule");
 
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
-                var json = decoded["ruleName=r1&ruleDef=".Length..];
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
+                var json = decoded?.Substring("ruleName=r1&ruleDef=".Length);
+                json.Should().NotBeNull();
+                if (json is null)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                }
 
                 using var jsonDocument = System.Text.Json.JsonDocument.Parse(json);
                 var torrentParams = jsonDocument.RootElement.GetProperty("torrentParams");
@@ -642,8 +647,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/renameRule");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("ruleName=old&newRuleName=new");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/renameRule");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("ruleName=old&newRuleName=new");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -655,8 +660,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/removeRule");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("ruleName=dead");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/removeRule");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("ruleName=dead");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -779,7 +784,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/rss/matchingArticles?ruleName=myrule");
+                req.RequestUri?.ToString().Should().Be("http://localhost/rss/matchingArticles?ruleName=myrule");
 
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {

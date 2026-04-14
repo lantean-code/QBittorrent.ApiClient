@@ -25,10 +25,10 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/addWebSeeds");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/addWebSeeds");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
 
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hash=h123&urls=a%7Cb%7Cc");
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
@@ -56,8 +56,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/removeWebSeeds");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/removeWebSeeds");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hash=h1&urls=http%3A%2F%2Fe1%7Chttp%3A%2F%2Fe2");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -84,8 +84,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/editWebSeed");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/editWebSeed");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hash=hx&origUrl=old%2Furl&newUrl=new%2Furl");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -111,8 +111,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/stop");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/stop");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -125,7 +125,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=all");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -138,8 +138,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/start");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/start");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=a%7Cb%7Cc");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -152,8 +152,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/delete");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/delete");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=a%7Cb&deleteFiles=true");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -166,7 +166,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=all&deleteFiles=false");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -192,8 +192,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/recheck");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/recheck");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1%7Ch2");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -206,8 +206,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/reannounce");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/reannounce");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=all");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -220,7 +220,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.10"));
@@ -243,7 +243,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
@@ -271,7 +271,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -311,7 +311,7 @@ namespace QBittorrent.ApiClient.Test
 
         private static async Task<HttpResponseMessage> AssertReannounceRequestAsyncCore(HttpRequestMessage request, string expectedBody)
         {
-            var body = await request.Content!.ReadAsStringAsync(TestContext.Current.CancellationToken);
+            var body = await request.Content.ReadAsStringOrNullAsync(TestContext.Current.CancellationToken);
             body.Should().Be(expectedBody);
             return new HttpResponseMessage(HttpStatusCode.OK);
         }

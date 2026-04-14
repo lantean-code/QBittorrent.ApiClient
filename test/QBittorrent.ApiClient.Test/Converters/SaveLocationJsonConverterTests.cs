@@ -61,7 +61,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var options = CreateOptions();
             var json = "true"; // bool token is not supported
 
-            var act = () => JsonSerializer.Deserialize<SaveLocation>(json, options)!;
+            var act = () =>
+            {
+                JsonSerializer.Deserialize<SaveLocation>(json, options);
+            };
 
             var ex = act.Should().Throw<JsonException>();
             ex.Which.Message.Should().Contain("Unsupported token type");
@@ -111,10 +114,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var original = SaveLocation.Create("/data");
 
             var json = JsonSerializer.Serialize(original, options);
-            var round = JsonSerializer.Deserialize<SaveLocation>(json, options)!;
+            var round = JsonSerializer.Deserialize<SaveLocation>(json, options);
 
-            round.Kind.Should().Be(SaveLocationKind.CustomPath);
-            round.SavePath.Should().Be("/data");
+            round?.Kind.Should().Be(SaveLocationKind.CustomPath);
+            round?.SavePath.Should().Be("/data");
         }
 
         [Fact]
@@ -124,10 +127,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var original = SaveLocation.Create(0);
 
             var json = JsonSerializer.Serialize(original, options);
-            var round = JsonSerializer.Deserialize<SaveLocation>(json, options)!;
+            var round = JsonSerializer.Deserialize<SaveLocation>(json, options);
 
-            round.Kind.Should().Be(SaveLocationKind.WatchedFolder);
-            round.SavePath.Should().BeNull();
+            round?.Kind.Should().Be(SaveLocationKind.WatchedFolder);
+            round?.SavePath.Should().BeNull();
         }
 
         [Fact]
@@ -137,10 +140,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var original = SaveLocation.Create(1);
 
             var json = JsonSerializer.Serialize(original, options);
-            var round = JsonSerializer.Deserialize<SaveLocation>(json, options)!;
+            var round = JsonSerializer.Deserialize<SaveLocation>(json, options);
 
-            round.Kind.Should().Be(SaveLocationKind.DefaultFolder);
-            round.SavePath.Should().BeNull();
+            round?.Kind.Should().Be(SaveLocationKind.DefaultFolder);
+            round?.SavePath.Should().BeNull();
         }
     }
 }

@@ -19,8 +19,8 @@ namespace QBittorrent.ApiClient.Test
                 SerializerOptions.GetTypeInfo<BuildInfo>());
 
             result.Should().NotBeNull();
-            result!.Bitness.Should().Be(64);
-            result.Platform.Should().Be(BuildPlatform.Linux);
+            result?.Bitness.Should().Be(64);
+            result?.Platform.Should().Be(BuildPlatform.Linux);
             SerializerOptions.Context.Should().NotBeNull();
         }
 
@@ -37,10 +37,10 @@ namespace QBittorrent.ApiClient.Test
             var roundTrip = JsonSerializer.Deserialize<Dictionary<string, JsonElement?>>(json, SerializerOptions.Options);
 
             roundTrip.Should().NotBeNull();
-            roundTrip!.Should().ContainKey("QbtMud.AppSettings.State.v1");
-            roundTrip["QbtMud.AppSettings.State.v1"]!.Value.GetProperty("notifications").GetBoolean().Should().BeTrue();
-            roundTrip.Should().ContainKey("QbtMud.Search.Jobs");
-            roundTrip["QbtMud.Search.Jobs"].Should().BeNull();
+            roundTrip?.Keys.Should().Contain("QbtMud.AppSettings.State.v1");
+            roundTrip?["QbtMud.AppSettings.State.v1"]?.GetProperty("notifications").GetBoolean().Should().BeTrue();
+            roundTrip?.Keys.Should().Contain("QbtMud.Search.Jobs");
+            roundTrip?["QbtMud.Search.Jobs"].Should().BeNull();
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace QBittorrent.ApiClient.Test
                 SerializerOptions.GetTypeInfo<SearchStartResult>());
 
             result.Should().NotBeNull();
-            result!.Id.Should().Be(42);
+            result?.Id.Should().Be(42);
         }
     }
 }

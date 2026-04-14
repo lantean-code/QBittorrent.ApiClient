@@ -44,10 +44,10 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrentcreator/addTask");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrentcreator/addTask");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
 
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("sourcePath=%2Fsrc");
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
@@ -70,9 +70,15 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrentcreator/addTask");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrentcreator/addTask");
 
-                var form = await req.Content!.ReadAsStringAsync(ct);
+                var form = await req.Content.ReadAsStringOrNullAsync(ct);
+                form.Should().NotBeNull();
+                if (form is null)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                }
+
                 var parts = form.Split('&')
                     .Select(p => p.Split('='))
                     .ToDictionary(a => a[0], a => Uri.UnescapeDataString(a.Length > 1 ? a[1] : string.Empty));
@@ -124,7 +130,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                var form = await req.Content!.ReadAsStringAsync(ct);
+                var form = await req.Content.ReadAsStringOrNullAsync(ct);
+                form.Should().NotBeNull();
+                if (form is null)
+                {
+                    return new HttpResponseMessage(HttpStatusCode.BadRequest);
+                }
+
                 var parts = form.Split('&')
                     .Select(p => p.Split('='))
                     .ToDictionary(a => a[0], a => Uri.UnescapeDataString(a.Length > 1 ? a[1] : string.Empty));
@@ -232,8 +244,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrentcreator/status");
-                req.RequestUri!.Query.Should().BeEmpty();
+                req.RequestUri?.AbsolutePath.Should().Be("/torrentcreator/status");
+                req.RequestUri?.Query.Should().BeEmpty();
 
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -253,7 +265,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrentcreator/status?taskID=task-1");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrentcreator/status?taskID=task-1");
 
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -273,7 +285,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrentcreator/status");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrentcreator/status");
 
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -333,7 +345,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrentcreator/status");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrentcreator/status");
 
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -390,7 +402,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrentcreator/torrentFile?taskID=abc");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrentcreator/torrentFile?taskID=abc");
 
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
@@ -422,10 +434,10 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrentcreator/deleteTask");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrentcreator/deleteTask");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
 
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("taskID=abc");
 
                 return new HttpResponseMessage(HttpStatusCode.OK);

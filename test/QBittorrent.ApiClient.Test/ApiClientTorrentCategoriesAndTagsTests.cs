@@ -63,8 +63,8 @@ namespace QBittorrent.ApiClient.Test
             result["Movies"].Name.Should().Be("Movies");
             result["Movies"].SavePath.Should().Be("/downloads/movies");
             result["Movies"].DownloadPath.Should().NotBeNull();
-            result["Movies"].DownloadPath!.Enabled.Should().BeTrue();
-            result["Movies"].DownloadPath!.Path.Should().Be("/downloads/incomplete");
+            result["Movies"].DownloadPath?.Enabled.Should().BeTrue();
+            result["Movies"].DownloadPath?.Path.Should().Be("/downloads/incomplete");
         }
 
         [Fact]
@@ -72,8 +72,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/createCategory");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/createCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("category=Movies&savePath=%2Fdata");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -86,8 +86,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/createCategory");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/createCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("category=Shows&savePath=%2Ftv&downloadPathEnabled=true&downloadPath=%2Ftemp");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -100,8 +100,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/editCategory");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/editCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("category=Shows&savePath=%2Ftv");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -114,8 +114,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/editCategory");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/editCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("category=Music&savePath=%2Fmusic&downloadPathEnabled=false");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -128,8 +128,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/editCategory");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/editCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("category=Books&savePath=%2Fbooks&downloadPathEnabled=true");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -142,8 +142,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/editCategory");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/editCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("category=Books&savePath=%2Fbooks&downloadPathEnabled=true&downloadPath=%2Fincomplete");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -169,8 +169,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/removeCategories");
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/removeCategories");
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("categories=a\nb\nc");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -183,8 +183,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/addTags");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/addTags");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1%7Ch2&tags=one%2Ctwo%2Cthree");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -197,8 +197,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setTags");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setTags");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=all&tags=a%2Cb");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -211,8 +211,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/removeTags");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/removeTags");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=all&tags=a%2Cb");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -241,8 +241,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/createTags");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/createTags");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("tags=a%2Cb%2Cc");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -255,8 +255,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/deleteTags");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/deleteTags");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("tags=a%2Cb");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };

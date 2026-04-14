@@ -39,14 +39,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/addTrackers":
-                        request.RequestUri!.ToString().Should().Be("http://localhost/torrents/addTrackers");
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        request.RequestUri?.ToString().Should().Be("http://localhost/torrents/addTrackers");
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=all&urls=udp%3A%2F%2Fa%0Audp%3A%2F%2Fb");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -63,13 +63,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/addTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash1&urls=udp%3A%2F%2Fa");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -86,13 +86,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/addTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash1&urls=udp%3A%2F%2Fa");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -111,7 +111,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
@@ -139,7 +139,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
@@ -165,7 +165,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.9"));
@@ -191,13 +191,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/addTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash1&urls=udp%3A%2F%2Fa");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -214,13 +214,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/addTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash1%7Chash2&urls=udp%3A%2F%2Fa");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -239,7 +239,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -284,14 +284,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.13.0");
 
                     case "/torrents/editTracker":
-                        request.RequestUri!.ToString().Should().Be("http://localhost/torrents/editTracker");
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        request.RequestUri?.ToString().Should().Be("http://localhost/torrents/editTracker");
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash&url=udp%3A%2F%2Fold&newUrl=udp%3A%2F%2Fnew&tier=2");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -308,13 +308,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.12.1");
 
                     case "/torrents/editTracker":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash&origUrl=udp%3A%2F%2Fold&newUrl=udp%3A%2F%2Fnew");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -333,7 +333,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.1"));
@@ -361,7 +361,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -408,14 +408,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/removeTrackers":
-                        request.RequestUri!.ToString().Should().Be("http://localhost/torrents/removeTrackers");
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        request.RequestUri?.ToString().Should().Be("http://localhost/torrents/removeTrackers");
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=all&urls=udp%3A%2F%2Fa%7Cudp%3A%2F%2Fb");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -432,13 +432,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/removeTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=%2A&urls=udp%3A%2F%2Fa%7Cudp%3A%2F%2Fb");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -457,7 +457,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
@@ -483,7 +483,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
@@ -509,13 +509,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/removeTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash1&urls=udp%3A%2F%2Fa");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -532,13 +532,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.8");
 
                     case "/torrents/removeTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash1&urls=udp%3A%2F%2Fa");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -555,13 +555,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.9");
 
                     case "/torrents/removeTrackers":
-                        var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                        var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                         body.Should().Be("hash=hash1%7Chash2&urls=udp%3A%2F%2Fa");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -580,7 +580,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (request, _) =>
             {
-                switch (request.RequestUri!.AbsolutePath)
+                switch (request.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -609,8 +609,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                request.RequestUri!.ToString().Should().Be("http://localhost/torrents/addPeers");
-                var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                request.RequestUri?.ToString().Should().Be("http://localhost/torrents/addPeers");
+                var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                 body.Should().Be("hashes=h1%7Ch2&peers=127.0.0.1%3A6881%7C127.0.0.2%3A6882");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -623,8 +623,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (request, cancellationToken) =>
             {
-                request.RequestUri!.ToString().Should().Be("http://localhost/torrents/addPeers");
-                var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                request.RequestUri?.ToString().Should().Be("http://localhost/torrents/addPeers");
+                var body = await request.Content.ReadAsStringOrNullAsync(cancellationToken);
                 body.Should().Be("hashes=all&peers=127.0.0.1%3A6881%7C127.0.0.2%3A6882");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };

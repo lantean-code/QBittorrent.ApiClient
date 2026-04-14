@@ -22,10 +22,10 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/start");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/start");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
 
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("pattern=My+pattern&plugins=a%7Cb%7Cc&category=all");
 
                 return new HttpResponseMessage(HttpStatusCode.OK)
@@ -88,8 +88,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/stop");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("id=77");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/stop");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("id=77");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -102,7 +102,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/status?id=5");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/status?id=5");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -120,7 +120,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/status?id=5");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/status?id=5");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -226,7 +226,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/results?id=9");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/results?id=9");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("{}")
@@ -243,7 +243,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/results?id=9");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/results?id=9");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -290,7 +290,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/results?id=9&limit=50&offset=100");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/results?id=9&limit=50&offset=100");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("{}")
@@ -391,8 +391,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/delete");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("id=3");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/delete");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("id=3");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -547,8 +547,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/installPlugin");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("sources=s1%7Cs2");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/installPlugin");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("sources=s1%7Cs2");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -574,8 +574,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/uninstallPlugin");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("names=p1%7Cp2");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/uninstallPlugin");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("names=p1%7Cp2");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -601,8 +601,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/enablePlugin");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("names=p1%7Cp2&enable=true");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/enablePlugin");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("names=p1%7Cp2&enable=true");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -615,8 +615,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/enablePlugin");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("names=p1%7Cp2&enable=false");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/enablePlugin");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("names=p1%7Cp2&enable=false");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -649,8 +649,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/downloadTorrent");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("pluginName=qb&torrentUrl=http%3A%2F%2Fexample.com");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/downloadTorrent");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("pluginName=qb&torrentUrl=http%3A%2F%2Fexample.com");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -663,7 +663,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/search/updatePlugins");
+                req.RequestUri?.ToString().Should().Be("http://localhost/search/updatePlugins");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
             };
 

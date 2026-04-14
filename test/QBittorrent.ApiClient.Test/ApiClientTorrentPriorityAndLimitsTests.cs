@@ -21,8 +21,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/increasePrio");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=h1%7Ch2");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/increasePrio");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("hashes=h1%7Ch2");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -34,8 +34,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/decreasePrio");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=all");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/decreasePrio");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("hashes=all");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -47,8 +47,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/topPrio");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=h");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/topPrio");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("hashes=h");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -60,8 +60,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/bottomPrio");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=h1%7Ch2%7Ch3");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/bottomPrio");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("hashes=h1%7Ch2%7Ch3");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -73,8 +73,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/filePrio");
-                var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/filePrio");
+                var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 body.Should().Be("hash=h1&id=1|2|3&priority=7");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -118,8 +118,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setDownloadLimit");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setDownloadLimit");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h%7Ci&limit=500");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -136,13 +136,19 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.11.10");
 
                     case "/torrents/setShareLimits":
-                        var form = await req.Content!.ReadAsStringAsync(ct);
+                        var form = await req.Content.ReadAsStringOrNullAsync(ct);
+                        form.Should().NotBeNull();
+                        if (form is null)
+                        {
+                            return CreateResponse(HttpStatusCode.BadRequest, "");
+                        }
+
                         var parts = form.Split('&').ToDictionary(
                             s => s.Split('=')[0],
                             s => Uri.UnescapeDataString(s.Split('=')[1])
@@ -176,7 +182,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.0"));
@@ -202,13 +208,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.12.0");
 
                     case "/torrents/setShareLimits":
-                        var form = await req.Content!.ReadAsStringAsync(ct);
+                        var form = await req.Content.ReadAsStringOrNullAsync(ct);
                         form.Should().Contain("ratioLimit=");
                         form.Should().Contain("seedingTimeLimit=");
                         form.Should().Contain("inactiveSeedingTimeLimit=");
@@ -228,13 +234,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.12.0");
 
                     case "/torrents/setShareLimits":
-                        var form = await req.Content!.ReadAsStringAsync(ct);
+                        var form = await req.Content.ReadAsStringOrNullAsync(ct);
                         form.Should().Contain("ratioLimit=-2");
                         form.Should().Contain("seedingTimeLimit=-2");
                         form.Should().Contain("inactiveSeedingTimeLimit=-1");
@@ -262,7 +268,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.10"));
@@ -290,7 +296,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -349,8 +355,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setUploadLimit");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setUploadLimit");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1&limit=42");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };

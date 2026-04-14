@@ -25,8 +25,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/log/main");
-                req.RequestUri!.Query.Should().BeEmpty();
+                req.RequestUri?.AbsolutePath.Should().Be("/log/main");
+                req.RequestUri?.Query.Should().BeEmpty();
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -45,7 +45,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/log/main");
+                req.RequestUri?.AbsolutePath.Should().Be("/log/main");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -76,8 +76,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/log/main");
-                req.RequestUri!.Query.Should().Be("?normal=true&info=false&warning=true&critical=false&last_known_id=123");
+                req.RequestUri?.AbsolutePath.Should().Be("/log/main");
+                req.RequestUri?.Query.Should().Be("?normal=true&info=false&warning=true&critical=false&last_known_id=123");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -124,8 +124,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/log/peers");
-                req.RequestUri!.Query.Should().BeEmpty();
+                req.RequestUri?.AbsolutePath.Should().Be("/log/peers");
+                req.RequestUri?.Query.Should().BeEmpty();
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -144,7 +144,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/log/peers");
+                req.RequestUri?.AbsolutePath.Should().Be("/log/peers");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -177,8 +177,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/log/peers");
-                req.RequestUri!.Query.Should().Be("?last_known_id=77");
+                req.RequestUri?.AbsolutePath.Should().Be("/log/peers");
+                req.RequestUri?.Query.Should().Be("?last_known_id=77");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")

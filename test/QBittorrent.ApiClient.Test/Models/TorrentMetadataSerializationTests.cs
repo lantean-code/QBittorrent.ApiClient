@@ -53,21 +53,21 @@ namespace QBittorrent.ApiClient.Test.Models
                 options);
 
             result.Should().NotBeNull();
-            result!.InfoHashV1.Should().Be("InfoHashV1");
-            result.InfoHashV2.Should().Be("InfoHashV2");
-            result.Hash.Should().Be("Hash");
-            result.Info.Name.Should().Be("Name");
-            result.Info.Length.Should().Be(99);
-            result.Info.PieceLength.Should().Be(16);
-            result.Info.PiecesNum.Should().Be(7);
-            result.Info.Private.Should().BeTrue();
-            result.Info.Files.Should().ContainSingle();
-            result.Trackers.Should().ContainSingle();
-            result.WebSeeds.Should().ContainSingle();
-            result.CreatedBy.Should().Be("CreatedBy");
-            result.CreationDate.Should().Be(946684800);
-            result.Comment.Should().Be("Comment");
-            result.Info.Files.Should().ContainSingle();
+            result?.InfoHashV1.Should().Be("InfoHashV1");
+            result?.InfoHashV2.Should().Be("InfoHashV2");
+            result?.Hash.Should().Be("Hash");
+            result?.Info.Name.Should().Be("Name");
+            result?.Info.Length.Should().Be(99);
+            result?.Info.PieceLength.Should().Be(16);
+            result?.Info.PiecesNum.Should().Be(7);
+            result?.Info.Private.Should().BeTrue();
+            result?.Info.Files.Should().ContainSingle();
+            result?.Trackers.Should().ContainSingle();
+            result?.WebSeeds.Should().ContainSingle();
+            result?.CreatedBy.Should().Be("CreatedBy");
+            result?.CreationDate.Should().Be(946684800);
+            result?.Comment.Should().Be("Comment");
+            result?.Info.Files.Should().ContainSingle();
         }
 
         [Fact]

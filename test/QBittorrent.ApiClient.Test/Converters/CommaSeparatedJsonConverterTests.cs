@@ -23,7 +23,7 @@ namespace QBittorrent.ApiClient.Test.Converters
             var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
 
             result.Should().NotBeNull();
-            result!.Count.Should().Be(0);
+            result?.Count.Should().Be(0);
         }
 
         [Fact]
@@ -60,10 +60,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
 
             result.Should().NotBeNull();
-            result!.Count.Should().Be(3);
-            result[0].Should().Be("alpha");
-            result[1].Should().Be("beta");
-            result[2].Should().Be("gamma");
+            result?.Count.Should().Be(3);
+            result?[0].Should().Be("alpha");
+            result?[1].Should().Be("beta");
+            result?[2].Should().Be("gamma");
         }
 
         [Fact]
@@ -72,7 +72,10 @@ namespace QBittorrent.ApiClient.Test.Converters
             var options = CreateOptions();
             var json = "123"; // number token, not a string
 
-            var act = () => JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options)!;
+            var act = () =>
+            {
+                JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
+            };
 
             var ex = act.Should().Throw<JsonException>();
             ex.Which.Message.Should().Be("Must be of type string.");
@@ -106,10 +109,9 @@ namespace QBittorrent.ApiClient.Test.Converters
             var options = CreateOptions();
             var json = "\"x,y\"";
 
-            var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options)!;
+            var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
 
-            // Converter returns list.AsReadOnly() -> ReadOnlyCollection<string>
-            var asList = (IList<string>)result;
+            var asList = result.Should().BeAssignableTo<IList<string>>().Subject;
             var act = () => asList.Add("z");
 
             act.Should().Throw<NotSupportedException>();

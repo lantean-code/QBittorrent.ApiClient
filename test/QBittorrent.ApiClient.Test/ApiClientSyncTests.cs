@@ -25,7 +25,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/sync/maindata?rid=123");
+                req.RequestUri?.ToString().Should().Be("http://localhost/sync/maindata?rid=123");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -245,36 +245,36 @@ namespace QBittorrent.ApiClient.Test
             torrent.HasTrackerError.Should().BeFalse();
             torrent.HasOtherAnnounceError.Should().BeTrue();
             torrent.Trackers.Should().ContainSingle();
-            torrent.Trackers![0].Url.Should().Be("udp://tracker");
+            torrent.Trackers?[0].Url.Should().Be("udp://tracker");
 
-            result.ServerState.Should().NotBeNull();
-            result.ServerState!.ConnectionStatus.Should().Be(ConnectionStatus.Connected);
-            result.ServerState.DHTNodes.Should().Be(12);
-            result.ServerState.DownloadInfoData.Should().Be(13);
-            result.ServerState.DownloadInfoSpeed.Should().Be(14);
-            result.ServerState.DownloadRateLimit.Should().Be(15);
-            result.ServerState.UploadInfoData.Should().Be(16);
-            result.ServerState.UploadInfoSpeed.Should().Be(17);
-            result.ServerState.UploadRateLimit.Should().Be(18);
-            result.ServerState.LastExternalAddressV4.Should().Be("1.2.3.4");
-            result.ServerState.LastExternalAddressV6.Should().Be("::1");
-            result.ServerState.AllTimeDownloaded.Should().Be(1000);
-            result.ServerState.AllTimeUploaded.Should().Be(1001);
-            result.ServerState.AverageTimeQueue.Should().Be(4);
-            result.ServerState.FreeSpaceOnDisk.Should().Be(2000);
-            result.ServerState.GlobalRatio.Should().Be(1.3);
-            result.ServerState.QueuedIOJobs.Should().Be(5);
-            result.ServerState.Queuing.Should().BeTrue();
-            result.ServerState.ReadCacheHits.Should().Be(0.4);
-            result.ServerState.ReadCacheOverload.Should().Be(0.5);
-            result.ServerState.RefreshInterval.Should().Be(1500);
-            result.ServerState.TotalBuffersSize.Should().Be(50);
-            result.ServerState.TotalPeerConnections.Should().Be(51);
-            result.ServerState.TotalQueuedSize.Should().Be(52);
-            result.ServerState.TotalWastedSession.Should().Be(53);
-            result.ServerState.UseAltSpeedLimits.Should().BeFalse();
-            result.ServerState.UseSubcategories.Should().BeTrue();
-            result.ServerState.WriteCacheOverload.Should().Be(0.6);
+            result.ServerState?.Should().NotBeNull();
+            result.ServerState?.ConnectionStatus.Should().Be(ConnectionStatus.Connected);
+            result.ServerState?.DHTNodes.Should().Be(12);
+            result.ServerState?.DownloadInfoData.Should().Be(13);
+            result.ServerState?.DownloadInfoSpeed.Should().Be(14);
+            result.ServerState?.DownloadRateLimit.Should().Be(15);
+            result.ServerState?.UploadInfoData.Should().Be(16);
+            result.ServerState?.UploadInfoSpeed.Should().Be(17);
+            result.ServerState?.UploadRateLimit.Should().Be(18);
+            result.ServerState?.LastExternalAddressV4.Should().Be("1.2.3.4");
+            result.ServerState?.LastExternalAddressV6.Should().Be("::1");
+            result.ServerState?.AllTimeDownloaded.Should().Be(1000);
+            result.ServerState?.AllTimeUploaded.Should().Be(1001);
+            result.ServerState?.AverageTimeQueue.Should().Be(4);
+            result.ServerState?.FreeSpaceOnDisk.Should().Be(2000);
+            result.ServerState?.GlobalRatio.Should().Be(1.3);
+            result.ServerState?.QueuedIOJobs.Should().Be(5);
+            result.ServerState?.Queuing.Should().BeTrue();
+            result.ServerState?.ReadCacheHits.Should().Be(0.4);
+            result.ServerState?.ReadCacheOverload.Should().Be(0.5);
+            result.ServerState?.RefreshInterval.Should().Be(1500);
+            result.ServerState?.TotalBuffersSize.Should().Be(50);
+            result.ServerState?.TotalPeerConnections.Should().Be(51);
+            result.ServerState?.TotalQueuedSize.Should().Be(52);
+            result.ServerState?.TotalWastedSession.Should().Be(53);
+            result.ServerState?.UseAltSpeedLimits.Should().BeFalse();
+            result.ServerState?.UseSubcategories.Should().BeTrue();
+            result.ServerState?.WriteCacheOverload.Should().Be(0.6);
         }
 
         [Fact]
@@ -283,7 +283,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/sync/maindata?rid=1");
+                req.RequestUri?.ToString().Should().Be("http://localhost/sync/maindata?rid=1");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -324,19 +324,19 @@ namespace QBittorrent.ApiClient.Test
 
             var result = (await _target.GetMainDataAsync(1, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
-            result.ServerState.Should().NotBeNull();
-            result.ServerState!.DHTNodes.Should().Be(3000000000);
-            result.ServerState.DownloadRateLimit.Should().Be(2147483647);
-            result.ServerState.UploadRateLimit.Should().Be(2147483646);
-            result.ServerState.AverageTimeQueue.Should().Be(3000000001);
-            result.ServerState.GlobalRatio.Should().Be(1.23456789012345);
-            result.ServerState.QueuedIOJobs.Should().Be(3000000002);
-            result.ServerState.ReadCacheHits.Should().Be(2.34567890123456);
-            result.ServerState.ReadCacheOverload.Should().BeNull();
-            result.ServerState.TotalBuffersSize.Should().Be(3000000003);
-            result.ServerState.TotalPeerConnections.Should().Be(3000000004);
-            result.ServerState.TotalQueuedSize.Should().Be(3000000005);
-            result.ServerState.WriteCacheOverload.Should().Be(3.45678901234567);
+            result.ServerState?.Should().NotBeNull();
+            result.ServerState?.DHTNodes.Should().Be(3000000000);
+            result.ServerState?.DownloadRateLimit.Should().Be(2147483647);
+            result.ServerState?.UploadRateLimit.Should().Be(2147483646);
+            result.ServerState?.AverageTimeQueue.Should().Be(3000000001);
+            result.ServerState?.GlobalRatio.Should().Be(1.23456789012345);
+            result.ServerState?.QueuedIOJobs.Should().Be(3000000002);
+            result.ServerState?.ReadCacheHits.Should().Be(2.34567890123456);
+            result.ServerState?.ReadCacheOverload.Should().BeNull();
+            result.ServerState?.TotalBuffersSize.Should().Be(3000000003);
+            result.ServerState?.TotalPeerConnections.Should().Be(3000000004);
+            result.ServerState?.TotalQueuedSize.Should().Be(3000000005);
+            result.ServerState?.WriteCacheOverload.Should().Be(3.45678901234567);
         }
 
         [Fact]
@@ -371,7 +371,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/sync/torrentPeers?hash=abcdef&rid=7");
+                req.RequestUri?.ToString().Should().Be("http://localhost/sync/torrentPeers?hash=abcdef&rid=7");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -416,25 +416,25 @@ namespace QBittorrent.ApiClient.Test
             result.ShowFlags.Should().BeTrue();
             result.PeersRemoved.Should().BeEquivalentTo(["peer-old"]);
             result.Peers.Should().ContainKey("peer1");
-            var peer = result.Peers!["peer1"];
-            peer.Client.Should().Be("Client");
-            peer.Connection.Should().Be(PeerConnectionType.Bittorrent);
-            peer.Country.Should().Be("Country");
-            peer.CountryCode.Should().Be("US");
-            peer.DownloadSpeed.Should().Be(100);
-            peer.Downloaded.Should().Be(101);
-            peer.Files.Should().Be("Files");
-            peer.Flags.Should().Be("Flags");
-            peer.FlagsDescription.Should().Be("FlagsDescription");
-            peer.HostName.Should().Be("HostName");
-            peer.IPAddress.Should().Be("127.0.0.1");
-            peer.I2pDestination.Should().Be("Destination");
-            peer.ClientId.Should().Be("ClientId");
-            peer.Port.Should().Be(6881);
-            peer.Progress.Should().Be(0.5);
-            peer.Relevance.Should().Be(0.7);
-            peer.UploadSpeed.Should().Be(200);
-            peer.Uploaded.Should().Be(201);
+            var peer = result.Peers?["peer1"];
+            peer?.Client.Should().Be("Client");
+            peer?.Connection.Should().Be(PeerConnectionType.Bittorrent);
+            peer?.Country.Should().Be("Country");
+            peer?.CountryCode.Should().Be("US");
+            peer?.DownloadSpeed.Should().Be(100);
+            peer?.Downloaded.Should().Be(101);
+            peer?.Files.Should().Be("Files");
+            peer?.Flags.Should().Be("Flags");
+            peer?.FlagsDescription.Should().Be("FlagsDescription");
+            peer?.HostName.Should().Be("HostName");
+            peer?.IPAddress.Should().Be("127.0.0.1");
+            peer?.I2pDestination.Should().Be("Destination");
+            peer?.ClientId.Should().Be("ClientId");
+            peer?.Port.Should().Be(6881);
+            peer?.Progress.Should().Be(0.5);
+            peer?.Relevance.Should().Be(0.7);
+            peer?.UploadSpeed.Should().Be(200);
+            peer?.Uploaded.Should().Be(201);
         }
 
         [Fact]
@@ -443,7 +443,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/sync/torrentPeers?hash=abcdef&rid=8");
+                req.RequestUri?.ToString().Should().Be("http://localhost/sync/torrentPeers?hash=abcdef&rid=8");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -468,11 +468,11 @@ namespace QBittorrent.ApiClient.Test
 
             var result = (await _target.GetTorrentPeersDataAsync("abcdef", 8, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
-            var peer = result.Peers!["peer1"];
-            peer.DownloadSpeed.Should().Be(2147483647);
-            peer.Progress.Should().Be(0.1234567890123456);
-            peer.Relevance.Should().Be(0.2345678901234567);
-            peer.UploadSpeed.Should().Be(2147483646);
+            var peer = result.Peers?["peer1"];
+            peer?.DownloadSpeed.Should().Be(2147483647);
+            peer?.Progress.Should().Be(0.1234567890123456);
+            peer?.Relevance.Should().Be(0.2345678901234567);
+            peer?.UploadSpeed.Should().Be(2147483646);
         }
 
         [Fact]

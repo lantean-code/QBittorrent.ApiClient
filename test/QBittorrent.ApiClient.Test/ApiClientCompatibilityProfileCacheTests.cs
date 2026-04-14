@@ -263,8 +263,8 @@ namespace QBittorrent.ApiClient.Test
 
             target.TryGetValue("http://localhost-a/api/v2/", out var cachedFirstProfile).Should().BeTrue();
             target.TryGetValue("http://localhost-b/api/v2/", out var cachedSecondProfile).Should().BeTrue();
-            cachedFirstProfile!.WebApiVersion.Should().Be(new Version(2, 13, 1));
-            cachedSecondProfile!.WebApiVersion.Should().Be(new Version(2, 15, 2));
+            cachedFirstProfile?.WebApiVersion.Should().Be(new Version(2, 13, 1));
+            cachedSecondProfile?.WebApiVersion.Should().Be(new Version(2, 15, 2));
         }
 
         [Fact]
@@ -283,8 +283,8 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldSucceed();
             target.TryGetValue("http://localhost-a/api/v2/", out var refreshedProfile).Should().BeTrue();
             target.TryGetValue("http://localhost-b/api/v2/", out var untouchedProfile).Should().BeTrue();
-            refreshedProfile!.WebApiVersion.Should().Be(new Version(2, 15, 2));
-            untouchedProfile!.WebApiVersion.Should().Be(new Version(2, 14, 0));
+            refreshedProfile?.WebApiVersion.Should().Be(new Version(2, 15, 2));
+            untouchedProfile?.WebApiVersion.Should().Be(new Version(2, 14, 0));
         }
 
         [Fact]
@@ -296,7 +296,7 @@ namespace QBittorrent.ApiClient.Test
             await target.TryHydrateAsync("http://localhost/api/v2/", new ApiClientCompatibilityProfile(new Version(2, 15, 2)), TestContext.Current.CancellationToken);
 
             target.TryGetValue("http://localhost/api/v2/", out var cachedProfile).Should().BeTrue();
-            cachedProfile!.WebApiVersion.Should().Be(new Version(2, 13, 1));
+            cachedProfile?.WebApiVersion.Should().Be(new Version(2, 13, 1));
         }
 
         [Fact]

@@ -25,8 +25,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setLocation");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setLocation");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1%7Ch2&location=%2Fdata%2Fdl");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -52,8 +52,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/rename");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/rename");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hash=hx&name=My+Torrent");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -79,14 +79,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.12.1");
 
                     case "/torrents/setComment":
                         req.Method.Should().Be(HttpMethod.Post);
-                        (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=h1%7Ch2&comment=Comment");
+                        (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("hashes=h1%7Ch2&comment=Comment");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
                     default:
@@ -104,7 +104,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.0"));
@@ -132,7 +132,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -157,8 +157,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setSavePath");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setSavePath");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("id=a%7Cb&path=%2Fmnt%2Fsaves");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -268,8 +268,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setDownloadPath");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setDownloadPath");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("id=a%7Cb&path=temp");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -282,8 +282,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setDownloadPath");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setDownloadPath");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("id=a&path=");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -384,8 +384,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setCategory");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1%7Ch2&category=Movies");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -427,8 +427,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setSSLParameters");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setSSLParameters");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hash=abc&ssl_certificate=cert&ssl_private_key=key&ssl_dh_params=dh");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };

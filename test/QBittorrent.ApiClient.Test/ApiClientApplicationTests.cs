@@ -26,7 +26,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/version");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/version");
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("4.6.0")
@@ -114,7 +114,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         apiVersionRequestCount++;
@@ -157,7 +157,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/webapiVersion");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/webapiVersion");
                 apiVersionRequestCount++;
                 return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.2"));
             };
@@ -317,7 +317,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         apiVersionRequestCount++;
@@ -347,7 +347,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         apiVersionRequestCount++;
@@ -377,7 +377,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         apiVersionRequestCount++;
@@ -414,7 +414,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         apiVersionRequestCount++;
@@ -470,7 +470,7 @@ namespace QBittorrent.ApiClient.Test
 
             firstHandler.Responder = (request, _) =>
             {
-                return request.RequestUri!.AbsolutePath switch
+                return request.RequestUri?.AbsolutePath switch
                 {
                     "/api/v2/app/webapiVersion" => Task.FromResult(CreateResponse(HttpStatusCode.OK, (++firstApiVersionRequestCount, "2.13.1").Item2)),
                     "/api/v2/clientdata/load" => Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}")),
@@ -480,7 +480,7 @@ namespace QBittorrent.ApiClient.Test
 
             secondHandler.Responder = (request, _) =>
             {
-                return request.RequestUri!.AbsolutePath switch
+                return request.RequestUri?.AbsolutePath switch
                 {
                     "/api/v2/app/webapiVersion" => Task.FromResult(CreateResponse(HttpStatusCode.OK, (++secondApiVersionRequestCount, "2.15.2").Item2)),
                     "/api/v2/clientdata/load" => Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}")),
@@ -500,7 +500,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         req.Method.Should().Be(HttpMethod.Get);
@@ -508,7 +508,7 @@ namespace QBittorrent.ApiClient.Test
 
                     case "/clientdata/load":
                         req.Method.Should().Be(HttpMethod.Post);
-                        var body = await req.Content!.ReadAsStringAsync(ct);
+                        var body = await req.Content.ReadAsStringOrNullAsync(ct);
                         body.Should().Contain("keys=");
                         return CreateResponse(
                             HttpStatusCode.OK,
@@ -536,14 +536,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/clientdata/load":
                         req.Method.Should().Be(HttpMethod.Post);
-                        var body = await req.Content!.ReadAsStringAsync(ct);
+                        var body = await req.Content.ReadAsStringOrNullAsync(ct);
                         body.Should().BeEmpty();
                         return CreateResponse(
                             HttpStatusCode.OK,
@@ -570,7 +570,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
@@ -596,7 +596,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.1"));
@@ -621,7 +621,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -650,14 +650,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/clientdata/store":
                         req.Method.Should().Be(HttpMethod.Post);
-                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                         body.Should().Contain("data=");
                         body.Should().Contain("\"QbtMud.AppSettings.State.v1\":{\"notifications\":true}");
                         body.Should().Contain("\"QbtMud.Search.Jobs\":null");
@@ -682,7 +682,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
@@ -711,7 +711,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.1"));
@@ -739,7 +739,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -795,13 +795,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/clientdata/store":
-                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                         body.Should().Contain("\"QbtMud.AppSettings.State.v1\":{\"notifications\":true}");
                         body.Should().NotContain(":null");
                         return new HttpResponseMessage(HttpStatusCode.OK);
@@ -846,13 +846,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/clientdata/store":
-                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                         body.Should().Contain("\"QbtMud.AppSettings.State.v1\":null");
                         body.Should().Contain("\"QbtMud.Search.Jobs\":null");
                         return new HttpResponseMessage(HttpStatusCode.OK);
@@ -872,13 +872,13 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/clientdata/store":
-                        var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                        var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                         body.Should().Contain("data={}");
                         return new HttpResponseMessage(HttpStatusCode.OK);
 
@@ -950,7 +950,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
@@ -975,7 +975,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.0"));
@@ -1003,7 +1003,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -1029,7 +1029,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/shutdown");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/shutdown");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
             };
 
@@ -1171,9 +1171,9 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/setPreferences");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/setPreferences");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().StartWith("json=");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -1188,9 +1188,9 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/setPreferences");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/setPreferences");
 
-                var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 body.Should().StartWith("json=");
 
                 var json = body["json=".Length..];
@@ -1214,9 +1214,9 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/setPreferences");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/setPreferences");
 
-                var body = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                var body = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 body.Should().StartWith("json=");
 
                 var json = body["json=".Length..];
@@ -1339,9 +1339,9 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/setCookies");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/setCookies");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().StartWith("cookies=");
                 body.Should().Contain("%5B"); // '[' encoded
                 body.Should().Contain("%5D"); // ']' encoded
@@ -1357,7 +1357,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.1"));
@@ -1383,7 +1383,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.0"));
@@ -1411,7 +1411,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -1436,7 +1436,7 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.1"));
@@ -1460,7 +1460,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.14.0"));
@@ -1488,7 +1488,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -1514,7 +1514,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/sendTestEmail");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/sendTestEmail");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
             };
 
@@ -1527,7 +1527,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=dirs");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=dirs");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[\"/data/folder\"]")
@@ -1545,7 +1545,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=files");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=files");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[\"/data/file1\"]")
@@ -1563,7 +1563,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=all");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=all");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -1602,14 +1602,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/app/getDirectoryContent":
                         req.Method.Should().Be(HttpMethod.Get);
-                        req.RequestUri!.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=files&withMetadata=true");
+                        req.RequestUri?.ToString().Should().Be("http://localhost/app/getDirectoryContent?dirPath=%2Fdata&mode=files&withMetadata=true");
                         return Task.FromResult(CreateResponse(
                             HttpStatusCode.OK,
                             """
@@ -1648,7 +1648,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
@@ -1676,7 +1676,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -1765,7 +1765,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/networkInterfaceAddressList?iface=eth0");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/networkInterfaceAddressList?iface=eth0");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[\"192.168.1.10\",\"fe80::1\"]")

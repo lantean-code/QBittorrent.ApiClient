@@ -25,8 +25,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/info");
-                req.RequestUri!.Query.Should().BeEmpty();
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/info");
+                req.RequestUri?.Query.Should().BeEmpty();
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -44,14 +44,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/info":
                         req.Method.Should().Be(HttpMethod.Get);
-                        req.RequestUri!.Query.Should().Be("?filter=active&category=Movies&tag=HD&sort=name&reverse=true&limit=50&offset=5&hashes=a%7Cb%7Cc&private=true&includeFiles=false&includeTrackers=true");
+                        req.RequestUri?.Query.Should().Be("?filter=active&category=Movies&tag=HD&sort=name&reverse=true&limit=50&offset=5&hashes=a%7Cb%7Cc&private=true&includeFiles=false&includeTrackers=true");
                         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
                             Content = new StringContent("[]")
@@ -85,14 +85,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
 
                     case "/torrents/info":
                         req.Method.Should().Be(HttpMethod.Get);
-                        req.RequestUri!.Query.Should().Be("?private=false&includeFiles=true&includeTrackers=false");
+                        req.RequestUri?.Query.Should().Be("?private=false&includeFiles=true&includeTrackers=false");
                         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
                             Content = new StringContent("[]")
@@ -117,14 +117,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
 
                     case "/torrents/info":
                         req.Method.Should().Be(HttpMethod.Get);
-                        req.RequestUri!.Query.Should().Be("?private=false&includeTrackers=false");
+                        req.RequestUri?.Query.Should().Be("?private=false&includeTrackers=false");
                         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
                             Content = new StringContent("[]")
@@ -150,7 +150,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.7"));
@@ -181,7 +181,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
@@ -214,7 +214,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/info");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/info");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -381,14 +381,14 @@ namespace QBittorrent.ApiClient.Test
             torrent.HasTrackerError.Should().BeFalse();
             torrent.HasOtherAnnounceError.Should().BeTrue();
             torrent.Files.Should().ContainSingle();
-            torrent.Files![0].Index.Should().Be(1);
-            torrent.Files[0].Name.Should().Be("FileName");
-            torrent.Files[0].Size.Should().Be(38);
-            torrent.Files[0].Progress.Should().Be(0.4);
-            torrent.Files[0].Priority.Should().Be(Priority.Normal);
-            torrent.Files[0].IsSeed.Should().BeNull();
-            torrent.Files[0].PieceRange.Should().BeEquivalentTo([2, 3]);
-            torrent.Files[0].Availability.Should().Be(1.7);
+            torrent.Files?[0].Index.Should().Be(1);
+            torrent.Files?[0].Name.Should().Be("FileName");
+            torrent.Files?[0].Size.Should().Be(38);
+            torrent.Files?[0].Progress.Should().Be(0.4);
+            torrent.Files?[0].Priority.Should().Be(Priority.Normal);
+            torrent.Files?[0].IsSeed.Should().BeNull();
+            torrent.Files?[0].PieceRange.Should().BeEquivalentTo([2, 3]);
+            torrent.Files?[0].Availability.Should().Be(1.7);
         }
 
         [Fact]
@@ -397,7 +397,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/info");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/info");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -500,7 +500,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/properties?hash=abc");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/properties?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("{}")
@@ -518,7 +518,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/properties?hash=abc");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/properties?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -626,7 +626,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/properties?hash=abc");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/properties?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -710,7 +710,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/trackers?hash=xyz");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/trackers?hash=xyz");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -729,7 +729,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/trackers?hash=xyz");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/trackers?hash=xyz");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -826,7 +826,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/webseeds?hash=h1");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/webseeds?hash=h1");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -845,7 +845,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/webseeds?hash=h1");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/webseeds?hash=h1");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -870,8 +870,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
-                req.RequestUri!.Query.Should().Be("?hash=abc");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/files");
+                req.RequestUri?.Query.Should().Be("?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -890,8 +890,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
-                req.RequestUri!.Query.Should().Be("?hash=abc");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/files");
+                req.RequestUri?.Query.Should().Be("?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -930,7 +930,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/files");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -961,7 +961,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/files");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -994,8 +994,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
-                req.RequestUri!.Query.Should().Be("?hash=abc");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/files");
+                req.RequestUri?.Query.Should().Be("?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("""
@@ -1027,8 +1027,8 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.AbsolutePath.Should().Be("/torrents/files");
-                req.RequestUri!.Query.Should().Be("?hash=abc&indexes=1%7C2%7C3");
+                req.RequestUri?.AbsolutePath.Should().Be("/torrents/files");
+                req.RequestUri?.Query.Should().Be("?hash=abc&indexes=1%7C2%7C3");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[]")
@@ -1075,7 +1075,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/pieceStates?hash=abc");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/pieceStates?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("not json")
@@ -1108,7 +1108,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = (req, _) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/pieceHashes?hash=abc");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/pieceHashes?hash=abc");
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("[\"h1\",\"h2\"]")
@@ -1156,14 +1156,14 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.1"));
 
                     case "/torrents/pieceAvailability":
                         req.Method.Should().Be(HttpMethod.Get);
-                        req.RequestUri!.ToString().Should().Be("http://localhost/torrents/pieceAvailability?hash=abc");
+                        req.RequestUri?.ToString().Should().Be("http://localhost/torrents/pieceAvailability?hash=abc");
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "[1,2,3]"));
 
                     default:
@@ -1183,7 +1183,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.0"));
@@ -1211,7 +1211,7 @@ namespace QBittorrent.ApiClient.Test
 
             _handler.Responder = (req, _) =>
             {
-                switch (req.RequestUri!.AbsolutePath)
+                switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
                         return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));

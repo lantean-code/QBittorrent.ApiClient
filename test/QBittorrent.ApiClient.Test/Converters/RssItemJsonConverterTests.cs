@@ -63,7 +63,10 @@ namespace QBittorrent.ApiClient.Test.Converters
         {
             const string json = "[]";
 
-            var act = () => JsonSerializer.Deserialize<RssItem>(json)!;
+            var act = () =>
+            {
+                JsonSerializer.Deserialize<RssItem>(json);
+            };
 
             var ex = act.Should().Throw<JsonException>();
             ex.Which.Message.Should().Contain("RSS items must be JSON objects.");

@@ -17,7 +17,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("name", "value");
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("name");
+            part.Headers.ContentDisposition?.Name.Should().Be("name");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("value");
         }
 
@@ -27,7 +27,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("flag", true);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("flag");
+            part.Headers.ContentDisposition?.Name.Should().Be("flag");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("true");
         }
 
@@ -37,7 +37,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("flag", false);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("flag");
+            part.Headers.ContentDisposition?.Name.Should().Be("flag");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("false");
         }
 
@@ -47,7 +47,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("count", 123);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("count");
+            part.Headers.ContentDisposition?.Name.Should().Be("count");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("123");
         }
 
@@ -57,7 +57,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("size", 9223372036854775807);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("size");
+            part.Headers.ContentDisposition?.Name.Should().Be("size");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("9223372036854775807");
         }
 
@@ -67,7 +67,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("ratio", 42f);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("ratio");
+            part.Headers.ContentDisposition?.Name.Should().Be("ratio");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be(42f.ToString());
         }
 
@@ -77,7 +77,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("day", DayOfWeek.Monday);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("day");
+            part.Headers.ContentDisposition?.Name.Should().Be("day");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("Monday");
         }
 
@@ -89,7 +89,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("epoch", when);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("epoch");
+            part.Headers.ContentDisposition?.Name.Should().Be("epoch");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("946684800");
         }
 
@@ -101,7 +101,7 @@ namespace QBittorrent.ApiClient.Test
             _target.AddString("epochMs", when, useSeconds: false);
 
             var part = _target.ToList().Single();
-            part.Headers.ContentDisposition!.Name.Should().Be("epochMs");
+            part.Headers.ContentDisposition?.Name.Should().Be("epochMs");
             (await part.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("946684800000");
         }
 

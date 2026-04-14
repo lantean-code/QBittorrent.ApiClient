@@ -21,8 +21,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setAutoManagement");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setAutoManagement");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1%7Ch2&enable=true");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -35,8 +35,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/toggleSequentialDownload");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=all");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/toggleSequentialDownload");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("hashes=all");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -48,8 +48,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/toggleFirstLastPiecePrio");
-                (await req.Content!.ReadAsStringAsync(ct)).Should().Be("hashes=h");
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/toggleFirstLastPiecePrio");
+                (await req.Content.ReadAsStringOrNullAsync(ct)).Should().Be("hashes=h");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -61,8 +61,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setForceStart");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setForceStart");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=h1%7Ch2&value=true");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -75,8 +75,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/setSuperSeeding");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/setSuperSeeding");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("hashes=all&value=false");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -89,8 +89,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/renameFile");
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/renameFile");
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("hash=h&oldPath=old/name&newPath=new/name");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
@@ -103,8 +103,8 @@ namespace QBittorrent.ApiClient.Test
         {
             _handler.Responder = async (req, ct) =>
             {
-                req.RequestUri!.ToString().Should().Be("http://localhost/torrents/renameFolder");
-                var decoded = Uri.UnescapeDataString(await req.Content!.ReadAsStringAsync(ct));
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/renameFolder");
+                var decoded = await req.Content.ReadAsUnescapedStringOrNullAsync(ct);
                 decoded.Should().Be("hash=h&oldPath=old/folder&newPath=new/folder");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };

@@ -1,3 +1,4 @@
+using System.Net;
 using AwesomeAssertions;
 
 namespace QBittorrent.ApiClient.Test
@@ -9,7 +10,12 @@ namespace QBittorrent.ApiClient.Test
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Responder.Should().NotBeNull();
-            return Responder!(request, cancellationToken);
+            if (Responder is null)
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+            }
+
+            return Responder(request, cancellationToken);
         }
     }
 }

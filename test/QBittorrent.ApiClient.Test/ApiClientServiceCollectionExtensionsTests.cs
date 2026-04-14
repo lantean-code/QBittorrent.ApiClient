@@ -83,7 +83,7 @@ namespace QBittorrent.ApiClient.Test
 
             handler.Responder = (request, _) =>
             {
-                return request.RequestUri!.AbsolutePath switch
+                return request.RequestUri?.AbsolutePath switch
                 {
                     "/app/webapiVersion" => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                     {
@@ -124,8 +124,8 @@ namespace QBittorrent.ApiClient.Test
 
             handler.Responder = (request, _) =>
             {
-                request.RequestUri!.Host.Should().Be("localhost");
-                return request.RequestUri.AbsolutePath switch
+                request.RequestUri?.Host.Should().Be("localhost");
+                return request.RequestUri?.AbsolutePath switch
                 {
                     "/app/webapiVersion" => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                     {

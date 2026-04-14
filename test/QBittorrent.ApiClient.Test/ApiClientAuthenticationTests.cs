@@ -24,7 +24,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Get);
-                req.RequestUri!.ToString().Should().Be("http://localhost/app/version");
+                req.RequestUri?.ToString().Should().Be("http://localhost/app/version");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
@@ -78,10 +78,10 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/auth/login");
-                var body = await req.Content!.ReadAsStringAsync(ct);
+                req.RequestUri?.ToString().Should().Be("http://localhost/auth/login");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
                 body.Should().Be("username=user&password=pass");
-                req.Content!.Headers.ContentType!.MediaType.Should().Be("application/x-www-form-urlencoded");
+                req.Content?.Headers.ContentType?.MediaType.Should().Be("application/x-www-form-urlencoded");
                 return new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent("Ok")
@@ -198,7 +198,7 @@ namespace QBittorrent.ApiClient.Test
             _handler.Responder = async (req, ct) =>
             {
                 req.Method.Should().Be(HttpMethod.Post);
-                req.RequestUri!.ToString().Should().Be("http://localhost/auth/logout");
+                req.RequestUri?.ToString().Should().Be("http://localhost/auth/logout");
                 return new HttpResponseMessage(HttpStatusCode.OK);
             };
 
