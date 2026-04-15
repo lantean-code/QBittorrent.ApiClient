@@ -1251,7 +1251,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_WebApi2121ObjectPayload_WHEN_ParseTorrentMetadata_THEN_ShouldReturnMetadataFromObjectValues()
+        public async Task GIVEN_WebApi2121ObjectPayload_WHEN_ParseTorrentMetadata_THEN_ShouldReturnMetadataInRequestOrder()
         {
             _handler.Responder = async (req, ct) =>
             {
@@ -1276,25 +1276,6 @@ namespace QBittorrent.ApiClient.Test
                             HttpStatusCode.OK,
                             """
                             {
-                                "a.torrent":
-                                {
-                                    "hash": "Hash1",
-                                    "info":
-                                    {
-                                        "name": "First",
-                                        "length": 10,
-                                        "piece_length": 2,
-                                        "pieces_num": 5,
-                                        "private": false,
-                                        "files":
-                                        [
-                                            {
-                                                "path": "first.bin",
-                                                "length": 10
-                                            }
-                                        ]
-                                    }
-                                },
                                 "b.torrent":
                                 {
                                     "hash": "Hash2",
@@ -1310,6 +1291,25 @@ namespace QBittorrent.ApiClient.Test
                                             {
                                                 "path": "second.bin",
                                                 "length": 20
+                                            }
+                                        ]
+                                    }
+                                },
+                                "a.torrent":
+                                {
+                                    "hash": "Hash1",
+                                    "info":
+                                    {
+                                        "name": "First",
+                                        "length": 10,
+                                        "piece_length": 2,
+                                        "pieces_num": 5,
+                                        "private": false,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "first.bin",
+                                                "length": 10
                                             }
                                         ]
                                     }
@@ -1335,6 +1335,64 @@ namespace QBittorrent.ApiClient.Test
 
             result.Select(item => item.Info.Name).Should().Equal("First", "Second");
             result.Select(item => item.Hash).Should().Equal("Hash1", "Hash2");
+        }
+
+        [Fact]
+        public async Task GIVEN_WebApi2121ObjectPayloadMissingRequestedEntry_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.1"));
+
+                    case "/torrents/parseMetadata":
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            {
+                                "a.torrent":
+                                {
+                                    "hash": "Hash1",
+                                    "info":
+                                    {
+                                        "name": "First",
+                                        "length": 10,
+                                        "piece_length": 2,
+                                        "pieces_num": 5,
+                                        "private": false,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "first.bin",
+                                                "length": 10
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var first = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+            using var second = new MemoryStream(Encoding.UTF8.GetBytes("b"));
+
+            var result = await _target.ParseTorrentMetadataAsync(
+                new Dictionary<string, Stream>
+                {
+                    ["a.torrent"] = first,
+                    ["b.torrent"] = second
+                },
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
         }
 
         [Fact]

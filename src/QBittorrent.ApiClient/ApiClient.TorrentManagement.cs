@@ -1380,6 +1380,7 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult<IReadOnlyList<TorrentMetadata>>> ParseTorrentMetadataAsync(IReadOnlyDictionary<string, Stream> torrents, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(torrents);
+            var torrentNames = torrents.Keys.ToList();
 
             var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
             if (profileResult.IsFailure)
@@ -1406,22 +1407,36 @@ namespace QBittorrent.ApiClient
                 content.Add(await CreateOwnedTorrentContentAsync(stream, cancellationToken), "torrents", name);
             }
 
-            static async Task<IReadOnlyList<TorrentMetadata>> readParsedTorrentMetadata(HttpContent responseContent, ApiClientCompatibilityProfile compatibilityProfile, CancellationToken readCancellationToken)
+            static async Task<IReadOnlyList<TorrentMetadata>> readParsedTorrentMetadata(HttpContent responseContent, ApiClientCompatibilityProfile compatibilityProfile, IReadOnlyList<string> requestedTorrentNames, CancellationToken readCancellationToken)
             {
                 if (compatibilityProfile.SupportsTorrentMetadataArrayResponse)
                 {
                     return (await GetJsonAsync<List<TorrentMetadata>>(responseContent, readCancellationToken)).AsReadOnly();
                 }
 
-                return (await GetJsonAsync<Dictionary<string, TorrentMetadata>>(responseContent, readCancellationToken))
-                    .Values
-                    .ToList()
-                    .AsReadOnly();
+                var metadataByTorrentName = await GetJsonAsync<Dictionary<string, TorrentMetadata>>(responseContent, readCancellationToken);
+                if (metadataByTorrentName.Count != requestedTorrentNames.Count)
+                {
+                    throw new ResponseDeserializationException("IReadOnlyList<TorrentMetadata>");
+                }
+
+                var orderedMetadata = new List<TorrentMetadata>(requestedTorrentNames.Count);
+                foreach (var requestedTorrentName in requestedTorrentNames)
+                {
+                    if (!metadataByTorrentName.TryGetValue(requestedTorrentName, out var torrentMetadata))
+                    {
+                        throw new ResponseDeserializationException("IReadOnlyList<TorrentMetadata>");
+                    }
+
+                    orderedMetadata.Add(torrentMetadata);
+                }
+
+                return orderedMetadata.AsReadOnly();
             }
 
             return await ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/parseMetadata", content, ct),
-                (responseContent, ct) => readParsedTorrentMetadata(responseContent, profile, ct),
+                (responseContent, ct) => readParsedTorrentMetadata(responseContent, profile, torrentNames, ct),
                 cancellationToken: cancellationToken);
         }
 
