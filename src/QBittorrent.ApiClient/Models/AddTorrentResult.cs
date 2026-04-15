@@ -17,7 +17,6 @@ namespace QBittorrent.ApiClient.Models
             FailureCount = failureCount;
             PendingCount = pendingCount;
             AddedTorrentIds = addedTorrentIds ?? [];
-            SupportsAsync = true;
         }
 
         /// <summary>
@@ -28,7 +27,6 @@ namespace QBittorrent.ApiClient.Models
             SuccessCount = successCount;
             FailureCount = failureCount;
             AddedTorrentIds = [];
-            SupportsAsync = false;
         }
 
         /// <summary>
@@ -55,10 +53,5 @@ namespace QBittorrent.ApiClient.Models
         [JsonPropertyName("added_torrent_ids")]
         public IReadOnlyList<string> AddedTorrentIds { get; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether async is supported.
-        /// </summary>
-        [JsonIgnore]
-        public bool SupportsAsync { get; internal set; }
     }
 }

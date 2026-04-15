@@ -554,7 +554,8 @@ namespace QBittorrent.ApiClient.Test
 
             result.SuccessCount.Should().Be(1);
             result.FailureCount.Should().Be(0);
-            result.SupportsAsync.Should().BeFalse();
+            result.PendingCount.Should().Be(0);
+            result.AddedTorrentIds.Should().BeEmpty();
         }
 
         [Fact]
@@ -569,7 +570,8 @@ namespace QBittorrent.ApiClient.Test
 
             result.SuccessCount.Should().Be(0);
             result.FailureCount.Should().Be(1);
-            result.SupportsAsync.Should().BeFalse();
+            result.PendingCount.Should().Be(0);
+            result.AddedTorrentIds.Should().BeEmpty();
         }
 
         [Fact]
@@ -593,7 +595,6 @@ namespace QBittorrent.ApiClient.Test
             result.FailureCount.Should().Be(2);
             result.PendingCount.Should().Be(3);
             result.AddedTorrentIds.Should().BeEquivalentTo(["hash1", "hash2"]);
-            result.SupportsAsync.Should().BeTrue();
         }
 
         [Fact]
@@ -619,7 +620,6 @@ namespace QBittorrent.ApiClient.Test
             pendingResult.FailureCount.Should().Be(2);
             pendingResult.PendingCount.Should().Be(3);
             pendingResult.AddedTorrentIds.Should().BeEquivalentTo(["hash1", "hash2"]);
-            pendingResult.SupportsAsync.Should().BeTrue();
         }
 
         [Fact]
