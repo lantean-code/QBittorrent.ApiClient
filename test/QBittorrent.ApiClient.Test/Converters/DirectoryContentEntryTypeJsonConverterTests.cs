@@ -45,6 +45,16 @@ namespace QBittorrent.ApiClient.Test.Converters
         }
 
         [Fact]
+        public void GIVEN_NonStringToken_WHEN_Read_THEN_ShouldThrowJsonException()
+        {
+            var options = CreateOptions();
+
+            var action = () => JsonSerializer.Deserialize<DirectoryContentEntryType>("1", options);
+
+            action.Should().Throw<JsonException>();
+        }
+
+        [Fact]
         public void GIVEN_Directory_WHEN_Write_THEN_ShouldEmitDirectoryToken()
         {
             var options = CreateOptions();

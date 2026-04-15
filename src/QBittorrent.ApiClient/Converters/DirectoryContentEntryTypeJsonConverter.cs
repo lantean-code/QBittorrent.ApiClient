@@ -8,6 +8,11 @@ namespace QBittorrent.ApiClient.Converters
     {
         public override DirectoryContentEntryType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            if (reader.TokenType != JsonTokenType.String)
+            {
+                throw new JsonException($"Expected directory content entry type to be a string, but found {reader.TokenType}.");
+            }
+
             var value = reader.GetString();
 
             return value switch

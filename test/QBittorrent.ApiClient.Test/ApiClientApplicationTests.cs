@@ -1642,6 +1642,42 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_NonStringDirectoryEntryType_WHEN_GetDirectoryContentEntries_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.11.8"));
+
+                    case "/app/getDirectoryContent":
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            [
+                                {
+                                    "name": "file.iso",
+                                    "type": 1,
+                                    "size": 42,
+                                    "creation_date": 100,
+                                    "last_access_date": 101,
+                                    "last_modification_date": 102
+                                }
+                            ]
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.GetDirectoryContentEntriesAsync("/data", DirectoryContentMode.Files, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
         public async Task GIVEN_ApiVersionBeforeDirectoryContentMetadata_WHEN_GetDirectoryContentEntries_THEN_ShouldFailWithoutCallingEndpoint()
         {
             var directoryRequestCount = 0;
