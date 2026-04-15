@@ -236,18 +236,7 @@ namespace QBittorrent.ApiClient
                     return failure.ToResult<T>();
                 }
 
-                try
-                {
-                    return ApiResult.CreateSuccess(await readValue(response.Content, cancellationToken));
-                }
-                catch (JsonException exception)
-                {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
-                }
-                catch (InvalidOperationException exception) when (exception.Message.StartsWith("Unable to deserialize response as ", StringComparison.Ordinal))
-                {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
-                }
+                return await TryReadValueAsync(operation, response.Content, readValue, cancellationToken);
             }
         }
 
@@ -260,14 +249,18 @@ namespace QBittorrent.ApiClient
         {
             using (response)
             {
-                try
+                var readResult = await TryReadValueAsync(operation, response.Content, readPendingValue, cancellationToken);
+                if (readResult.IsFailure)
                 {
-                    return ApiResult.CreatePending(await readPendingValue(response.Content, cancellationToken));
+                    return readResult.Failure.ToResult<T>();
                 }
-                catch (JsonException exception)
+
+                if (!readResult.TryGetValue(out var pendingValue))
                 {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
+                    throw new InvalidOperationException("Expected a completed pending-value result.");
                 }
+
+                return ApiResult.CreatePending(pendingValue);
             }
         }
 
@@ -281,18 +274,39 @@ namespace QBittorrent.ApiClient
         {
             using (response)
             {
-                try
+                var readResult = await TryReadValueAsync(operation, response.Content, readPendingValue, cancellationToken);
+                if (readResult.IsFailure)
                 {
-                    return ApiResult.CreatePending<TSuccess, TPending>(await readPendingValue(response.Content, cancellationToken));
+                    return readResult.Failure.ToResult<TSuccess, TPending>();
                 }
-                catch (JsonException exception)
+
+                if (!readResult.TryGetValue(out var pendingValue))
                 {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<TSuccess, TPending>();
+                    throw new InvalidOperationException("Expected a completed pending-value result.");
                 }
-                catch (InvalidOperationException exception) when (exception.Message.StartsWith("Unable to deserialize response as ", StringComparison.Ordinal))
-                {
-                    return CreateUnexpectedResponseFailure(operation, exception).ToResult<TSuccess, TPending>();
-                }
+
+                return ApiResult.CreatePending<TSuccess, TPending>(pendingValue);
+            }
+        }
+
+        private static async Task<ApiResult<T>> TryReadValueAsync<T>(
+            string operation,
+            HttpContent content,
+            Func<HttpContent, CancellationToken, Task<T>> readValue,
+            CancellationToken cancellationToken)
+            where T : notnull
+        {
+            try
+            {
+                return ApiResult.CreateSuccess(await readValue(content, cancellationToken));
+            }
+            catch (JsonException exception)
+            {
+                return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
+            }
+            catch (ResponseDeserializationException exception)
+            {
+                return CreateUnexpectedResponseFailure(operation, exception).ToResult<T>();
             }
         }
 
@@ -530,7 +544,7 @@ namespace QBittorrent.ApiClient
 
         private static async Task<T> GetJsonAsync<T>(HttpContent content, CancellationToken cancellationToken)
         {
-            return await content.ReadFromJsonAsync(GetJsonTypeInfo<T>(), cancellationToken) ?? throw new InvalidOperationException($"Unable to deserialize response as {typeof(T).Name}");
+            return await content.ReadFromJsonAsync(GetJsonTypeInfo<T>(), cancellationToken) ?? throw new ResponseDeserializationException(typeof(T).Name);
         }
 
         private static async Task<IReadOnlyList<T>> GetJsonListAsync<T>(HttpContent content, CancellationToken cancellationToken)
@@ -554,7 +568,7 @@ namespace QBittorrent.ApiClient
             {
                 "1" => true,
                 "0" => false,
-                _ => throw new InvalidOperationException("Unable to deserialize response as Boolean"),
+                _ => throw new ResponseDeserializationException("Boolean"),
             };
         }
 
@@ -563,7 +577,7 @@ namespace QBittorrent.ApiClient
             var value = await content.ReadAsStringAsync(cancellationToken);
             if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
             {
-                throw new InvalidOperationException("Unable to deserialize response as Int32");
+                throw new ResponseDeserializationException("Int32");
             }
 
             return result;
@@ -574,7 +588,7 @@ namespace QBittorrent.ApiClient
             var value = await content.ReadAsStringAsync(cancellationToken);
             if (!long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
             {
-                throw new InvalidOperationException("Unable to deserialize response as Int64");
+                throw new ResponseDeserializationException("Int64");
             }
 
             return result;
@@ -585,7 +599,7 @@ namespace QBittorrent.ApiClient
             var payload = await GetJsonAsync<SearchStartResult>(content, cancellationToken);
             if (payload.Id is null)
             {
-                throw new InvalidOperationException("Unable to deserialize response as Int32");
+                throw new ResponseDeserializationException("Int32");
             }
 
             return payload.Id.Value;

@@ -71,18 +71,16 @@ namespace QBittorrent.ApiClient
                 var rawPayload = await content.ReadAsStringAsync(currentCancellationToken);
                 if (string.IsNullOrWhiteSpace(rawPayload))
                 {
-                    return string.Empty;
+                    throw new ResponseDeserializationException("String");
                 }
 
-                try
+                var payload = DeserializeJson<TorrentCreationTaskIdentifier>(rawPayload);
+                if (string.IsNullOrWhiteSpace(payload?.TaskId))
                 {
-                    var payload = DeserializeJson<TorrentCreationTaskIdentifier>(rawPayload);
-                    return payload?.TaskId ?? string.Empty;
+                    throw new ResponseDeserializationException("String");
                 }
-                catch (System.Text.Json.JsonException)
-                {
-                    return string.Empty;
-                }
+
+                return payload.TaskId;
             }
 
             return ExecuteAsync(

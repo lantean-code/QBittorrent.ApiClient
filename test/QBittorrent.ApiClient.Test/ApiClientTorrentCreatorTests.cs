@@ -39,7 +39,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_MinimalRequest_WHEN_AddTorrentCreationTask_THEN_ShouldPOSTOnlySourcePathAndReturnEmptyOnEmptyBody()
+        public async Task GIVEN_MinimalRequestAndEmptyBody_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnexpectedResponse()
         {
             _handler.Responder = async (req, ct) =>
             {
@@ -56,12 +56,14 @@ namespace QBittorrent.ApiClient.Test
                 };
             };
 
-            var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            var result = await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
             {
                 SourcePath = "/src"
-            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
-            id.Should().Be(string.Empty);
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
         }
 
         [Fact]
@@ -162,67 +164,93 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_OKButNoTaskIdInJson_WHEN_AddTorrentCreationTask_THEN_ShouldReturnEmptyString()
+        public async Task GIVEN_OKButNoTaskIdInJson_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnexpectedResponse()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("{}")
             });
 
-            var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            var result = await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
             {
                 SourcePath = "/src"
-            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
-            id.Should().Be(string.Empty);
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
         }
 
         [Fact]
-        public async Task GIVEN_OKButNullTaskId_WHEN_AddTorrentCreationTask_THEN_ShouldReturnEmptyString()
+        public async Task GIVEN_OKButNullTaskId_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnexpectedResponse()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("{\"taskID\":null}")
             });
 
-            var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            var result = await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
             {
                 SourcePath = "/src"
-            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
-            id.Should().Be(string.Empty);
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
         }
 
         [Fact]
-        public async Task GIVEN_OKButNullPayload_WHEN_AddTorrentCreationTask_THEN_ShouldReturnEmptyString()
+        public async Task GIVEN_OKButNullPayload_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnexpectedResponse()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("null")
             });
 
-            var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            var result = await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
             {
                 SourcePath = "/src"
-            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
-            id.Should().Be(string.Empty);
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
         }
 
         [Fact]
-        public async Task GIVEN_OKButArrayPayload_WHEN_AddTorrentCreationTask_THEN_ShouldReturnEmptyString()
+        public async Task GIVEN_OKButArrayPayload_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnexpectedResponse()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("[]")
             });
 
-            var id = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            var result = await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
             {
                 SourcePath = "/src"
-            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            }, cancellationToken: TestContext.Current.CancellationToken);
 
-            id.Should().Be(string.Empty);
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_OKButInvalidJson_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("oops")
+            });
+
+            var result = await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            {
+                SourcePath = "/src"
+            }, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
         }
 
         [Fact]
