@@ -1238,6 +1238,14 @@ namespace QBittorrent.ApiClient
                     $"qBittorrent Web API {profile.WebApiVersion} does not support torrent metadata APIs.").ToResult<TorrentMetadata, FetchTorrentMetadataPendingResult>();
             }
 
+            if (!string.IsNullOrWhiteSpace(downloader) && !profile.SupportsTorrentAddDownloader)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(FetchTorrentMetadataAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent downloader selection.").ToResult<TorrentMetadata, FetchTorrentMetadataPendingResult>();
+            }
+
             var content = new FormUrlEncodedBuilder()
                 .Add("source", source);
 

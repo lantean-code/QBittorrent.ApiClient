@@ -263,7 +263,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
+                        return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/torrents/add":
                         var parts = req.Content.Should().BeOfType<MultipartFormDataContent>().Subject.ToList();
@@ -803,7 +803,7 @@ namespace QBittorrent.ApiClient.Test
                 switch (req.RequestUri?.AbsolutePath)
                 {
                     case "/app/webapiVersion":
-                        return CreateResponse(HttpStatusCode.OK, "2.11.9");
+                        return CreateResponse(HttpStatusCode.OK, "2.13.1");
 
                     case "/torrents/fetchMetadata":
                         req.Method.Should().Be(HttpMethod.Post);
@@ -1041,6 +1041,36 @@ namespace QBittorrent.ApiClient.Test
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
             failure.UserMessage.Should().Be("qBittorrent Web API 2.11.8 does not support torrent metadata APIs.");
+            metadataRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBeforeTorrentAddDownloader_WHEN_FetchTorrentMetadataWithDownloader_THEN_ShouldFailWithoutCallingEndpoint()
+        {
+            var metadataRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.0"));
+
+                    case "/torrents/fetchMetadata":
+                        metadataRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
+            var result = await _target.FetchTorrentMetadataAsync("source", "plugin", cancellationToken: TestContext.Current.CancellationToken);
+
+            var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            failure.UserMessage.Should().Be("qBittorrent Web API 2.13.0 does not support add-torrent downloader selection.");
             metadataRequestCount.Should().Be(0);
         }
 
