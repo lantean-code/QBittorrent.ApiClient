@@ -60,17 +60,7 @@ namespace QBittorrent.ApiClient
 
             if (includeFiles is not null)
             {
-                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-                if (profileResult.IsFailure)
-                {
-                    return profileResult.Failure.ToResult<IReadOnlyList<Torrent>>();
-                }
-
-                if (!profileResult.TryGetValue(out var profile))
-                {
-                    throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-                }
-
+                var profile = CompatibilityProfile;
                 if (!profile.SupportsTorrentListIncludeFiles)
                 {
                     if (includeFiles.Value)
@@ -200,17 +190,7 @@ namespace QBittorrent.ApiClient
 
         public async Task<ApiResult<IReadOnlyList<int>>> GetTorrentPieceAvailabilityAsync(string hash, CancellationToken cancellationToken = default)
         {
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult<IReadOnlyList<int>>();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTorrentPieceAvailability)
             {
                 return CreateUnsupportedCompatibilityFailure(
@@ -280,17 +260,7 @@ namespace QBittorrent.ApiClient
 
             if (normalizedUrls.Length > 0)
             {
-                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-                if (profileResult.IsFailure)
-                {
-                    return profileResult.Failure.ToResult();
-                }
-
-                if (!profileResult.TryGetValue(out var profile))
-                {
-                    throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-                }
-
+                var profile = CompatibilityProfile;
                 if (!profile.SupportsReannounceUrls)
                 {
                     return CreateUnsupportedCompatibilityFailure(
@@ -319,17 +289,7 @@ namespace QBittorrent.ApiClient
 
             if ((addTorrentParams.Downloader is not null) || (addTorrentParams.FilePriorities is not null))
             {
-                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-                if (profileResult.IsFailure)
-                {
-                    return profileResult.Failure.ToResult<AddTorrentResult>();
-                }
-
-                if (!profileResult.TryGetValue(out var profile))
-                {
-                    throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-                }
-
+                var profile = CompatibilityProfile;
                 if ((addTorrentParams.Downloader is not null) && !profile.SupportsTorrentAddDownloader)
                 {
                     return CreateUnsupportedCompatibilityFailure(
@@ -561,17 +521,7 @@ namespace QBittorrent.ApiClient
             var applyToAll = selector.All;
             var normalizedHashes = selector.Hashes ?? [];
 
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTrackerBatchOperations)
             {
                 if (applyToAll)
@@ -612,17 +562,7 @@ namespace QBittorrent.ApiClient
                 throw new ArgumentException("Must specify at least one of newUrl or tier.");
             }
 
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTrackerTierEditing && (tier is not null))
             {
                 return CreateUnsupportedCompatibilityFailure(
@@ -672,17 +612,7 @@ namespace QBittorrent.ApiClient
             var applyToAll = selector.All;
             var normalizedHashes = selector.Hashes ?? [];
 
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTrackerBatchOperations && (normalizedHashes.Count > 1))
             {
                 return CreateUnsupportedCompatibilityFailure(
@@ -804,17 +734,7 @@ namespace QBittorrent.ApiClient
         {
             ArgumentNullException.ThrowIfNull(selector);
 
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (profile.RequiresTorrentShareLimitAction)
             {
                 if (shareLimitAction is null)
@@ -1009,17 +929,7 @@ namespace QBittorrent.ApiClient
 
         public async Task<ApiResult> SetTorrentCommentAsync(TorrentSelector selector, string comment, CancellationToken cancellationToken = default)
         {
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTorrentCommentEditing)
             {
                 return CreateUnsupportedCompatibilityFailure(
@@ -1319,17 +1229,7 @@ namespace QBittorrent.ApiClient
 
         public async Task<ApiResult<TorrentMetadata, FetchTorrentMetadataPendingResult>> FetchTorrentMetadataAsync(string source, string? downloader = null, CancellationToken cancellationToken = default)
         {
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult<TorrentMetadata, FetchTorrentMetadataPendingResult>();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTorrentMetadata)
             {
                 return CreateUnsupportedCompatibilityFailure(
@@ -1363,10 +1263,7 @@ namespace QBittorrent.ApiClient
                     return result.Failure.ToResult<TorrentMetadata, FetchTorrentMetadataPendingResult>();
                 }
 
-                if (!result.TryGetValue(out var torrentMetadata))
-                {
-                    throw new InvalidOperationException("Expected a completed torrent-metadata result.");
-                }
+                var torrentMetadata = result.Value!;
 
                 return ApiResult.CreateSuccess<TorrentMetadata, FetchTorrentMetadataPendingResult>(torrentMetadata);
             }
@@ -1382,17 +1279,7 @@ namespace QBittorrent.ApiClient
             ArgumentNullException.ThrowIfNull(torrents);
             var torrentNames = torrents.Keys.ToList();
 
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult<IReadOnlyList<TorrentMetadata>>();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTorrentMetadata)
             {
                 return CreateUnsupportedCompatibilityFailure(
@@ -1442,17 +1329,7 @@ namespace QBittorrent.ApiClient
 
         public async Task<ApiResult<byte[]>> SaveTorrentMetadataAsync(string source, CancellationToken cancellationToken = default)
         {
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult<byte[]>();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsTorrentMetadata)
             {
                 return CreateUnsupportedCompatibilityFailure(
@@ -1503,6 +1380,5 @@ namespace QBittorrent.ApiClient
                 }
             }
         }
-
     }
 }

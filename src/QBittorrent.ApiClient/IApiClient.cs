@@ -36,15 +36,25 @@ namespace QBittorrent.ApiClient
         /// <returns>A result with the qBittorrent version string.</returns>
         Task<ApiResult<string>> GetApplicationVersionAsync(CancellationToken cancellationToken = default);
 
+        /// <summary>Initializes qBittorrent Web API compatibility metadata by querying the connected qBittorrent instance.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether compatibility metadata was initialized.</returns>
+        Task<ApiResult> InitializeAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Initializes qBittorrent Web API compatibility metadata from a known Web API version.</summary>
+        /// <param name="webApiVersion">The known qBittorrent Web API version.</param>
+        /// <returns><see langword="true" /> when compatibility metadata is initialized after the call.</returns>
+        bool Initialize(Version webApiVersion);
+
+        /// <summary>Initializes qBittorrent Web API compatibility metadata from a known Web API version string.</summary>
+        /// <param name="webApiVersion">The known qBittorrent Web API version string.</param>
+        /// <returns><see langword="true" /> when compatibility metadata is initialized after the call; otherwise, <see langword="false" />.</returns>
+        bool Initialize(string? webApiVersion);
+
         /// <summary>Gets the qBittorrent Web API version.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the Web API version string.</returns>
         Task<ApiResult<string>> GetAPIVersionAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>Clears and refreshes the cached qBittorrent compatibility profile.</summary>
-        /// <returns>A result indicating whether the operation succeeded.</returns>
-        /// <remarks>This method re-queries qBittorrent version metadata used for internal compatibility decisions. Call this after changing the target server or after upgrading qBittorrent.</remarks>
-        Task<ApiResult> RefreshCompatibilityAsync(CancellationToken cancellationToken = default);
 
         /// <summary>Loads client-side data stored by qBittorrent.</summary>
         /// <param name="keys">The optional keys to load. When <see langword="null" /> or empty, all stored data is returned.</param>

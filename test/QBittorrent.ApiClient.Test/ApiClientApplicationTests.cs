@@ -87,7 +87,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_CachedCompatibilityProfile_WHEN_GetAPIVersion_THEN_ShouldReturnCachedValueWithoutCallingEndpoint()
+        public async Task GIVEN_CachedCompatibilityProfile_WHEN_GetAPIVersion_THEN_ShouldCallEndpointEachTime()
         {
             var apiVersionRequestCount = 0;
 
@@ -97,8 +97,28 @@ namespace QBittorrent.ApiClient.Test
                 return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.2"));
             };
 
-            (await _target.RefreshCompatibilityAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            (await _target.GetAPIVersionAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow().Should().Be("2.15.2");
             apiVersionRequestCount.Should().Be(1);
+
+            var result = (await _target.GetAPIVersionAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Be("2.15.2");
+            apiVersionRequestCount.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task GIVEN_StaticInitialization_WHEN_GetAPIVersion_THEN_ShouldCallEndpoint()
+        {
+            var apiVersionRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                req.RequestUri?.AbsolutePath.Should().Be("/app/webapiVersion");
+                apiVersionRequestCount++;
+                return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.2"));
+            };
+
+            _target.Initialize(new Version(2, 13, 1)).Should().BeTrue();
 
             var result = (await _target.GetAPIVersionAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
@@ -107,7 +127,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_GetAPIVersionHydratesCache_WHEN_LoadClientData_THEN_ShouldNotRequestApiVersionAgain()
+        public async Task GIVEN_GetAPIVersionHydratesCompatibility_WHEN_LoadClientData_THEN_ShouldNotRequestApiVersionAgain()
         {
             var apiVersionRequestCount = 0;
             var loadRequestCount = 0;
@@ -148,65 +168,6 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetAPIVersionAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.InternalServerError, userMessage: "no");
-        }
-
-        [Fact]
-        public async Task GIVEN_SupportedApiVersion_WHEN_RefreshCompatibilityAsync_THEN_ShouldSucceed()
-        {
-            var apiVersionRequestCount = 0;
-
-            _handler.Responder = (req, _) =>
-            {
-                req.RequestUri?.ToString().Should().Be("http://localhost/app/webapiVersion");
-                apiVersionRequestCount++;
-                return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.15.2"));
-            };
-
-            var result = await _target.RefreshCompatibilityAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-            result.ShouldSucceed();
-            apiVersionRequestCount.Should().Be(1);
-        }
-
-        [Fact]
-        public async Task GIVEN_InvalidApiVersion_WHEN_RefreshCompatibilityAsync_THEN_ShouldReturnUnexpectedResponse()
-        {
-            _handler.Responder = (_, _) => Task.FromResult(CreateResponse(HttpStatusCode.OK, "invalid"));
-
-            var result = await _target.RefreshCompatibilityAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-            var failure = result.ShouldFailWith(
-                kind: ApiFailureKind.UnexpectedResponse,
-                userMessage: "Unable to determine the qBittorrent Web API version.");
-
-            failure.Detail.Should().Be("qBittorrent returned an unsupported Web API version value: invalid");
-        }
-
-        [Fact]
-        public async Task GIVEN_EmptyApiVersion_WHEN_RefreshCompatibilityAsync_THEN_ShouldReturnUnexpectedResponse()
-        {
-            _handler.Responder = (_, _) => Task.FromResult(CreateResponse(HttpStatusCode.OK, null));
-
-            var result = await _target.RefreshCompatibilityAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-            var failure = result.ShouldFailWith(
-                kind: ApiFailureKind.UnexpectedResponse,
-                userMessage: "Unable to determine the qBittorrent Web API version.");
-
-            failure.Detail.Should().Be("qBittorrent did not return a Web API version.");
-        }
-
-        [Fact]
-        public async Task GIVEN_ApiVersionEndpointFailure_WHEN_RefreshCompatibilityAsync_THEN_ShouldReturnProbeFailure()
-        {
-            _handler.Responder = (_, _) => Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
-
-            var result = await _target.RefreshCompatibilityAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
         }
 
         [Fact]
@@ -310,6 +271,278 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public void GIVEN_NullVersion_WHEN_Initialize_THEN_ShouldThrowArgumentNullException()
+        {
+            var action = () => _target.Initialize((Version)null!);
+
+            action.Should().Throw<ArgumentNullException>().WithParameterName("webApiVersion");
+        }
+
+        [Fact]
+        public async Task GIVEN_InitializeAsyncAlreadyCompleted_WHEN_InitializeAsyncAgain_THEN_ShouldNotProbeAgain()
+        {
+            var apiVersionRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                req.RequestUri?.AbsolutePath.Should().Be("/app/webapiVersion");
+                apiVersionRequestCount++;
+                return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.1"));
+            };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
+            apiVersionRequestCount.Should().Be(1);
+        }
+
+        [Fact]
+        public void GIVEN_MissingBaseAddress_WHEN_Initialize_THEN_ShouldNotRequireBaseAddress()
+        {
+            var target = new ApiClient(new HttpClient(_handler));
+
+            target.Initialize(new Version(2, 13, 1)).Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GIVEN_StaticInitialization_WHEN_LoadClientData_THEN_ShouldNotRequestApiVersion()
+        {
+            var apiVersionRequestCount = 0;
+            var loadRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        apiVersionRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.1"));
+
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            _target.Initialize(new Version(2, 13, 1)).Should().BeTrue();
+
+            (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            apiVersionRequestCount.Should().Be(0);
+            loadRequestCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GIVEN_StringStaticInitialization_WHEN_LoadClientData_THEN_ShouldNotRequestApiVersion()
+        {
+            var apiVersionRequestCount = 0;
+            var loadRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        apiVersionRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.13.1"));
+
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            _target.Initialize(" 2.13.1 ").Should().BeTrue();
+
+            (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            apiVersionRequestCount.Should().Be(0);
+            loadRequestCount.Should().Be(1);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("invalid")]
+        public async Task GIVEN_InvalidStringStaticInitialization_WHEN_LoadClientData_THEN_ShouldReturnFalseAndLeaveClientUninitialized(string? webApiVersion)
+        {
+            var loadRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var action = async () => await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            _target.Initialize(webApiVersion).Should().BeFalse();
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
+            loadRequestCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_StaticInitializationAlreadyCompleted_WHEN_InitializeAgain_THEN_ShouldNotReplaceProfile()
+        {
+            var loadRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            _target.Initialize(new Version(2, 13, 1)).Should().BeTrue();
+            _target.Initialize(new Version(2, 12, 0)).Should().BeTrue();
+            _target.Initialize("invalid").Should().BeTrue();
+
+            (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            loadRequestCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GIVEN_InitializeAsyncInProgressAndVersionInitializationWins_WHEN_ProbeCompletes_THEN_ShouldKeepStaticProfile()
+        {
+            var apiVersionRequestCount = 0;
+            var loadRequestCount = 0;
+            var probeStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseProbe = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        apiVersionRequestCount++;
+                        probeStarted.SetResult();
+                        await releaseProbe.Task.WaitAsync(ct);
+                        return CreateResponse(HttpStatusCode.OK, "2.12.0");
+
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return CreateResponse(HttpStatusCode.OK, "{}");
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var initializeTask = _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            await probeStarted.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+            _target.Initialize(new Version(2, 13, 1)).Should().BeTrue();
+            releaseProbe.SetResult();
+
+            (await initializeTask).ShouldSucceed();
+            (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            apiVersionRequestCount.Should().Be(1);
+            loadRequestCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GIVEN_InitializeAsyncInProgressAndStringInitializationWins_WHEN_ProbeCompletes_THEN_ShouldKeepStaticProfile()
+        {
+            var apiVersionRequestCount = 0;
+            var loadRequestCount = 0;
+            var probeStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseProbe = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _handler.Responder = async (req, ct) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        apiVersionRequestCount++;
+                        probeStarted.SetResult();
+                        await releaseProbe.Task.WaitAsync(ct);
+                        return CreateResponse(HttpStatusCode.OK, "2.12.0");
+
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return CreateResponse(HttpStatusCode.OK, "{}");
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var initializeTask = _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            await probeStarted.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+            _target.Initialize("2.13.1").Should().BeTrue();
+            releaseProbe.SetResult();
+
+            (await initializeTask).ShouldSucceed();
+            (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            apiVersionRequestCount.Should().Be(1);
+            loadRequestCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GIVEN_SharedCacheProfileWins_WHEN_StaticInitializationTriesDifferentVersion_THEN_ShouldKeepCachedProfile()
+        {
+            var compatibilityProfileCache = new ApiClientCompatibilityProfileCache();
+            var target = new ApiClient(
+                new HttpClient(_handler)
+                {
+                    BaseAddress = new Uri("http://localhost/")
+                },
+                compatibilityProfileCache);
+
+            compatibilityProfileCache.TryHydrate("http://localhost/", new ApiClientCompatibilityProfile(new Version(2, 12, 0)));
+
+            (await target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            target.Initialize(new Version(2, 13, 1)).Should().BeTrue();
+
+            var result = await target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_InitializeAsync_THEN_ShouldReturnProbeFailureAndLeaveClientUninitialized()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.BadGateway, "probe failed"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var result = await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
+        }
+
+        [Fact]
         public async Task GIVEN_InvalidApiVersionResponse_WHEN_GetAPIVersionThenLoadClientData_THEN_ShouldNotCacheInvalidCompatibilityProfile()
         {
             var apiVersionRequestCount = 0;
@@ -333,8 +566,45 @@ namespace QBittorrent.ApiClient.Test
             };
 
             (await _target.GetAPIVersionAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow().Should().Be("invalid");
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
+            apiVersionRequestCount.Should().Be(2);
+            loadRequestCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GIVEN_InvalidApiVersionResponse_WHEN_InitializeAsync_THEN_ShouldReturnCompatibilityFailureAndNotCache()
+        {
+            var apiVersionRequestCount = 0;
+            var loadRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        apiVersionRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, apiVersionRequestCount == 1 ? "invalid" : "2.13.1"));
+
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var failureResult = await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var successResult = await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            failureResult.ShouldFailWithCompatibilityInitializationFailure(
+                "qBittorrent returned an unsupported Web API version value: invalid",
+                "invalid");
+            successResult.ShouldSucceed();
+            (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             apiVersionRequestCount.Should().Be(2);
             loadRequestCount.Should().Be(1);
         }
@@ -363,6 +633,8 @@ namespace QBittorrent.ApiClient.Test
             };
 
             (await _target.GetAPIVersionAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow().Should().Be(string.Empty);
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             apiVersionRequestCount.Should().Be(2);
@@ -370,7 +642,42 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_LoadClientDataCalls_WHEN_RefreshCompatibilityAsyncIsCalled_THEN_ShouldClearAndReloadCompatibilityProfile()
+        public async Task GIVEN_EmptyApiVersionResponse_WHEN_InitializeAsync_THEN_ShouldReturnCompatibilityFailureAndNotCache()
+        {
+            var apiVersionRequestCount = 0;
+            var loadRequestCount = 0;
+
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        apiVersionRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, apiVersionRequestCount == 1 ? null : "2.13.1"));
+
+                    case "/clientdata/load":
+                        loadRequestCount++;
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "{}"));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            var failureResult = await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var successResult = await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            failureResult.ShouldFailWithCompatibilityInitializationFailure(
+                "qBittorrent did not return a Web API version.",
+                null);
+            successResult.ShouldSucceed();
+            (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            apiVersionRequestCount.Should().Be(2);
+            loadRequestCount.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task GIVEN_LoadClientDataCalls_WHEN_CompatibilityProfileIsCached_THEN_ShouldReuseCompatibilityProfile()
         {
             var apiVersionRequestCount = 0;
             var loadRequestCount = 0;
@@ -392,16 +699,15 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             apiVersionRequestCount.Should().Be(1);
             loadRequestCount.Should().Be(2);
 
-            (await _target.RefreshCompatibilityAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
-            apiVersionRequestCount.Should().Be(2);
-
             (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
-            apiVersionRequestCount.Should().Be(2);
+            apiVersionRequestCount.Should().Be(1);
             loadRequestCount.Should().Be(3);
         }
 
@@ -430,15 +736,21 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var firstTask = _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken);
-            var secondTask = _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var firstInitializeTask = _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var secondInitializeTask = _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             await Task.Yield();
             apiVersionRequestCount.Should().Be(1);
 
             releaseVersionResponse.SetResult();
 
-            var results = await Task.WhenAll(firstTask, secondTask);
+            var initializeResults = await Task.WhenAll(firstInitializeTask, secondInitializeTask);
+
+            initializeResults.Should().AllSatisfy(result => result.ShouldSucceed());
+
+            var results = await Task.WhenAll(
+                _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken),
+                _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken));
 
             results.Should().AllSatisfy(result => result.ShouldSucceed());
             apiVersionRequestCount.Should().Be(1);
@@ -488,6 +800,8 @@ namespace QBittorrent.ApiClient.Test
                 };
             };
 
+            (await firstClient.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            (await secondClient.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             (await firstClient.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             (await secondClient.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
@@ -524,6 +838,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.LoadClientDataAsync(["QbtMud.AppSettings.State.v1", "QbtMud.WebUiLocalization.PreferredLocale.v1"], cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().HaveCount(2);
@@ -558,6 +874,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().ContainKey("QbtMud.AppSettings.State.v1");
@@ -584,6 +902,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.LoadClientDataAsync(["QbtMud.Test"], cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -609,13 +929,15 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.LoadClientDataAsync(["QbtMud.Test"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadRequest, userMessage: "load failed");
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_LoadClientData_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_LoadClientData_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var loadRequestCount = 0;
 
@@ -635,12 +957,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.LoadClientDataAsync(["QbtMud.Test"], cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.LoadClientDataAsync(["QbtMud.Test"], cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
 
             loadRequestCount.Should().Be(0);
         }
@@ -667,6 +986,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
@@ -696,6 +1017,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
                 ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { value = true })
@@ -724,6 +1047,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
                 ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { value = true })
@@ -733,7 +1058,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_StoreClientData_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_StoreClientData_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var storeRequestCount = 0;
 
@@ -753,15 +1078,12 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
+            var action = async () => await _target.StoreClientDataAsync(new Dictionary<string, JsonElement?>
             {
                 ["QbtMud.AppSettings.State.v1"] = CreateJsonElement(new { value = true })
             }, cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
 
             storeRequestCount.Should().Be(0);
         }
@@ -810,6 +1132,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.UpsertClientDataAsync(new Dictionary<string, JsonElement>
             {
@@ -862,6 +1186,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.DeleteClientDataAsync(
                 ["QbtMud.AppSettings.State.v1", " QbtMud.Search.Jobs ", "QbtMud.Search.Jobs"],
                 cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
@@ -886,6 +1212,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.DeleteClientDataAsync([], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
@@ -963,6 +1291,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.LaunchTime.Should().Be(12345);
@@ -989,6 +1319,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -997,7 +1329,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetProcessInfo_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetProcessInfo_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var processInfoRequestCount = 0;
 
@@ -1017,9 +1349,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.GetProcessInfoAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             processInfoRequestCount.Should().Be(0);
         }
 
@@ -1371,6 +1703,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Key.Should().Be("ApiKey");
@@ -1397,6 +1731,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -1405,7 +1741,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_RotateApiKey_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_RotateApiKey_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var rotateRequestCount = 0;
 
@@ -1425,9 +1761,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.RotateAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             rotateRequestCount.Should().Be(0);
         }
 
@@ -1449,6 +1785,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
@@ -1474,6 +1812,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -1482,7 +1822,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_DeleteApiKey_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_DeleteApiKey_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var deleteRequestCount = 0;
 
@@ -1502,9 +1842,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.DeleteAPIKeyAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             deleteRequestCount.Should().Be(0);
         }
 
@@ -1630,6 +1970,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.GetDirectoryContentEntriesAsync("/data", DirectoryContentMode.Files, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().ContainSingle();
@@ -1672,6 +2014,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.GetDirectoryContentEntriesAsync("/data", DirectoryContentMode.Files, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
@@ -1698,6 +2042,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.GetDirectoryContentEntriesAsync("/data", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -1706,7 +2052,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetDirectoryContentEntries_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetDirectoryContentEntries_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var directoryRequestCount = 0;
 
@@ -1726,9 +2072,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.GetDirectoryContentEntriesAsync("/data", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.GetDirectoryContentEntriesAsync("/data", cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             directoryRequestCount.Should().Be(0);
         }
 

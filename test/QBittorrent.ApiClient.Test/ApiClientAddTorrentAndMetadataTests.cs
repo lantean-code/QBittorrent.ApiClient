@@ -149,6 +149,8 @@ namespace QBittorrent.ApiClient.Test
                 Cookie = "sessionid=123"
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().NotBeNull();
@@ -206,6 +208,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.AddTorrentAsync(new AddTorrentParams
             {
                 Urls = ["u1"],
@@ -237,6 +241,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.AddTorrentAsync(new AddTorrentParams
             {
@@ -271,6 +277,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.AddTorrentAsync(new AddTorrentParams
             {
                 FilePriorities = [Priority.DoNotDownload, Priority.Normal]
@@ -280,7 +288,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailureAndDownloader_WHEN_AddTorrent_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailureAndDownloader_WHEN_AddTorrent_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var addRequestCount = 0;
 
@@ -300,13 +308,13 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.AddTorrentAsync(new AddTorrentParams
+            var action = async () => await _target.AddTorrentAsync(new AddTorrentParams
             {
                 Urls = ["u1"],
                 Downloader = "plugin"
             }, cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             addRequestCount.Should().Be(0);
         }
 
@@ -331,6 +339,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = (await _target.AddTorrentAsync(new AddTorrentParams
             {
@@ -839,6 +849,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.FetchTorrentMetadataAsync("magnet:?xt=urn:btih:abc", "plugin", cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.InfoHashV1.Should().Be("InfoHashV1");
@@ -887,6 +899,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             var pendingResult = result.GetPendingValueOrThrow();
@@ -913,6 +927,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
@@ -941,6 +957,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
@@ -964,6 +982,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
@@ -986,6 +1006,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
@@ -1013,6 +1035,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -1021,7 +1045,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_FetchTorrentMetadata_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_FetchTorrentMetadata_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var metadataRequestCount = 0;
 
@@ -1041,9 +1065,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             metadataRequestCount.Should().Be(0);
         }
 
@@ -1064,6 +1088,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
@@ -1087,6 +1113,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
@@ -1137,6 +1165,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
@@ -1159,6 +1189,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.FetchTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
@@ -1237,6 +1269,8 @@ namespace QBittorrent.ApiClient.Test
 
             using var first = new MemoryStream(Encoding.UTF8.GetBytes("a"));
             using var second = new MemoryStream(Encoding.UTF8.GetBytes("b"));
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = (await _target.ParseTorrentMetadataAsync(
                 new Dictionary<string, Stream>
@@ -1325,6 +1359,8 @@ namespace QBittorrent.ApiClient.Test
             using var first = new MemoryStream(Encoding.UTF8.GetBytes("a"));
             using var second = new MemoryStream(Encoding.UTF8.GetBytes("b"));
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.ParseTorrentMetadataAsync(
                 new Dictionary<string, Stream>
                 {
@@ -1382,6 +1418,87 @@ namespace QBittorrent.ApiClient.Test
             using var first = new MemoryStream(Encoding.UTF8.GetBytes("a"));
             using var second = new MemoryStream(Encoding.UTF8.GetBytes("b"));
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
+            var result = await _target.ParseTorrentMetadataAsync(
+                new Dictionary<string, Stream>
+                {
+                    ["a.torrent"] = first,
+                    ["b.torrent"] = second
+                },
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "qBittorrent returned an unexpected response.");
+        }
+
+        [Fact]
+        public async Task GIVEN_WebApi2121ObjectPayloadWithUnexpectedEntry_WHEN_ParseTorrentMetadata_THEN_ShouldReturnUnexpectedResponse()
+        {
+            _handler.Responder = (req, _) =>
+            {
+                switch (req.RequestUri?.AbsolutePath)
+                {
+                    case "/app/webapiVersion":
+                        return Task.FromResult(CreateResponse(HttpStatusCode.OK, "2.12.1"));
+
+                    case "/torrents/parseMetadata":
+                        return Task.FromResult(CreateResponse(
+                            HttpStatusCode.OK,
+                            """
+                            {
+                                "a.torrent":
+                                {
+                                    "hash": "Hash1",
+                                    "info":
+                                    {
+                                        "name": "First",
+                                        "length": 10,
+                                        "piece_length": 2,
+                                        "pieces_num": 5,
+                                        "private": false,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "first.bin",
+                                                "length": 10
+                                            }
+                                        ]
+                                    }
+                                },
+                                "c.torrent":
+                                {
+                                    "hash": "Hash3",
+                                    "info":
+                                    {
+                                        "name": "Third",
+                                        "length": 30,
+                                        "piece_length": 3,
+                                        "pieces_num": 10,
+                                        "private": false,
+                                        "files":
+                                        [
+                                            {
+                                                "path": "third.bin",
+                                                "length": 30
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                            """));
+
+                    default:
+                        throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
+                }
+            };
+
+            using var first = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+            using var second = new MemoryStream(Encoding.UTF8.GetBytes("b"));
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.ParseTorrentMetadataAsync(
                 new Dictionary<string, Stream>
                 {
@@ -1427,6 +1544,8 @@ namespace QBittorrent.ApiClient.Test
 
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -1435,7 +1554,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_ParseTorrentMetadata_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_ParseTorrentMetadata_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var metadataRequestCount = 0;
 
@@ -1457,9 +1576,9 @@ namespace QBittorrent.ApiClient.Test
 
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
 
-            var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             metadataRequestCount.Should().Be(0);
         }
 
@@ -1482,6 +1601,8 @@ namespace QBittorrent.ApiClient.Test
             };
 
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -1507,6 +1628,8 @@ namespace QBittorrent.ApiClient.Test
             };
 
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -1548,6 +1671,8 @@ namespace QBittorrent.ApiClient.Test
             };
 
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -1595,6 +1720,8 @@ namespace QBittorrent.ApiClient.Test
 
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes("a"));
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["a.torrent"] = stream }, cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.UnexpectedResponse, userMessage: "qBittorrent returned an unexpected response.");
@@ -1625,6 +1752,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().Equal(expected);
@@ -1651,6 +1780,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -1659,7 +1790,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SaveTorrentMetadata_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SaveTorrentMetadata_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var metadataRequestCount = 0;
 
@@ -1679,9 +1810,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             metadataRequestCount.Should().Be(0);
         }
 
@@ -1702,6 +1833,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.SaveTorrentMetadataAsync("source", cancellationToken: TestContext.Current.CancellationToken);
 

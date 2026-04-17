@@ -21,9 +21,9 @@ namespace QBittorrent.ApiClient
             return _profiles.TryGetValue(cacheKey, out profile);
         }
 
-        public async Task<ApiResult<ApiClientCompatibilityProfile>> GetOrAddAsync(
+        public async Task<ApiClientCompatibilityProfile?> GetOrAddAsync(
             string cacheKey,
-            Func<CancellationToken, Task<ApiResult<ApiClientCompatibilityProfile>>> valueFactory,
+            Func<CancellationToken, Task<ApiClientCompatibilityProfile?>> valueFactory,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(cacheKey);
@@ -31,7 +31,7 @@ namespace QBittorrent.ApiClient
 
             if (TryGetValue(cacheKey, out var cachedProfile))
             {
-                return ApiResult.CreateSuccess(cachedProfile);
+                return cachedProfile;
             }
 
             var semaphore = GetOrAddLock(cacheKey);
@@ -41,16 +41,16 @@ namespace QBittorrent.ApiClient
             {
                 if (TryGetValue(cacheKey, out cachedProfile))
                 {
-                    return ApiResult.CreateSuccess(cachedProfile);
+                    return cachedProfile;
                 }
 
-                var profileResult = await valueFactory(cancellationToken);
-                if (profileResult.TryGetValue(out var profile))
+                var profile = await valueFactory(cancellationToken);
+                if (profile is null)
                 {
-                    _profiles[cacheKey] = profile;
+                    return null;
                 }
 
-                return profileResult;
+                return _profiles.GetOrAdd(cacheKey, profile);
             }
             finally
             {
@@ -58,9 +58,9 @@ namespace QBittorrent.ApiClient
             }
         }
 
-        public async Task<ApiResult> RefreshAsync(
+        public async Task<bool> RefreshAsync(
             string cacheKey,
-            Func<CancellationToken, Task<ApiResult<ApiClientCompatibilityProfile>>> valueFactory,
+            Func<CancellationToken, Task<ApiClientCompatibilityProfile?>> valueFactory,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(cacheKey);
@@ -73,19 +73,13 @@ namespace QBittorrent.ApiClient
             {
                 _profiles.TryRemove(cacheKey, out _);
 
-                var profileResult = await valueFactory(cancellationToken);
-                if (profileResult.IsFailure)
+                var profile = await valueFactory(cancellationToken);
+                if (profile is null)
                 {
-                    return profileResult.Failure.ToResult();
+                    return false;
                 }
-
-                if (!profileResult.TryGetValue(out var profile))
-                {
-                    throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-                }
-
                 _profiles[cacheKey] = profile;
-                return ApiResult.CreateSuccess();
+                return true;
             }
             finally
             {
@@ -114,6 +108,14 @@ namespace QBittorrent.ApiClient
             {
                 semaphore.Release();
             }
+        }
+
+        public void TryHydrate(string cacheKey, ApiClientCompatibilityProfile profile)
+        {
+            ArgumentNullException.ThrowIfNull(cacheKey);
+            ArgumentNullException.ThrowIfNull(profile);
+
+            _profiles.TryAdd(cacheKey, profile);
         }
 
         private SemaphoreSlim GetOrAddLock(string cacheKey)

@@ -24,6 +24,12 @@ namespace QBittorrent.ApiClient.Test
             return Task.FromResult(ApiResult.CreateSuccess(value));
         }
 
+        private static Task<ApiResult<T>> PendingResult<T>(T value)
+            where T : notnull
+        {
+            return Task.FromResult(ApiResult.CreatePending(value));
+        }
+
         private static bool MatchesHash(TorrentSelector selector, string hash)
         {
             return selector.All is false
@@ -78,6 +84,19 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.ServerError, userMessage: "failed");
+        }
+
+        [Fact]
+        public async Task GIVEN_PendingTorrentList_WHEN_GetTorrent_THEN_ShouldThrowInvalidOperationException()
+        {
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetTorrentListAsync(null, null, null, null, null, null, null, null, null, null, It.Is<TorrentSelector?>(selector => MatchesOptionalHash(selector, "Hash")), It.IsAny<CancellationToken>()))
+                .Returns(PendingResult<IReadOnlyList<Torrent>>([]));
+
+            var action = async () => await _target.GetTorrentAsync("Hash", cancellationToken: TestContext.Current.CancellationToken);
+
+            var exception = await action.Should().ThrowAsync<InvalidOperationException>();
+            exception.Which.Message.Should().Be("Expected a completed torrent-list result.");
         }
 
         [Fact]
@@ -177,6 +196,38 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_PendingTorrentList_WHEN_RemoveUnusedCategories_THEN_ShouldThrowInvalidOperationException()
+        {
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
+                .Returns(PendingResult<IReadOnlyList<Torrent>>([]));
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
+                .Returns(SuccessResult<IReadOnlyDictionary<string, Category>>(new Dictionary<string, Category>()));
+
+            var action = async () => await _target.RemoveUnusedCategoriesAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            var exception = await action.Should().ThrowAsync<InvalidOperationException>();
+            exception.Which.Message.Should().Be("Expected a completed torrent-list result.");
+        }
+
+        [Fact]
+        public async Task GIVEN_PendingCategories_WHEN_RemoveUnusedCategories_THEN_ShouldThrowInvalidOperationException()
+        {
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetAllCategoriesAsync(It.IsAny<CancellationToken>()))
+                .Returns(PendingResult<IReadOnlyDictionary<string, Category>>(new Dictionary<string, Category>()));
+
+            var action = async () => await _target.RemoveUnusedCategoriesAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            var exception = await action.Should().ThrowAsync<InvalidOperationException>();
+            exception.Which.Message.Should().Be("Expected a completed categories result.");
+        }
+
+        [Fact]
         public async Task GIVEN_UsedAndUnusedTags_WHEN_RemoveUnusedTags_THEN_ShouldDeleteOnlyUnusedTags()
         {
             var torrents = new List<Torrent>
@@ -267,6 +318,38 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.RemoveUnusedTagsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(kind: ApiFailureKind.ServerError, userMessage: "delete failure");
+        }
+
+        [Fact]
+        public async Task GIVEN_PendingTorrentList_WHEN_RemoveUnusedTags_THEN_ShouldThrowInvalidOperationException()
+        {
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
+                .Returns(PendingResult<IReadOnlyList<Torrent>>([]));
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
+                .Returns(SuccessResult<IReadOnlyList<string>>([]));
+
+            var action = async () => await _target.RemoveUnusedTagsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            var exception = await action.Should().ThrowAsync<InvalidOperationException>();
+            exception.Which.Message.Should().Be("Expected a completed torrent-list result.");
+        }
+
+        [Fact]
+        public async Task GIVEN_PendingTags_WHEN_RemoveUnusedTags_THEN_ShouldThrowInvalidOperationException()
+        {
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetTorrentListAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<bool?>(), It.IsAny<int?>(), It.IsAny<int?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.IsAny<bool?>(), It.Is<TorrentSelector?>(selector => selector == null), It.IsAny<CancellationToken>()))
+                .Returns(SuccessResult<IReadOnlyList<Torrent>>([]));
+            Mock.Get(_target)
+                .Setup(apiClient => apiClient.GetAllTagsAsync(It.IsAny<CancellationToken>()))
+                .Returns(PendingResult<IReadOnlyList<string>>([]));
+
+            var action = async () => await _target.RemoveUnusedTagsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            var exception = await action.Should().ThrowAsync<InvalidOperationException>();
+            exception.Which.Message.Should().Be("Expected a completed tags result.");
         }
     }
 }

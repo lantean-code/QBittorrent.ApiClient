@@ -62,6 +62,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.GetTorrentListAsync(
                 filter: "active",
                 category: "Movies",
@@ -103,6 +105,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.GetTorrentListAsync(
                 isPrivate: false,
                 includeFiles: true,
@@ -134,6 +138,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = (await _target.GetTorrentListAsync(
                 isPrivate: false,
@@ -167,6 +173,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.GetTorrentListAsync(includeFiles: true, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -175,7 +183,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailureAndIncludeFiles_WHEN_GetTorrentList_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailureAndIncludeFiles_WHEN_GetTorrentList_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var torrentInfoRequestCount = 0;
 
@@ -198,12 +206,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.GetTorrentListAsync(includeFiles: true, cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.GetTorrentListAsync(includeFiles: true, cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
 
             torrentInfoRequestCount.Should().Be(0);
         }
@@ -1171,6 +1176,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = (await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
 
             result.Should().Equal(1, 2, 3);
@@ -1197,6 +1204,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -1205,7 +1214,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetTorrentPieceAvailability_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_GetTorrentPieceAvailability_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var availabilityRequestCount = 0;
 
@@ -1225,9 +1234,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.GetTorrentPieceAvailabilityAsync("abc", cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             availabilityRequestCount.Should().Be(0);
         }
 

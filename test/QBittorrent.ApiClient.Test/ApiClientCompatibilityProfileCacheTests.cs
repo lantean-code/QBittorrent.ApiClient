@@ -169,6 +169,34 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public void GIVEN_ValidVersionString_WHEN_TryCreateCompatibilityProfile_THEN_ShouldReturnProfile()
+        {
+            var result = ApiClientCompatibilityProfile.TryCreate("2.13.1", out var profile);
+
+            result.Should().BeTrue();
+            profile.Should().NotBeNull();
+            profile!.WebApiVersion.Should().Be(new Version(2, 13, 1));
+        }
+
+        [Fact]
+        public void GIVEN_InvalidVersionString_WHEN_TryCreateCompatibilityProfile_THEN_ShouldReturnFalse()
+        {
+            var result = ApiClientCompatibilityProfile.TryCreate("invalid", out var profile);
+
+            result.Should().BeFalse();
+            profile.Should().BeNull();
+        }
+
+        [Fact]
+        public void GIVEN_NullVersionString_WHEN_TryCreateCompatibilityProfile_THEN_ShouldReturnFalse()
+        {
+            var result = ApiClientCompatibilityProfile.TryCreate(null, out var profile);
+
+            result.Should().BeFalse();
+            profile.Should().BeNull();
+        }
+
+        [Fact]
         public async Task GIVEN_CacheMiss_WHEN_GetOrAddAsync_THEN_ShouldStoreValueForKey()
         {
             var target = new ApiClientCompatibilityProfileCache();
@@ -176,10 +204,10 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await target.GetOrAddAsync(
                 "http://localhost/api/v2/",
-                _ => Task.FromResult(ApiResult.CreateSuccess(expectedProfile)),
+                _ => Task.FromResult<ApiClientCompatibilityProfile?>(expectedProfile),
                 TestContext.Current.CancellationToken);
 
-            result.GetValueOrThrow().Should().BeSameAs(expectedProfile);
+            result.Should().BeSameAs(expectedProfile);
             target.TryGetValue("http://localhost/api/v2/", out var cachedProfile).Should().BeTrue();
             cachedProfile.Should().BeSameAs(expectedProfile);
         }
@@ -198,12 +226,71 @@ namespace QBittorrent.ApiClient.Test
                 _ =>
                 {
                     factoryCallCount++;
-                    return Task.FromResult(ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 15, 2))));
+                    return Task.FromResult<ApiClientCompatibilityProfile?>(new ApiClientCompatibilityProfile(new Version(2, 15, 2)));
                 },
                 TestContext.Current.CancellationToken);
 
-            result.GetValueOrThrow().Should().BeSameAs(cachedProfile);
+            result.Should().BeSameAs(cachedProfile);
             factoryCallCount.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_CacheHydratedWhileFactoryInProgress_WHEN_GetOrAddAsyncCompletes_THEN_ShouldReturnHydratedProfile()
+        {
+            var target = new ApiClientCompatibilityProfileCache();
+            var factoryProfile = new ApiClientCompatibilityProfile(new Version(2, 12, 0));
+            var hydratedProfile = new ApiClientCompatibilityProfile(new Version(2, 13, 1));
+            var factoryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseFactory = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var resultTask = target.GetOrAddAsync(
+                "http://localhost/api/v2/",
+                async _ =>
+                {
+                    factoryStarted.SetResult();
+                    await releaseFactory.Task.WaitAsync(TestContext.Current.CancellationToken);
+                    return factoryProfile;
+                },
+                TestContext.Current.CancellationToken);
+
+            await factoryStarted.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+            target.TryHydrate("http://localhost/api/v2/", hydratedProfile);
+            releaseFactory.SetResult();
+
+            var result = await resultTask.WaitAsync(TestContext.Current.CancellationToken);
+
+            result.Should().BeSameAs(hydratedProfile);
+        }
+
+        [Fact]
+        public async Task GIVEN_TryHydrateWhileFactoryInProgress_WHEN_FactoryCompletes_THEN_ShouldNotReplaceCachedValue()
+        {
+            var target = new ApiClientCompatibilityProfileCache();
+            var factoryProfile = new ApiClientCompatibilityProfile(new Version(2, 12, 0));
+            var hydratedProfile = new ApiClientCompatibilityProfile(new Version(2, 13, 1));
+            var factoryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseFactory = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var resultTask = target.GetOrAddAsync(
+                "http://localhost/api/v2/",
+                async _ =>
+                {
+                    factoryStarted.SetResult();
+                    await releaseFactory.Task.WaitAsync(TestContext.Current.CancellationToken);
+                    return factoryProfile;
+                },
+                TestContext.Current.CancellationToken);
+
+            await factoryStarted.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+            target.TryHydrate("http://localhost/api/v2/", hydratedProfile);
+            releaseFactory.SetResult();
+
+            await resultTask.WaitAsync(TestContext.Current.CancellationToken);
+
+            target.TryGetValue("http://localhost/api/v2/", out var cachedProfile).Should().BeTrue();
+            cachedProfile.Should().BeSameAs(hydratedProfile);
         }
 
         [Fact]
@@ -212,21 +299,16 @@ namespace QBittorrent.ApiClient.Test
             var target = new ApiClientCompatibilityProfileCache();
             var factoryCallCount = 0;
 
-            var failureResult = await target.GetOrAddAsync(
+            var profile = await target.GetOrAddAsync(
                 "http://localhost/api/v2/",
                 _ =>
                 {
                     factoryCallCount++;
-                    return Task.FromResult(ApiResult.CreateFailure<ApiClientCompatibilityProfile>(new ApiFailure
-                    {
-                        Kind = ApiFailureKind.ServerError,
-                        Operation = "GetOrAddAsync",
-                        UserMessage = "failed",
-                    }));
+                    return Task.FromResult<ApiClientCompatibilityProfile?>(null);
                 },
                 TestContext.Current.CancellationToken);
 
-            failureResult.ShouldFailWith(kind: ApiFailureKind.ServerError, userMessage: "failed");
+            profile.Should().BeNull();
             target.TryGetValue("http://localhost/api/v2/", out var cachedProfile).Should().BeFalse();
             cachedProfile.Should().BeNull();
 
@@ -236,11 +318,11 @@ namespace QBittorrent.ApiClient.Test
                 _ =>
                 {
                     factoryCallCount++;
-                    return Task.FromResult(ApiResult.CreateSuccess(successProfile));
+                    return Task.FromResult<ApiClientCompatibilityProfile?>(successProfile);
                 },
                 TestContext.Current.CancellationToken);
 
-            successResult.GetValueOrThrow().Should().BeSameAs(successProfile);
+            successResult.Should().BeSameAs(successProfile);
             factoryCallCount.Should().Be(2);
         }
 
@@ -253,13 +335,13 @@ namespace QBittorrent.ApiClient.Test
 
             (await target.GetOrAddAsync(
                 "http://localhost-a/api/v2/",
-                _ => Task.FromResult(ApiResult.CreateSuccess(firstProfile)),
-                TestContext.Current.CancellationToken)).ShouldSucceed();
+                _ => Task.FromResult<ApiClientCompatibilityProfile?>(firstProfile),
+                TestContext.Current.CancellationToken)).Should().BeEquivalentTo(firstProfile);
 
             (await target.GetOrAddAsync(
                 "http://localhost-b/api/v2/",
-                _ => Task.FromResult(ApiResult.CreateSuccess(secondProfile)),
-                TestContext.Current.CancellationToken)).ShouldSucceed();
+                _ => Task.FromResult<ApiClientCompatibilityProfile?>(secondProfile),
+                TestContext.Current.CancellationToken)).Should().BeEquivalentTo(secondProfile);
 
             target.TryGetValue("http://localhost-a/api/v2/", out var cachedFirstProfile).Should().BeTrue();
             target.TryGetValue("http://localhost-b/api/v2/", out var cachedSecondProfile).Should().BeTrue();
@@ -277,10 +359,10 @@ namespace QBittorrent.ApiClient.Test
 
             var result = await target.RefreshAsync(
                 "http://localhost-a/api/v2/",
-                _ => Task.FromResult(ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 15, 2)))),
+                _ => Task.FromResult<ApiClientCompatibilityProfile?>(new ApiClientCompatibilityProfile(new Version(2, 15, 2))),
                 TestContext.Current.CancellationToken);
 
-            result.ShouldSucceed();
+            result.Should().BeTrue();
             target.TryGetValue("http://localhost-a/api/v2/", out var refreshedProfile).Should().BeTrue();
             target.TryGetValue("http://localhost-b/api/v2/", out var untouchedProfile).Should().BeTrue();
             refreshedProfile?.WebApiVersion.Should().Be(new Version(2, 15, 2));
@@ -300,6 +382,21 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_FactoryFailure_WHEN_RefreshAsync_THEN_ShouldReturnFalseAndNotCacheFailure()
+        {
+            var target = new ApiClientCompatibilityProfileCache();
+
+            var result = await target.RefreshAsync(
+                "http://localhost/api/v2/",
+                _ => Task.FromResult<ApiClientCompatibilityProfile?>(null),
+                TestContext.Current.CancellationToken);
+
+            result.Should().BeFalse();
+            target.TryGetValue("http://localhost/api/v2/", out var cachedProfile).Should().BeFalse();
+            cachedProfile.Should().BeNull();
+        }
+
+        [Fact]
         public async Task GIVEN_FactoryInProgressForDifferentKey_WHEN_GetOrAddAsync_THEN_ShouldNotBlockOtherKey()
         {
             var target = new ApiClientCompatibilityProfileCache();
@@ -313,7 +410,7 @@ namespace QBittorrent.ApiClient.Test
                 {
                     firstFactoryStarted.SetResult(true);
                     await releaseFirstFactory.Task.WaitAsync(TestContext.Current.CancellationToken);
-                    return ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 13, 1)));
+                    return new ApiClientCompatibilityProfile(new Version(2, 13, 1));
                 },
                 TestContext.Current.CancellationToken);
 
@@ -324,7 +421,7 @@ namespace QBittorrent.ApiClient.Test
                 _ =>
                 {
                     secondFactoryStarted.SetResult(true);
-                    return Task.FromResult(ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(new Version(2, 15, 2))));
+                    return Task.FromResult<ApiClientCompatibilityProfile?>(new ApiClientCompatibilityProfile(new Version(2, 15, 2)));
                 },
                 TestContext.Current.CancellationToken);
 
@@ -334,8 +431,8 @@ namespace QBittorrent.ApiClient.Test
 
             releaseFirstFactory.SetResult(true);
 
-            secondResult.ShouldSucceed();
-            (await firstTask).ShouldSucceed();
+            secondResult.Should().BeEquivalentTo(new ApiClientCompatibilityProfile(new Version(2, 15, 2)));
+            (await firstTask).Should().BeEquivalentTo(new ApiClientCompatibilityProfile(new Version(2, 13, 1)));
         }
     }
 }

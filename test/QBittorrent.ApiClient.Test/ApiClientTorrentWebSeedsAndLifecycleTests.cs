@@ -233,6 +233,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             await _target.ReannounceTorrentsAsync(TorrentSelector.FromHashes(["h1", "h2"]), urls: ["http://t1", "http://t2"], cancellationToken: TestContext.Current.CancellationToken);
         }
 
@@ -257,6 +259,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: ["http://t1"], cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -265,7 +269,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailureAndUrls_WHEN_ReannounceTorrents_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailureAndUrls_WHEN_ReannounceTorrents_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var reannounceRequestCount = 0;
 
@@ -285,9 +289,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: ["http://t1"], cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.ReannounceTorrentsAsync(TorrentSelector.FromHash("h1"), urls: ["http://t1"], cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             reannounceRequestCount.Should().Be(0);
         }
 

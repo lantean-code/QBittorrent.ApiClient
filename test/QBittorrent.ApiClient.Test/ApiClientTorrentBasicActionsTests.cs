@@ -94,6 +94,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.SetTorrentCommentAsync(TorrentSelector.FromHashes(["h1", "h2"]), "Comment", cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -118,6 +120,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.SetTorrentCommentAsync(TorrentSelector.FromHash("h1"), "Comment", cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -126,7 +130,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetTorrentComment_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetTorrentComment_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var commentRequestCount = 0;
 
@@ -146,9 +150,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.SetTorrentCommentAsync(TorrentSelector.FromHash("h1"), "Comment", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentCommentAsync(TorrentSelector.FromHash("h1"), "Comment", cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             commentRequestCount.Should().Be(0);
         }
 

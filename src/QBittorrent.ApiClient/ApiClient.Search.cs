@@ -39,7 +39,7 @@ namespace QBittorrent.ApiClient
                 {
                     if (response.StatusCode == HttpStatusCode.NotFound)
                     {
-                        return CreateSearchMissingFailure(operation).ToResult<SearchStatus>();
+                        return createSearchMissingFailure(operation).ToResult<SearchStatus>();
                     }
 
                     var result = await CreateResultAsync(operation, response, readSearchStatuses, currentCancellationToken);
@@ -48,13 +48,10 @@ namespace QBittorrent.ApiClient
                         return result.Failure.ToResult<SearchStatus>();
                     }
 
-                    if (!result.TryGetValue(out var statuses))
-                    {
-                        throw new InvalidOperationException("Expected a completed search-status result.");
-                    }
+                    var statuses = result.Value!;
 
                     return statuses.Count == 0
-                        ? CreateSearchMissingFailure(operation).ToResult<SearchStatus>()
+                        ? createSearchMissingFailure(operation).ToResult<SearchStatus>()
                         : ApiResult.CreateSuccess(statuses[0]);
                 }
 
@@ -63,7 +60,7 @@ namespace QBittorrent.ApiClient
                     return await GetJsonListAsync<SearchStatus>(content, readCancellationToken);
                 }
 
-                static ApiFailure CreateSearchMissingFailure(string operation)
+                static ApiFailure createSearchMissingFailure(string operation)
                 {
                     return new ApiFailure
                     {

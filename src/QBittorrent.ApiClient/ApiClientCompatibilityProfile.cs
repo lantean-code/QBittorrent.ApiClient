@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace QBittorrent.ApiClient
 {
     internal sealed class ApiClientCompatibilityProfile
@@ -20,7 +22,7 @@ namespace QBittorrent.ApiClient
         private static readonly Version _processInfoMinimumVersion = new(2, 15, 1);
         private static readonly Version _torrentPieceAvailabilityMinimumVersion = new(2, 15, 1);
 
-        public ApiClientCompatibilityProfile(Version webApiVersion)
+        internal ApiClientCompatibilityProfile(Version webApiVersion)
         {
             WebApiVersion = webApiVersion;
             SupportsClientData = webApiVersion >= _clientDataMinimumVersion;
@@ -79,5 +81,17 @@ namespace QBittorrent.ApiClient
         public bool RequiresTorrentShareLimitAction { get; }
 
         public string TrackerAllValue { get; }
+
+        public static bool TryCreate(string? webApiVersion, [NotNullWhen(true)] out ApiClientCompatibilityProfile? profile)
+        {
+            if ((webApiVersion is null) || !Version.TryParse(webApiVersion, out var parsedApiVersion))
+            {
+                profile = null;
+                return false;
+            }
+
+            profile = new ApiClientCompatibilityProfile(parsedApiVersion);
+            return true;
+        }
     }
 }

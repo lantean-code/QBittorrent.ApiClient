@@ -91,6 +91,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             await _target.AddRssFeedAsync("http://feed", "/podcasts", 60, cancellationToken: TestContext.Current.CancellationToken);
         }
 
@@ -115,6 +117,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.AddRssFeedAsync("http://feed", "/podcasts", 60, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -123,7 +127,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailureAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailureAndRefreshInterval_WHEN_AddRssFeed_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var addFeedRequestCount = 0;
 
@@ -143,9 +147,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.AddRssFeedAsync("http://feed", "/podcasts", 60, cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.AddRssFeedAsync("http://feed", "/podcasts", 60, cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             addFeedRequestCount.Should().Be(0);
         }
 
@@ -236,6 +240,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.SetRssFeedRefreshIntervalAsync("/feeds/tv", 120, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -260,6 +266,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.SetRssFeedRefreshIntervalAsync("/feeds/tv", 120, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -268,7 +276,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetRssFeedRefreshInterval_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetRssFeedRefreshInterval_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var setIntervalRequestCount = 0;
 
@@ -288,9 +296,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.SetRssFeedRefreshIntervalAsync("/feeds/tv", 120, cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetRssFeedRefreshIntervalAsync("/feeds/tv", 120, cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ServerError, statusCode: HttpStatusCode.BadGateway, userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
             setIntervalRequestCount.Should().Be(0);
         }
 

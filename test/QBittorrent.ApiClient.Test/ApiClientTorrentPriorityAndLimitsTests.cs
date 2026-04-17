@@ -167,6 +167,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.SetTorrentShareLimitAsync(
                 TorrentSelector.FromHashes(["h1", "h2"]),
                 ratioLimit: 1.5f,
@@ -195,6 +197,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, cancellationToken: TestContext.Current.CancellationToken);
 
@@ -226,6 +230,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: ShareLimitAction.Remove, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -251,6 +257,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {req.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.SetTorrentShareLimitAsync(
                 TorrentSelector.AllTorrents(),
@@ -282,6 +290,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: ShareLimitAction.Remove, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -290,7 +300,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetTorrentShareLimit_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_SetTorrentShareLimit_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var setShareLimitsRequestCount = 0;
 
@@ -310,12 +320,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: ShareLimitAction.Remove, cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, shareLimitAction: ShareLimitAction.Remove, cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
 
             setShareLimitsRequestCount.Should().Be(0);
         }

@@ -17,17 +17,7 @@ namespace QBittorrent.ApiClient
         {
             if (refreshInterval is not null)
             {
-                var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-                if (profileResult.IsFailure)
-                {
-                    return profileResult.Failure.ToResult();
-                }
-
-                if (!profileResult.TryGetValue(out var profile))
-                {
-                    throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-                }
-
+                var profile = CompatibilityProfile;
                 if (!profile.SupportsRssFeedRefreshInterval)
                 {
                     return CreateUnsupportedCompatibilityFailure(
@@ -80,17 +70,7 @@ namespace QBittorrent.ApiClient
 
         public async Task<ApiResult> SetRssFeedRefreshIntervalAsync(string path, long refreshInterval, CancellationToken cancellationToken = default)
         {
-            var profileResult = await GetCompatibilityProfileAsync(cancellationToken: cancellationToken);
-            if (profileResult.IsFailure)
-            {
-                return profileResult.Failure.ToResult();
-            }
-
-            if (!profileResult.TryGetValue(out var profile))
-            {
-                throw new InvalidOperationException("Expected a completed compatibility-profile result.");
-            }
-
+            var profile = CompatibilityProfile;
             if (!profile.SupportsRssFeedRefreshInterval)
             {
                 return CreateUnsupportedCompatibilityFailure(

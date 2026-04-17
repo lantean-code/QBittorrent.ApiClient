@@ -55,6 +55,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.AddTrackersToTorrentAsync(TorrentSelector.AllTorrents(), ["udp://a", "udp://b"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -77,6 +79,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
@@ -101,6 +105,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -124,6 +130,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.AddTrackersToTorrentAsync(TorrentSelector.AllTorrents(), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
 
@@ -153,6 +161,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHashes(["hash1", "hash2"]), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -181,6 +191,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.BadRequest, userMessage: "failed");
@@ -206,6 +218,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -229,11 +243,13 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHashes(["hash1", "hash2"]), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_AddTrackersToTorrent_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_AddTrackersToTorrent_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var addTrackerRequestCount = 0;
 
@@ -253,12 +269,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.AddTrackersToTorrentAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
 
             addTrackerRequestCount.Should().Be(0);
         }
@@ -300,6 +313,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.EditTrackerAsync("hash", "udp://old", "udp://new", 2, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -322,6 +337,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.EditTrackerAsync("hash", "udp://old", "udp://new", null, cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
@@ -347,6 +364,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.EditTrackerAsync("hash", "udp://old", null, 2, cancellationToken: TestContext.Current.CancellationToken);
 
             var failure = result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
@@ -355,7 +374,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_EditTracker_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_EditTracker_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var editTrackerRequestCount = 0;
 
@@ -375,12 +394,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.EditTrackerAsync("hash", "udp://old", "udp://new", cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.EditTrackerAsync("hash", "udp://old", "udp://new", cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
 
             editTrackerRequestCount.Should().Be(0);
         }
@@ -424,6 +440,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.RemoveTrackersAsync(TorrentSelector.AllTorrents(), ["udp://a", "udp://b"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -446,6 +464,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.RemoveTrackersAsync(TorrentSelector.AllTorrents(), ["udp://a", "udp://b"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
@@ -470,6 +490,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             var result = await _target.RemoveTrackersAsync(TorrentSelector.FromHashes(["hash1", "hash2"]), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
 
@@ -499,6 +521,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             var result = await _target.RemoveTrackersAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Conflict, userMessage: "remove failed");
@@ -524,6 +548,8 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.RemoveTrackersAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
@@ -546,6 +572,8 @@ namespace QBittorrent.ApiClient.Test
                         throw new InvalidOperationException($"Unexpected request: {request.RequestUri}");
                 }
             };
+
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
             (await _target.RemoveTrackersAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
@@ -570,11 +598,13 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
+            (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
             (await _target.RemoveTrackersAsync(TorrentSelector.FromHashes(["hash1", "hash2"]), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionProbeFailure_WHEN_RemoveTrackers_THEN_ShouldReturnProbeFailure()
+        public async Task GIVEN_ApiVersionProbeFailure_WHEN_RemoveTrackers_THEN_ShouldThrowWhenClientIsNotInitialized()
         {
             var removeTrackerRequestCount = 0;
 
@@ -594,12 +624,9 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = await _target.RemoveTrackersAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.RemoveTrackersAsync(TorrentSelector.FromHash("hash1"), ["udp://a"], cancellationToken: TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(
-                kind: ApiFailureKind.ServerError,
-                statusCode: HttpStatusCode.BadGateway,
-                userMessage: "probe failed");
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
 
             removeTrackerRequestCount.Should().Be(0);
         }

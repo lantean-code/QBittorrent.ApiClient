@@ -171,6 +171,28 @@ namespace QBittorrent.ApiClient.Test
             return failure;
         }
 
+        internal static async Task ShouldThrowUninitializedCompatibilityExceptionAsync(this Func<Task> action)
+        {
+            var exception = await action.Should().ThrowAsync<InvalidOperationException>();
+            exception.Which.Message.Should().Be("ApiClient.InitializeAsync or ApiClient.Initialize must complete successfully before using compatibility-gated operations.");
+        }
+
+        internal static ApiFailure ShouldFailWithCompatibilityInitializationFailure(
+            this ApiResult result,
+            string detail,
+            string? responseBody)
+        {
+            var failure = result.ShouldFailWith(
+                kind: ApiFailureKind.UnexpectedResponse,
+                userMessage: "Unable to determine the qBittorrent Web API version.");
+
+            failure.StatusCode.Should().BeNull();
+            failure.Operation.Should().Be(nameof(ApiClient.InitializeAsync));
+            failure.Detail.Should().Be(detail);
+            failure.ResponseBody.Should().Be(responseBody);
+            return failure;
+        }
+
         private static void AssertFailure(
             ApiFailure failure,
             ApiFailureKind? kind,

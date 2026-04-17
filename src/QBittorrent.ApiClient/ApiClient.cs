@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
@@ -13,11 +12,27 @@ namespace QBittorrent.ApiClient
     {
         private readonly HttpClient _httpClient;
         private readonly ApiClientCompatibilityProfileCache _compatibilityProfileCache;
+        private ApiClientCompatibilityProfile? _compatibilityProfile;
 
-        internal ApiClient(HttpClient httpClient, ApiClientCompatibilityProfileCache? compatibilityProfileCache = null)
+        internal ApiClient(
+            HttpClient httpClient,
+            ApiClientCompatibilityProfileCache? compatibilityProfileCache = null,
+            ApiClientCompatibilityProfile? compatibilityProfile = null)
         {
             _httpClient = httpClient;
             _compatibilityProfileCache = compatibilityProfileCache ?? new ApiClientCompatibilityProfileCache();
+            if (compatibilityProfile is not null)
+            {
+                SetCompatibilityProfile(compatibilityProfile);
+            }
+        }
+
+        private ApiClientCompatibilityProfile CompatibilityProfile
+        {
+            get
+            {
+                return Volatile.Read(ref _compatibilityProfile) ?? throw new InvalidOperationException("ApiClient.InitializeAsync or ApiClient.Initialize must complete successfully before using compatibility-gated operations.");
+            }
         }
 
         private Task<ApiResult> ExecuteAsync(
@@ -44,10 +59,7 @@ namespace QBittorrent.ApiClient
                 return sendResult.Failure.ToResult();
             }
 
-            if (!sendResult.TryGetValue(out var response))
-            {
-                throw new InvalidOperationException("Expected a completed send result.");
-            }
+            var response = sendResult.Value!;
 
             return await handleResponse(response, operation, cancellationToken);
         }
@@ -65,10 +77,7 @@ namespace QBittorrent.ApiClient
                 return sendResult.Failure.ToResult<T>();
             }
 
-            if (!sendResult.TryGetValue(out var response))
-            {
-                throw new InvalidOperationException("Expected a completed send result.");
-            }
+            var response = sendResult.Value!;
 
             return await handleResponse(response, operation, cancellationToken);
         }
@@ -87,10 +96,7 @@ namespace QBittorrent.ApiClient
                 return sendResult.Failure.ToResult<TSuccess, TPending>();
             }
 
-            if (!sendResult.TryGetValue(out var response))
-            {
-                throw new InvalidOperationException("Expected a completed send result.");
-            }
+            var response = sendResult.Value!;
 
             return await handleResponse(response, operation, cancellationToken);
         }
@@ -133,76 +139,27 @@ namespace QBittorrent.ApiClient
             }
         }
 
-        private async Task<ApiResult<ApiClientCompatibilityProfile>> GetCompatibilityProfileAsync(
-            [CallerMemberName] string operation = "",
-            CancellationToken cancellationToken = default)
+        private void HydrateCompatibilityProfile(string? rawApiVersion)
         {
-            var cacheKey = GetCompatibilityProfileCacheKey();
-
-            return await _compatibilityProfileCache.GetOrAddAsync(
-                cacheKey,
-                ct => ResolveCompatibilityProfileAsync(operation, ct),
-                cancellationToken);
-        }
-
-        private async Task<ApiResult> RefreshCompatibilityCoreAsync(CancellationToken cancellationToken = default)
-        {
-            var cacheKey = GetCompatibilityProfileCacheKey();
-
-            return await _compatibilityProfileCache.RefreshAsync(
-                cacheKey,
-                ct => ResolveCompatibilityProfileAsync(nameof(RefreshCompatibilityAsync), ct),
-                cancellationToken);
-        }
-
-        private async Task<ApiResult<ApiClientCompatibilityProfile>> ResolveCompatibilityProfileAsync(string operation, CancellationToken cancellationToken)
-        {
-            var apiVersionResult = await GetRawApiVersionAsync(cancellationToken);
-            if (apiVersionResult.IsFailure)
-            {
-                return apiVersionResult.Failure.ToResult<ApiClientCompatibilityProfile>();
-            }
-
-            if (!apiVersionResult.TryGetValue(out var rawApiVersion))
-            {
-                throw new InvalidOperationException("Expected a completed API version result.");
-            }
-
-            rawApiVersion = NormalizeResponseBody(rawApiVersion);
-            if ((rawApiVersion is null) || !Version.TryParse(rawApiVersion, out var parsedApiVersion))
-            {
-                return CreateCompatibilityResolutionFailure(operation, rawApiVersion).ToResult<ApiClientCompatibilityProfile>();
-            }
-
-            return ApiResult.CreateSuccess(new ApiClientCompatibilityProfile(parsedApiVersion));
-        }
-
-        private async Task HydrateCompatibilityProfileAsync(string? rawApiVersion, CancellationToken cancellationToken = default)
-        {
-            if (!TryCreateCompatibilityProfile(rawApiVersion, out var profile))
+            if (!ApiClientCompatibilityProfile.TryCreate(rawApiVersion, out var profile))
             {
                 return;
             }
 
-            await _compatibilityProfileCache.TryHydrateAsync(GetCompatibilityProfileCacheKey(), profile, cancellationToken);
+            SetCompatibilityProfile(profile);
+        }
+
+        private void SetCompatibilityProfile(ApiClientCompatibilityProfile profile)
+        {
+            ArgumentNullException.ThrowIfNull(profile);
+
+            var initializedProfile = Interlocked.CompareExchange(ref _compatibilityProfile, profile, null) ?? profile;
+            _compatibilityProfileCache.TryHydrate(GetCompatibilityProfileCacheKey(), initializedProfile);
         }
 
         private string GetCompatibilityProfileCacheKey()
         {
             return _httpClient.BaseAddress?.AbsoluteUri ?? string.Empty;
-        }
-
-        private static bool TryCreateCompatibilityProfile(string? rawApiVersion, [NotNullWhen(true)] out ApiClientCompatibilityProfile? profile)
-        {
-            rawApiVersion = NormalizeResponseBody(rawApiVersion);
-            if ((rawApiVersion is null) || !Version.TryParse(rawApiVersion, out var parsedApiVersion))
-            {
-                profile = null;
-                return false;
-            }
-
-            profile = new ApiClientCompatibilityProfile(parsedApiVersion);
-            return true;
         }
 
         private static async Task<ApiResult> CreateResultAsync(
@@ -255,10 +212,7 @@ namespace QBittorrent.ApiClient
                     return readResult.Failure.ToResult<T>();
                 }
 
-                if (!readResult.TryGetValue(out var pendingValue))
-                {
-                    throw new InvalidOperationException("Expected a completed pending-value result.");
-                }
+                var pendingValue = readResult.Value!;
 
                 return ApiResult.CreatePending(pendingValue);
             }
@@ -280,10 +234,7 @@ namespace QBittorrent.ApiClient
                     return readResult.Failure.ToResult<TSuccess, TPending>();
                 }
 
-                if (!readResult.TryGetValue(out var pendingValue))
-                {
-                    throw new InvalidOperationException("Expected a completed pending-value result.");
-                }
+                var pendingValue = readResult.Value!;
 
                 return ApiResult.CreatePending<TSuccess, TPending>(pendingValue);
             }
@@ -497,19 +448,20 @@ namespace QBittorrent.ApiClient
             };
         }
 
-        private static ApiFailure CreateCompatibilityResolutionFailure(string operation, string? rawApiVersion)
+        private static ApiFailure CreateCompatibilityInitializationFailure(string? responseBody)
         {
-            var detail = rawApiVersion is null
-                ? "qBittorrent did not return a Web API version."
-                : $"qBittorrent returned an unsupported Web API version value: {rawApiVersion}";
-
+            var normalizedResponseBody = NormalizeResponseBody(responseBody);
             return new ApiFailure
             {
                 Kind = ApiFailureKind.UnexpectedResponse,
-                Operation = operation,
+                Operation = nameof(InitializeAsync),
                 UserMessage = "Unable to determine the qBittorrent Web API version.",
-                Detail = detail,
-                ResponseBody = rawApiVersion,
+                Detail = string.IsNullOrWhiteSpace(normalizedResponseBody)
+                    ? "qBittorrent did not return a Web API version."
+                    : $"qBittorrent returned an unsupported Web API version value: {normalizedResponseBody}",
+                ResponseBody = string.IsNullOrWhiteSpace(normalizedResponseBody)
+                    ? null
+                    : normalizedResponseBody,
             };
         }
 
