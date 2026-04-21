@@ -4,19 +4,6 @@ namespace QBittorrent.ApiClient.Test
 {
     public sealed class ApiResultTests
     {
-        private sealed class DerivedApiResult : ApiResult
-        {
-            public DerivedApiResult(ApiResultStatus status)
-                : base(status)
-            {
-            }
-
-            public DerivedApiResult(ApiResultStatus status, ApiFailure failure)
-                : base(status, failure)
-            {
-            }
-        }
-
         [Fact]
         public void GIVEN_FailedApiResult_WHEN_TryGetFailure_THEN_ShouldReturnFailure()
         {
@@ -67,6 +54,18 @@ namespace QBittorrent.ApiClient.Test
             target.IsFailure.Should().BeFalse();
             success.Should().BeFalse();
             failure.Should().BeNull();
+        }
+
+        [Fact]
+        public void GIVEN_AllApiResultVariants_WHEN_ViewedAsBase_THEN_ShouldShareCommonResultType()
+        {
+            ApiResultBase nonGenericResult = ApiResult.CreateSuccess();
+            ApiResultBase singlePayloadResult = ApiResult.CreateSuccess(42);
+            ApiResultBase dualPayloadResult = ApiResult.CreatePending<string, int>(42);
+
+            nonGenericResult.Should().BeOfType<ApiResult>();
+            singlePayloadResult.Should().BeOfType<ApiResult<int>>();
+            dualPayloadResult.Should().BeOfType<ApiResult<string, int>>();
         }
 
         [Fact]
@@ -294,7 +293,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public void GIVEN_NullFailure_WHEN_CreatingFailedDerivedResult_THEN_ShouldThrowArgumentNullException()
         {
-            var action = () => new DerivedApiResult(ApiResultStatus.Failure, null!);
+            var action = () => new ApiResult(ApiResultStatus.Failure, null!);
 
             action.Should().Throw<ArgumentNullException>()
                 .WithParameterName("failure");
@@ -310,7 +309,7 @@ namespace QBittorrent.ApiClient.Test
                 UserMessage = "UserMessage",
             };
 
-            var action = () => new DerivedApiResult(ApiResultStatus.Success, failure);
+            var action = () => new ApiResult(ApiResultStatus.Success, failure);
 
             action.Should().Throw<ArgumentException>()
                 .WithParameterName("status")
@@ -320,7 +319,7 @@ namespace QBittorrent.ApiClient.Test
         [Fact]
         public void GIVEN_FailureStatus_WHEN_CreatingNonFailedDerivedResult_THEN_ShouldThrowArgumentException()
         {
-            var action = () => new DerivedApiResult(ApiResultStatus.Failure);
+            var action = () => new ApiResult(ApiResultStatus.Failure);
 
             action.Should().Throw<ArgumentException>()
                 .WithParameterName("status")

@@ -5,82 +5,30 @@ namespace QBittorrent.ApiClient
     /// <summary>
     /// Represents the outcome of a qBittorrent API operation that does not return a value.
     /// </summary>
-    public class ApiResult
+    public sealed class ApiResult : ApiResultBase
     {
-        /// <summary>
-        /// Gets the normalized result status.
-        /// </summary>
-        public ApiResultStatus Status { get; }
-
-        /// <summary>
-        /// Gets the failure when the operation failed.
-        /// </summary>
-        public ApiFailure? Failure { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the operation completed successfully.
-        /// </summary>
-        public bool IsSuccess => Status == ApiResultStatus.Success;
-
         /// <summary>
         /// Gets a value indicating whether the operation was accepted but has not completed yet.
         /// </summary>
         public bool IsPending => Status == ApiResultStatus.Pending;
 
         /// <summary>
-        /// Gets a value indicating whether the operation failed.
-        /// </summary>
-        [MemberNotNullWhen(true, nameof(Failure))]
-        public bool IsFailure => Status == ApiResultStatus.Failure;
-
-        /// <summary>
         /// Initializes a new failed result.
         /// </summary>
         /// <param name="status">The result status.</param>
         /// <param name="failure">The failure details.</param>
-        protected ApiResult(ApiResultStatus status, ApiFailure failure)
+        internal ApiResult(ApiResultStatus status, ApiFailure failure)
+            : base(status, failure)
         {
-            ArgumentNullException.ThrowIfNull(failure);
-
-            if (status != ApiResultStatus.Failure)
-            {
-                throw new ArgumentException("Failure details can only be provided for failed results.", nameof(status));
-            }
-
-            Status = status;
-            Failure = failure;
         }
 
         /// <summary>
         /// Initializes a new non-failed result.
         /// </summary>
         /// <param name="status">The result status.</param>
-        protected ApiResult(ApiResultStatus status)
+        internal ApiResult(ApiResultStatus status)
+            : base(status)
         {
-            if (status == ApiResultStatus.Failure)
-            {
-                throw new ArgumentException("Failed results require failure details.", nameof(status));
-            }
-
-            Status = status;
-        }
-
-        /// <summary>
-        /// Attempts to get the failure.
-        /// </summary>
-        /// <param name="failure">When this method returns <see langword="true" />, contains the failure.</param>
-        /// <returns><see langword="true" /> when the operation failed; otherwise, <see langword="false" />.</returns>
-        [MemberNotNullWhen(true, nameof(Failure))]
-        public bool TryGetFailure([NotNullWhen(true)] out ApiFailure? failure)
-        {
-            if (IsFailure)
-            {
-                failure = Failure;
-                return true;
-            }
-
-            failure = default;
-            return false;
         }
 
         /// <summary>
@@ -187,18 +135,13 @@ namespace QBittorrent.ApiClient
     /// Represents the outcome of a qBittorrent API operation that returns a value.
     /// </summary>
     /// <typeparam name="TValue">The payload type.</typeparam>
-    public sealed class ApiResult<TValue>
+    public sealed class ApiResult<TValue> : ApiResultBase
         where TValue : notnull
     {
         /// <summary>
-        /// Gets the normalized result status.
-        /// </summary>
-        public ApiResultStatus Status { get; }
-
-        /// <summary>
         /// Gets the failure when the operation failed.
         /// </summary>
-        public ApiFailure? Failure { get; }
+        public new ApiFailure? Failure => base.Failure;
 
         /// <summary>
         /// Gets the value when the operation completed successfully.
@@ -209,61 +152,30 @@ namespace QBittorrent.ApiClient
         /// Gets a value indicating whether the operation completed successfully.
         /// </summary>
         [MemberNotNullWhen(true, nameof(Value))]
-        public bool IsSuccess => Status == ApiResultStatus.Success;
+        public new bool IsSuccess => base.IsSuccess;
 
         /// <summary>
         /// Gets a value indicating whether the operation failed.
         /// </summary>
         [MemberNotNullWhen(true, nameof(Failure))]
         [MemberNotNullWhen(false, nameof(Value))]
-        public bool IsFailure => Status == ApiResultStatus.Failure;
+        public new bool IsFailure => base.IsFailure;
 
         internal ApiResult(ApiResultStatus status, TValue? value, ApiFailure failure)
+            : base(status, failure)
         {
-            ArgumentNullException.ThrowIfNull(failure);
-
-            if (status != ApiResultStatus.Failure)
-            {
-                throw new ArgumentException("Failure details can only be provided for failed results.", nameof(status));
-            }
-
-            Status = status;
             Value = value;
-            Failure = failure;
         }
 
         internal ApiResult(ApiResultStatus status, TValue? value)
+            : base(status)
         {
-            if (status == ApiResultStatus.Failure)
-            {
-                throw new ArgumentException("Failed results require failure details.", nameof(status));
-            }
-
             if (status != ApiResultStatus.Success)
             {
                 throw new ArgumentException("Value results only support successful or failed states.", nameof(status));
             }
 
-            Status = status;
             Value = value;
-        }
-
-        /// <summary>
-        /// Attempts to get the failure.
-        /// </summary>
-        /// <param name="failure">When this method returns <see langword="true" />, contains the failure.</param>
-        /// <returns><see langword="true" /> when the operation failed; otherwise, <see langword="false" />.</returns>
-        [MemberNotNullWhen(true, nameof(Failure))]
-        public bool TryGetFailure([NotNullWhen(true)] out ApiFailure? failure)
-        {
-            if (IsFailure)
-            {
-                failure = Failure;
-                return true;
-            }
-
-            failure = default;
-            return false;
         }
 
         /// <summary>
@@ -290,19 +202,14 @@ namespace QBittorrent.ApiClient
     /// </summary>
     /// <typeparam name="TSuccess">The success payload type.</typeparam>
     /// <typeparam name="TPending">The pending payload type.</typeparam>
-    public sealed class ApiResult<TSuccess, TPending>
+    public sealed class ApiResult<TSuccess, TPending> : ApiResultBase
         where TSuccess : notnull
         where TPending : notnull
     {
         /// <summary>
-        /// Gets the normalized result status.
-        /// </summary>
-        public ApiResultStatus Status { get; }
-
-        /// <summary>
         /// Gets the failure when the operation failed.
         /// </summary>
-        public ApiFailure? Failure { get; }
+        public new ApiFailure? Failure => base.Failure;
 
         /// <summary>
         /// Gets the success value when the operation completed successfully.
@@ -318,7 +225,7 @@ namespace QBittorrent.ApiClient
         /// Gets a value indicating whether the operation completed successfully.
         /// </summary>
         [MemberNotNullWhen(true, nameof(SuccessValue))]
-        public bool IsSuccess => Status == ApiResultStatus.Success;
+        public new bool IsSuccess => base.IsSuccess;
 
         /// <summary>
         /// Gets a value indicating whether the operation was accepted but has not completed yet.
@@ -330,30 +237,18 @@ namespace QBittorrent.ApiClient
         /// Gets a value indicating whether the operation failed.
         /// </summary>
         [MemberNotNullWhen(true, nameof(Failure))]
-        public bool IsFailure => Status == ApiResultStatus.Failure;
+        public new bool IsFailure => base.IsFailure;
 
         internal ApiResult(ApiResultStatus status, TSuccess? successValue, TPending? pendingValue, ApiFailure failure)
+            : base(status, failure)
         {
-            ArgumentNullException.ThrowIfNull(failure);
-
-            if (status != ApiResultStatus.Failure)
-            {
-                throw new ArgumentException("Failure details can only be provided for failed results.", nameof(status));
-            }
-
-            Status = status;
             SuccessValue = successValue;
             PendingValue = pendingValue;
-            Failure = failure;
         }
 
         internal ApiResult(ApiResultStatus status, TSuccess? successValue, TPending? pendingValue)
+            : base(status)
         {
-            if (status == ApiResultStatus.Failure)
-            {
-                throw new ArgumentException("Failed results require failure details.", nameof(status));
-            }
-
             if (status == ApiResultStatus.Success)
             {
             }
@@ -365,27 +260,8 @@ namespace QBittorrent.ApiClient
                 throw new ArgumentException("Dual-payload results only support successful, pending, or failed states.", nameof(status));
             }
 
-            Status = status;
             SuccessValue = successValue;
             PendingValue = pendingValue;
-        }
-
-        /// <summary>
-        /// Attempts to get the failure.
-        /// </summary>
-        /// <param name="failure">When this method returns <see langword="true" />, contains the failure.</param>
-        /// <returns><see langword="true" /> when the operation failed; otherwise, <see langword="false" />.</returns>
-        [MemberNotNullWhen(true, nameof(Failure))]
-        public bool TryGetFailure([NotNullWhen(true)] out ApiFailure? failure)
-        {
-            if (IsFailure)
-            {
-                failure = Failure;
-                return true;
-            }
-
-            failure = default;
-            return false;
         }
 
         /// <summary>
