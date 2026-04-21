@@ -59,7 +59,7 @@ namespace QBittorrent.ApiClient
                 return sendResult.Failure.ToResult();
             }
 
-            var response = sendResult.Value!;
+            var response = sendResult.Value;
 
             return await handleResponse(response, operation, cancellationToken);
         }
@@ -77,7 +77,7 @@ namespace QBittorrent.ApiClient
                 return sendResult.Failure.ToResult<T>();
             }
 
-            var response = sendResult.Value!;
+            var response = sendResult.Value;
 
             return await handleResponse(response, operation, cancellationToken);
         }
@@ -96,7 +96,7 @@ namespace QBittorrent.ApiClient
                 return sendResult.Failure.ToResult<TSuccess, TPending>();
             }
 
-            var response = sendResult.Value!;
+            var response = sendResult.Value;
 
             return await handleResponse(response, operation, cancellationToken);
         }
@@ -197,7 +197,7 @@ namespace QBittorrent.ApiClient
             }
         }
 
-        private static async Task<ApiResult<T>> CreatePendingResultAsync<T>(
+        private static async Task<ApiResult<T, T>> CreatePendingResultAsync<T>(
             string operation,
             HttpResponseMessage response,
             Func<HttpContent, CancellationToken, Task<T>> readPendingValue,
@@ -209,12 +209,12 @@ namespace QBittorrent.ApiClient
                 var readResult = await TryReadValueAsync(operation, response.Content, readPendingValue, cancellationToken);
                 if (readResult.IsFailure)
                 {
-                    return readResult.Failure.ToResult<T>();
+                    return readResult.Failure.ToResult<T, T>();
                 }
 
-                var pendingValue = readResult.Value!;
+                var pendingValue = readResult.Value;
 
-                return ApiResult.CreatePending(pendingValue);
+                return ApiResult.CreatePending<T, T>(pendingValue);
             }
         }
 
@@ -234,7 +234,7 @@ namespace QBittorrent.ApiClient
                     return readResult.Failure.ToResult<TSuccess, TPending>();
                 }
 
-                var pendingValue = readResult.Value!;
+                var pendingValue = readResult.Value;
 
                 return ApiResult.CreatePending<TSuccess, TPending>(pendingValue);
             }

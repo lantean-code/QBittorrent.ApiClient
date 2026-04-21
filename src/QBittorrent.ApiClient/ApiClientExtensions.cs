@@ -24,10 +24,7 @@ namespace QBittorrent.ApiClient
                 return torrents.Failure.ToResult<Torrent>();
             }
 
-            if (!torrents.TryGetValue(out var torrentList))
-            {
-                throw new InvalidOperationException("Expected a completed torrent-list result.");
-            }
+            var torrentList = torrents.Value;
 
             if (torrentList.Count == 0)
             {
@@ -64,15 +61,8 @@ namespace QBittorrent.ApiClient
                 return categories.Failure.ToResult<IEnumerable<string>>();
             }
 
-            if (!torrents.TryGetValue(out var torrentList))
-            {
-                throw new InvalidOperationException("Expected a completed torrent-list result.");
-            }
-
-            if (!categories.TryGetValue(out var categoryDictionary))
-            {
-                throw new InvalidOperationException("Expected a completed categories result.");
-            }
+            var torrentList = torrents.Value;
+            var categoryDictionary = categories.Value;
 
             var selectedCategories = torrentList.Select(t => t.Category).Distinct().ToList();
 
@@ -109,15 +99,8 @@ namespace QBittorrent.ApiClient
                 return tags.Failure.ToResult<IEnumerable<string>>();
             }
 
-            if (!torrents.TryGetValue(out var torrentList))
-            {
-                throw new InvalidOperationException("Expected a completed torrent-list result.");
-            }
-
-            if (!tags.TryGetValue(out var tagList))
-            {
-                throw new InvalidOperationException("Expected a completed tags result.");
-            }
+            var torrentList = torrents.Value;
+            var tagList = tags.Value;
 
             var selectedTags = torrentList.Where(t => t.Tags is not null).SelectMany(t => t.Tags!).Distinct().ToList();
 

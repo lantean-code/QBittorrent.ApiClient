@@ -44,7 +44,7 @@ namespace QBittorrent.ApiClient.Test
                 Urls = ["u1", "u2"]
             };
 
-            var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.Should().NotBeNull();
         }
@@ -151,7 +151,7 @@ namespace QBittorrent.ApiClient.Test
 
             (await _target.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
 
-            var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.Should().NotBeNull();
         }
@@ -182,7 +182,7 @@ namespace QBittorrent.ApiClient.Test
                 RatioLimit = 1.23456789012345
             };
 
-            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.Should().NotBeNull();
         }
@@ -282,7 +282,7 @@ namespace QBittorrent.ApiClient.Test
             var result = (await _target.AddTorrentAsync(new AddTorrentParams
             {
                 FilePriorities = [Priority.DoNotDownload, Priority.Normal]
-            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            }, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.Should().NotBeNull();
         }
@@ -345,7 +345,7 @@ namespace QBittorrent.ApiClient.Test
             var result = (await _target.AddTorrentAsync(new AddTorrentParams
             {
                 Downloader = "plugin"
-            }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            }, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.Should().NotBeNull();
         }
@@ -377,7 +377,7 @@ namespace QBittorrent.ApiClient.Test
                 }
             };
 
-            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.Should().NotBeNull();
             stream.CanRead.Should().BeTrue();
@@ -547,7 +547,7 @@ namespace QBittorrent.ApiClient.Test
 
             var p = new AddTorrentParams { Urls = ["u"] };
 
-            var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(p, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.Should().NotBeNull();
         }
@@ -560,7 +560,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("Ok.")
             });
 
-            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.SuccessCount.Should().Be(1);
             result.FailureCount.Should().Be(0);
@@ -576,7 +576,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("Fails.")
             });
 
-            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.SuccessCount.Should().Be(0);
             result.FailureCount.Should().Be(1);
@@ -599,7 +599,7 @@ namespace QBittorrent.ApiClient.Test
                     """)
             });
 
-            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams { Urls = ["u"] }, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.SuccessCount.Should().Be(1);
             result.FailureCount.Should().Be(2);
@@ -660,7 +660,7 @@ namespace QBittorrent.ApiClient.Test
                 Torrents = new Dictionary<string, Stream> { ["file.torrent"] = stream }
             };
 
-            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.SuccessCount.Should().Be(0);
             result.FailureCount.Should().Be(3);
@@ -679,7 +679,7 @@ namespace QBittorrent.ApiClient.Test
                 Urls = ["u1", "u2"]
             };
 
-            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.SuccessCount.Should().Be(0);
             result.FailureCount.Should().Be(2);
@@ -699,7 +699,7 @@ namespace QBittorrent.ApiClient.Test
                 Torrents = new Dictionary<string, Stream> { ["file.torrent"] = stream }
             };
 
-            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(parameters, cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.SuccessCount.Should().Be(0);
             result.FailureCount.Should().Be(1);
@@ -713,7 +713,7 @@ namespace QBittorrent.ApiClient.Test
                 Content = new StringContent("null")
             });
 
-            var result = (await _target.AddTorrentAsync(new AddTorrentParams(), cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+            var result = (await _target.AddTorrentAsync(new AddTorrentParams(), cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
 
             result.SuccessCount.Should().Be(0);
             result.FailureCount.Should().Be(0);

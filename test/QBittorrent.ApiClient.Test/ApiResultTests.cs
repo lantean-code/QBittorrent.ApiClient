@@ -103,36 +103,21 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public void GIVEN_PendingGenericApiResultWithValue_WHEN_TryGetPendingValue_THEN_ShouldReturnPendingValue()
+        public void GIVEN_FailedGenericApiResult_WHEN_TryGetValue_THEN_ShouldReturnFalse()
         {
-            var target = ApiResult.CreatePending(42);
+            var failure = new ApiFailure
+            {
+                Kind = ApiFailureKind.ServerError,
+                Operation = "Operation",
+                UserMessage = "UserMessage",
+            };
 
-            var success = target.TryGetPendingValue(out var value);
-
-            target.Status.Should().Be(ApiResultStatus.Pending);
-            target.IsPending.Should().BeTrue();
-            success.Should().BeTrue();
-            value.Should().Be(42);
-        }
-
-        [Fact]
-        public void GIVEN_PendingGenericApiResult_WHEN_TryGetValue_THEN_ShouldReturnFalse()
-        {
-            var target = ApiResult.CreatePending(42);
+            var target = ApiResult.CreateFailure<int>(failure);
 
             var success = target.TryGetValue(out var value);
 
-            success.Should().BeFalse();
-            value.Should().Be(default(int));
-        }
-
-        [Fact]
-        public void GIVEN_SuccessfulGenericApiResult_WHEN_TryGetPendingValue_THEN_ShouldReturnFalse()
-        {
-            var target = ApiResult.CreateSuccess(42);
-
-            var success = target.TryGetPendingValue(out var value);
-
+            target.Status.Should().Be(ApiResultStatus.Failure);
+            target.IsFailure.Should().BeTrue();
             success.Should().BeFalse();
             value.Should().Be(default(int));
         }
@@ -145,9 +130,47 @@ namespace QBittorrent.ApiClient.Test
             var success = target.TryGetValue(out var value);
 
             target.Status.Should().Be(ApiResultStatus.Success);
+            target.IsSuccess.Should().BeTrue();
             success.Should().BeTrue();
             value.Should().Be(42);
             target.Failure.Should().BeNull();
+        }
+
+        [Fact]
+        public void GIVEN_NonFailureStatus_WHEN_CreatingFailedSinglePayloadResult_THEN_ShouldThrowArgumentException()
+        {
+            var failure = new ApiFailure
+            {
+                Kind = ApiFailureKind.ServerError,
+                Operation = "Operation",
+                UserMessage = "UserMessage",
+            };
+
+            var action = () => new ApiResult<int>(ApiResultStatus.Success, 42, failure);
+
+            action.Should().Throw<ArgumentException>()
+                .WithParameterName("status")
+                .WithMessage("Failure details can only be provided for failed results.*");
+        }
+
+        [Fact]
+        public void GIVEN_FailureStatus_WHEN_CreatingNonFailedSinglePayloadResult_THEN_ShouldThrowArgumentException()
+        {
+            var action = () => new ApiResult<int>(ApiResultStatus.Failure, 42);
+
+            action.Should().Throw<ArgumentException>()
+                .WithParameterName("status")
+                .WithMessage("Failed results require failure details.*");
+        }
+
+        [Fact]
+        public void GIVEN_PendingStatus_WHEN_CreatingSinglePayloadResult_THEN_ShouldThrowArgumentException()
+        {
+            var action = () => new ApiResult<int>(ApiResultStatus.Pending, 42);
+
+            action.Should().Throw<ArgumentException>()
+                .WithParameterName("status")
+                .WithMessage("Value results only support successful or failed states.*");
         }
 
         [Fact]
@@ -155,12 +178,45 @@ namespace QBittorrent.ApiClient.Test
         {
             var target = ApiResult.CreateSuccess<string, int>("Value");
 
-            var success = target.TryGetValue(out var value);
+            var success = target.TryGetSuccessValue(out var value);
 
             target.Status.Should().Be(ApiResultStatus.Success);
             target.IsSuccess.Should().BeTrue();
             success.Should().BeTrue();
             value.Should().Be("Value");
+        }
+
+        [Fact]
+        public void GIVEN_SuccessfulDualPayloadApiResult_WHEN_TryGetFailure_THEN_ShouldReturnFalse()
+        {
+            var target = ApiResult.CreateSuccess<string, int>("Value");
+
+            var success = target.TryGetFailure(out var failure);
+
+            target.Status.Should().Be(ApiResultStatus.Success);
+            target.IsSuccess.Should().BeTrue();
+            success.Should().BeFalse();
+            failure.Should().BeNull();
+        }
+
+        [Fact]
+        public void GIVEN_FailedDualPayloadApiResult_WHEN_TryGetFailure_THEN_ShouldReturnFailure()
+        {
+            var expectedFailure = new ApiFailure
+            {
+                Kind = ApiFailureKind.ServerError,
+                Operation = "Operation",
+                UserMessage = "UserMessage",
+            };
+
+            var target = ApiResult.CreateFailure<string, int>(expectedFailure);
+
+            var success = target.TryGetFailure(out var failure);
+
+            target.Status.Should().Be(ApiResultStatus.Failure);
+            target.IsFailure.Should().BeTrue();
+            success.Should().BeTrue();
+            failure.Should().BeSameAs(expectedFailure);
         }
 
         [Fact]
@@ -181,7 +237,7 @@ namespace QBittorrent.ApiClient.Test
         {
             var target = ApiResult.CreatePending<string, int>(42);
 
-            var success = target.TryGetValue(out var value);
+            var success = target.TryGetSuccessValue(out var value);
 
             success.Should().BeFalse();
             value.Should().BeNull();
@@ -196,6 +252,43 @@ namespace QBittorrent.ApiClient.Test
 
             success.Should().BeFalse();
             value.Should().Be(default(int));
+        }
+
+        [Fact]
+        public void GIVEN_NonFailureStatus_WHEN_CreatingFailedDualPayloadResult_THEN_ShouldThrowArgumentException()
+        {
+            var failure = new ApiFailure
+            {
+                Kind = ApiFailureKind.ServerError,
+                Operation = "Operation",
+                UserMessage = "UserMessage",
+            };
+
+            var action = () => new ApiResult<string, int>(ApiResultStatus.Success, "Value", 42, failure);
+
+            action.Should().Throw<ArgumentException>()
+                .WithParameterName("status")
+                .WithMessage("Failure details can only be provided for failed results.*");
+        }
+
+        [Fact]
+        public void GIVEN_FailureStatus_WHEN_CreatingNonFailedDualPayloadResult_THEN_ShouldThrowArgumentException()
+        {
+            var action = () => new ApiResult<string, int>(ApiResultStatus.Failure, "Value", 42);
+
+            action.Should().Throw<ArgumentException>()
+                .WithParameterName("status")
+                .WithMessage("Failed results require failure details.*");
+        }
+
+        [Fact]
+        public void GIVEN_InvalidNonFailureStatus_WHEN_CreatingDualPayloadResult_THEN_ShouldThrowArgumentException()
+        {
+            var action = () => new ApiResult<string, int>((ApiResultStatus)123, "Value", default);
+
+            action.Should().Throw<ArgumentException>()
+                .WithParameterName("status")
+                .WithMessage("Dual-payload results only support successful, pending, or failed states.*");
         }
 
         [Fact]

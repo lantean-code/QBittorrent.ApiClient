@@ -377,8 +377,8 @@ namespace QBittorrent.ApiClient
         /// <summary>Adds one or more torrents.</summary>
         /// <param name="addTorrentParams">The torrent-add parameters.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A result with the outcome of the add-torrent request. When qBittorrent accepts the request but still has pending additions, the result is pending and exposes the initial <see cref="AddTorrentResult" /> snapshot via <see cref="ApiResult{T}.PendingValue" />. qBittorrent does not provide a follow-up add-operation status endpoint, so later async failures are observed indirectly when expected torrents do not appear in the normal torrent state views.</returns>
-        Task<ApiResult<AddTorrentResult>> AddTorrentAsync(AddTorrentParams addTorrentParams, CancellationToken cancellationToken = default);
+        /// <returns>A result with the outcome of the add-torrent request. When qBittorrent accepts the request but still has pending additions, the result is pending and exposes the initial <see cref="AddTorrentResult" /> snapshot via <see cref="ApiResult{TSuccess, TPending}.PendingValue" />. qBittorrent does not provide a follow-up add-operation status endpoint, so later async failures are observed indirectly when expected torrents do not appear in the normal torrent state views.</returns>
+        Task<ApiResult<AddTorrentResult, AddTorrentResult>> AddTorrentAsync(AddTorrentParams addTorrentParams, CancellationToken cancellationToken = default);
 
         /// <summary>Adds one or more trackers to one or more torrents.</summary>
         /// <param name="selector">The torrent selection to target.</param>

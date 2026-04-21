@@ -48,7 +48,7 @@ namespace QBittorrent.ApiClient
                         return result.Failure.ToResult<SearchStatus>();
                     }
 
-                    var statuses = result.Value!;
+                    var statuses = result.Value;
 
                     return statuses.Count == 0
                         ? createSearchMissingFailure(operation).ToResult<SearchStatus>()

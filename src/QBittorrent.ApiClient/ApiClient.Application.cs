@@ -92,9 +92,9 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult<string>> GetAPIVersionAsync(CancellationToken cancellationToken = default)
         {
             var result = await GetRawApiVersionAsync(cancellationToken);
-            if (result.TryGetValue(out var apiVersion))
+            if (!result.IsFailure)
             {
-                HydrateCompatibilityProfile(apiVersion);
+                HydrateCompatibilityProfile(result.Value);
             }
 
             return result;

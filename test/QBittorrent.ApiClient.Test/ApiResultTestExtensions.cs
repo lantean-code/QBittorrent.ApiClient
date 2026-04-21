@@ -20,7 +20,6 @@ namespace QBittorrent.ApiClient.Test
         {
             result.Status.Should().Be(ApiResultStatus.Success);
             result.IsSuccess.Should().BeTrue();
-            result.IsPending.Should().BeFalse();
             result.IsFailure.Should().BeFalse();
             result.Failure.Should().BeNull();
             return result;
@@ -48,17 +47,6 @@ namespace QBittorrent.ApiClient.Test
             return result;
         }
 
-        internal static ApiResult<T> ShouldBePending<T>(this ApiResult<T> result)
-            where T : notnull
-        {
-            result.Status.Should().Be(ApiResultStatus.Pending);
-            result.IsSuccess.Should().BeFalse();
-            result.IsPending.Should().BeTrue();
-            result.IsFailure.Should().BeFalse();
-            result.Failure.Should().BeNull();
-            return result;
-        }
-
         internal static ApiResult<TSuccess, TPending> ShouldBePending<TSuccess, TPending>(this ApiResult<TSuccess, TPending> result)
             where TSuccess : notnull
             where TPending : notnull
@@ -75,24 +63,12 @@ namespace QBittorrent.ApiClient.Test
             where T : notnull
         {
             result.ShouldSucceed();
-            if (!result.IsSuccess)
+            if (!result.TryGetValue(out var value))
             {
                 throw new InvalidOperationException("Expected a successful result.");
             }
 
-            return result.Value;
-        }
-
-        internal static T GetPendingValueOrThrow<T>(this ApiResult<T> result)
-            where T : notnull
-        {
-            result.ShouldBePending();
-            if (!result.IsPending)
-            {
-                throw new InvalidOperationException("Expected a pending result.");
-            }
-
-            return result.PendingValue;
+            return value;
         }
 
         internal static TSuccess GetSuccessValueOrThrow<TSuccess, TPending>(this ApiResult<TSuccess, TPending> result)
@@ -105,7 +81,7 @@ namespace QBittorrent.ApiClient.Test
                 throw new InvalidOperationException("Expected a successful result.");
             }
 
-            return result.Value;
+            return result.SuccessValue!;
         }
 
         internal static TPending GetPendingValueOrThrow<TSuccess, TPending>(this ApiResult<TSuccess, TPending> result)
@@ -118,7 +94,7 @@ namespace QBittorrent.ApiClient.Test
                 throw new InvalidOperationException("Expected a pending result.");
             }
 
-            return result.PendingValue;
+            return result.PendingValue!;
         }
 
         internal static ApiFailure ShouldFailWith(

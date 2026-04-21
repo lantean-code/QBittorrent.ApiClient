@@ -283,7 +283,7 @@ namespace QBittorrent.ApiClient
                 cancellationToken: cancellationToken);
         }
 
-        public async Task<ApiResult<AddTorrentResult>> AddTorrentAsync(AddTorrentParams addTorrentParams, CancellationToken cancellationToken = default)
+        public async Task<ApiResult<AddTorrentResult, AddTorrentResult>> AddTorrentAsync(AddTorrentParams addTorrentParams, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(addTorrentParams);
 
@@ -295,7 +295,7 @@ namespace QBittorrent.ApiClient
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTorrentAsync),
                         profile,
-                        $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent downloader selection.").ToResult<AddTorrentResult>();
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent downloader selection.").ToResult<AddTorrentResult, AddTorrentResult>();
                 }
 
                 if ((addTorrentParams.FilePriorities is not null) && !profile.SupportsTorrentAddFilePriorities)
@@ -303,7 +303,7 @@ namespace QBittorrent.ApiClient
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTorrentAsync),
                         profile,
-                        $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent file priorities.").ToResult<AddTorrentResult>();
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent file priorities.").ToResult<AddTorrentResult, AddTorrentResult>();
                 }
             }
 
@@ -434,7 +434,7 @@ namespace QBittorrent.ApiClient
 
             var expectedTorrentCount = (addTorrentParams.Torrents?.Count ?? 0) + (addTorrentParams.Urls?.Count() ?? 0);
 
-            async Task<ApiResult<AddTorrentResult>> handleAddTorrentResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
+            async Task<ApiResult<AddTorrentResult, AddTorrentResult>> handleAddTorrentResponse(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
                 async Task<AddTorrentResult> readAddTorrentResult(HttpContent httpContent, CancellationToken readCancellationToken)
                 {
@@ -505,7 +505,13 @@ namespace QBittorrent.ApiClient
                     return await CreatePendingResultAsync(operation, response, readAddTorrentResult, currentCancellationToken);
                 }
 
-                return await CreateResultAsync(operation, response, readAddTorrentResult, currentCancellationToken, createAddTorrentFailure);
+                var result = await CreateResultAsync(operation, response, readAddTorrentResult, currentCancellationToken, createAddTorrentFailure);
+                if (result.IsFailure)
+                {
+                    return result.Failure.ToResult<AddTorrentResult, AddTorrentResult>();
+                }
+
+                return ApiResult.CreateSuccess<AddTorrentResult, AddTorrentResult>(result.Value);
             }
 
             return await ExecuteAsync(
@@ -1271,7 +1277,7 @@ namespace QBittorrent.ApiClient
                     return result.Failure.ToResult<TorrentMetadata, FetchTorrentMetadataPendingResult>();
                 }
 
-                var torrentMetadata = result.Value!;
+                var torrentMetadata = result.Value;
 
                 return ApiResult.CreateSuccess<TorrentMetadata, FetchTorrentMetadataPendingResult>(torrentMetadata);
             }
