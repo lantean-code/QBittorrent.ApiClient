@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
@@ -31,7 +32,12 @@ namespace QBittorrent.ApiClient
         {
             get
             {
-                return Volatile.Read(ref _compatibilityProfile) ?? throw new InvalidOperationException("ApiClient.InitializeAsync or ApiClient.Initialize must complete successfully before using compatibility-gated operations.");
+                if (TryGetCompatibilityProfile(out var profile))
+                {
+                    return profile;
+                }
+
+                throw new InvalidOperationException("ApiClient.InitializeAsync or ApiClient.Initialize must complete successfully before using compatibility-gated operations.");
             }
         }
 
@@ -149,12 +155,30 @@ namespace QBittorrent.ApiClient
             SetCompatibilityProfile(profile);
         }
 
-        private void SetCompatibilityProfile(ApiClientCompatibilityProfile profile)
+        private bool TryGetCompatibilityProfile([NotNullWhen(true)] out ApiClientCompatibilityProfile? profile)
+        {
+            profile = Volatile.Read(ref _compatibilityProfile);
+            if (profile is not null)
+            {
+                return true;
+            }
+
+            if (!_compatibilityProfileCache.TryGetValue(GetCompatibilityProfileCacheKey(), out var cachedProfile))
+            {
+                return false;
+            }
+
+            profile = SetCompatibilityProfile(cachedProfile);
+            return true;
+        }
+
+        private ApiClientCompatibilityProfile SetCompatibilityProfile(ApiClientCompatibilityProfile profile)
         {
             ArgumentNullException.ThrowIfNull(profile);
 
             var initializedProfile = Interlocked.CompareExchange(ref _compatibilityProfile, profile, null) ?? profile;
             _compatibilityProfileCache.TryHydrate(GetCompatibilityProfileCacheKey(), initializedProfile);
+            return initializedProfile;
         }
 
         private string GetCompatibilityProfileCacheKey()

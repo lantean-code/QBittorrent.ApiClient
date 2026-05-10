@@ -127,7 +127,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ProvidedHttpClient_WHEN_AddQBittorrentApiClient_THEN_ShouldRegisterTransientClientsThatShareCompatibilityCache()
+        public async Task GIVEN_ProvidedHttpClient_WHEN_AddQBittorrentApiClient_THEN_ShouldReuseCompatibilityCacheAcrossTransientClientsAfterSingleInitialization()
         {
             var services = new ServiceCollection();
             var handler = new StubHttpMessageHandler();
@@ -166,7 +166,6 @@ namespace QBittorrent.ApiClient.Test
             secondClient.Should().BeOfType<ApiClient>();
 
             (await firstClient.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
-            (await secondClient.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             (await firstClient.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             (await secondClient.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             apiVersionRequestCount.Should().Be(1);
@@ -256,7 +255,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_NamedHttpClientRegistration_WHEN_AddQBittorrentApiClient_THEN_ShouldUseRegisteredClientAndShareCompatibilityCacheAcrossTransientClients()
+        public async Task GIVEN_NamedHttpClientRegistration_WHEN_AddQBittorrentApiClient_THEN_ShouldReuseCompatibilityCacheAcrossTransientClientsAfterSingleInitialization()
         {
             var services = new ServiceCollection();
             var handler = new StubHttpMessageHandler();
@@ -300,7 +299,6 @@ namespace QBittorrent.ApiClient.Test
             secondClient.Should().BeOfType<ApiClient>();
 
             (await firstClient.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
-            (await secondClient.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             (await firstClient.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             (await secondClient.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
             apiVersionRequestCount.Should().Be(1);

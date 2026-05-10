@@ -810,6 +810,60 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_SharedCompatibilityCache_WHEN_SecondClientUsesCompatibilityGatedMethodWithoutInitialize_THEN_ShouldHydrateFromCache()
+        {
+            var compatibilityProfileCache = new ApiClientCompatibilityProfileCache();
+            var firstHandler = new StubHttpMessageHandler();
+            var secondHandler = new StubHttpMessageHandler();
+            var firstApiVersionRequestCount = 0;
+            var firstLoadRequestCount = 0;
+            var secondApiVersionRequestCount = 0;
+            var secondLoadRequestCount = 0;
+
+            var firstClient = new ApiClient(
+                new HttpClient(firstHandler)
+                {
+                    BaseAddress = new Uri("http://localhost/")
+                },
+                compatibilityProfileCache);
+
+            var secondClient = new ApiClient(
+                new HttpClient(secondHandler)
+                {
+                    BaseAddress = new Uri("http://localhost/")
+                },
+                compatibilityProfileCache);
+
+            firstHandler.Responder = (request, _) =>
+            {
+                return request.RequestUri?.AbsolutePath switch
+                {
+                    "/app/webapiVersion" => Task.FromResult(CreateResponse(HttpStatusCode.OK, (++firstApiVersionRequestCount, "2.13.1").Item2)),
+                    "/clientdata/load" => Task.FromResult(CreateResponse(HttpStatusCode.OK, (++firstLoadRequestCount, "{}").Item2)),
+                    _ => throw new InvalidOperationException($"Unexpected request: {request.RequestUri}")
+                };
+            };
+
+            secondHandler.Responder = (request, _) =>
+            {
+                return request.RequestUri?.AbsolutePath switch
+                {
+                    "/app/webapiVersion" => Task.FromResult(CreateResponse(HttpStatusCode.OK, (++secondApiVersionRequestCount, "2.15.2").Item2)),
+                    "/clientdata/load" => Task.FromResult(CreateResponse(HttpStatusCode.OK, (++secondLoadRequestCount, "{}").Item2)),
+                    _ => throw new InvalidOperationException($"Unexpected request: {request.RequestUri}")
+                };
+            };
+
+            (await firstClient.InitializeAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+            (await secondClient.LoadClientDataAsync(cancellationToken: TestContext.Current.CancellationToken)).ShouldSucceed();
+
+            firstApiVersionRequestCount.Should().Be(1);
+            firstLoadRequestCount.Should().Be(0);
+            secondApiVersionRequestCount.Should().Be(0);
+            secondLoadRequestCount.Should().Be(1);
+        }
+
+        [Fact]
         public async Task GIVEN_KeysAndSupportedApiVersion_WHEN_LoadClientData_THEN_ShouldPostKeysAndReturnEntries()
         {
             _handler.Responder = async (req, ct) =>
