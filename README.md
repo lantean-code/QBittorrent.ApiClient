@@ -92,6 +92,22 @@ Calling a compatibility-gated operation before successful initialization is a de
 
 `GetAPIVersionAsync()` remains the direct qBittorrent Web API call for `/app/webapiVersion`. It always calls the endpoint and returns that API call's result.
 
+If you need compatibility checks outside `IApiClient`, use `WebApiCompatibilityProfile` with the returned Web API version:
+
+```csharp
+var apiVersionResult = await apiClient.GetAPIVersionAsync();
+if (!apiVersionResult.TryGetValue(out var rawApiVersion) ||
+    !WebApiCompatibilityProfile.TryCreate(rawApiVersion, out var compatibilityProfile))
+{
+    return;
+}
+
+if (compatibilityProfile.SupportsClientData)
+{
+    var clientDataResult = await apiClient.LoadClientDataAsync();
+}
+```
+
 ## Scope
 
 - qBittorrent Web API client operations
