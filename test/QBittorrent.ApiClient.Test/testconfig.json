@@ -1,0 +1,9 @@
+{
+  "platformOptions": {
+    "Coverlet": {
+      "excludeByAttribute": "GeneratedCodeAttribute",
+      "excludeByFile": "**/*.g.cs,**/*.g.i.cs",
+      "format": "cobertura"
+    }
+  }
+}
