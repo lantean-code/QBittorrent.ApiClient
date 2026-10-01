@@ -486,5 +486,58 @@ namespace QBittorrent.ApiClient.Test
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Forbidden, userMessage: "nope");
         }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndIgnoreDotfiles_WHEN_AddTorrentCreationTask_THEN_ShouldPostOption()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                (await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken)).Should().Be("sourcePath=/src&ignoreDotfiles=false");
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{\"taskID\":\"task\"}")
+                };
+            };
+
+            var result = (await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            {
+                SourcePath = "/src",
+                IgnoreDotfiles = false
+            }, TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Be("task");
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162AndIgnoreDotfiles_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.AddTorrentCreationTaskAsync(new TorrentCreationTaskRequest
+            {
+                SourcePath = "/src",
+                IgnoreDotfiles = true
+            }, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162NumericTimestamps_WHEN_GetTorrentCreationTasks_THEN_ShouldPreserveTimestampValues()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""[{"timeAdded":1,"timeStarted":2,"timeFinished":3,"ignoreDotfiles":true}]""")
+            });
+
+            var result = (await _target.GetTorrentCreationTasksAsync(cancellationToken: TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().ContainSingle();
+            result[0].TimeAdded.Should().Be("1");
+            result[0].TimeStarted.Should().Be("2");
+            result[0].TimeFinished.Should().Be("3");
+            result[0].IgnoreDotfiles.Should().BeTrue();
+        }
     }
 }

@@ -1,5 +1,6 @@
 using System.Net;
 using AwesomeAssertions;
+using Moq;
 using QBittorrent.ApiClient.Models;
 
 namespace QBittorrent.ApiClient.Test
@@ -369,6 +370,215 @@ namespace QBittorrent.ApiClient.Test
             };
 
             await _target.SetTorrentUploadLimitAsync(TorrentSelector.FromHash("h1"), 42, cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndNoMode_WHEN_SetTorrentShareLimit_THEN_ShouldIncludeDefaultMode()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                (await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken)).Should().Contain("shareLimitsMode=Default");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, ShareLimitAction.Stop, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndMode_WHEN_SetTorrentShareLimit_THEN_ShouldIncludeRequestedMode()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                (await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken)).Should().Contain("shareLimitsMode=MatchAll");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, ShareLimitAction.Stop, ShareLimitsMode.MatchAll, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162AndMode_WHEN_SetTorrentShareLimit_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.SetTorrentShareLimitAsync(TorrentSelector.AllTorrents(), 1, 2, 3, ShareLimitAction.Stop, ShareLimitsMode.MatchAny, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_NullSelector_WHEN_SetTorrentShareLimit_THEN_ShouldThrowArgumentNullException()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            var action = async () => await _target.SetTorrentShareLimitAsync(null!, 1, 2, 3, ShareLimitAction.Stop, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndFilePath_WHEN_DownloadTorrentFile_THEN_ShouldStreamContentToDestination()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (request, _) =>
+            {
+                request.RequestUri?.ToString().Should().Be("http://localhost/torrents/downloadFile?hash=hash&file=folder%2Ffile.txt");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent([1, 2])
+                });
+            };
+            using var destination = new MemoryStream();
+
+            var result = await _target.DownloadTorrentFileAsync("hash", "folder/file.txt", destination, TestContext.Current.CancellationToken);
+
+            result.ShouldSucceed();
+            destination.ToArray().Should().Equal(1, 2);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_DownloadTorrentFile_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+            using var destination = new MemoryStream();
+
+            var result = await _target.DownloadTorrentFileAsync("hash", "0", destination, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Theory]
+        [InlineData("", "0")]
+        [InlineData("hash", "")]
+        public async Task GIVEN_EmptyRequiredValue_WHEN_DownloadTorrentFile_THEN_ShouldThrowArgumentException(string hash, string file)
+        {
+            using var destination = new MemoryStream();
+            var action = async () => await _target.DownloadTorrentFileAsync(hash, file, destination, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_NullDestination_WHEN_DownloadTorrentFile_THEN_ShouldThrowArgumentNullException()
+        {
+            var action = async () => await _target.DownloadTorrentFileAsync("hash", "0", null!, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_UnwritableDestination_WHEN_DownloadTorrentFile_THEN_ShouldThrowArgumentException()
+        {
+            using var destination = new MemoryStream([], writable: false);
+            var action = async () => await _target.DownloadTorrentFileAsync("hash", "0", destination, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndNonSuccessResponse_WHEN_DownloadTorrentFile_THEN_ShouldReturnFailure()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict)
+            {
+                Content = new StringContent("metadata unavailable")
+            });
+            using var destination = new MemoryStream();
+
+            var result = await _target.DownloadTorrentFileAsync("hash", "0", destination, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.Conflict, userMessage: "metadata unavailable");
+            destination.Length.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task GIVEN_ResponseBodyHttpRequestFailure_WHEN_DownloadTorrentFile_THEN_ShouldReturnNoResponseFailure()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent([1])
+            });
+            var destination = CreateFailingDestination(new HttpRequestException("body failed"));
+
+            var result = await _target.DownloadTorrentFileAsync("hash", "0", destination.Object, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.NoResponse, userMessage: "body failed");
+        }
+
+        [Fact]
+        public async Task GIVEN_ResponseBodyIoFailure_WHEN_DownloadTorrentFile_THEN_ShouldReturnNoResponseFailure()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent([1])
+            });
+            var destination = CreateFailingDestination(new IOException("write failed"));
+
+            var result = await _target.DownloadTorrentFileAsync("hash", "0", destination.Object, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.NoResponse);
+        }
+
+        [Fact]
+        public async Task GIVEN_ResponseBodyTimeout_WHEN_DownloadTorrentFile_THEN_ShouldReturnTimeoutFailure()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent([1])
+            });
+            var destination = CreateFailingDestination(new TaskCanceledException("body timed out"));
+
+            var result = await _target.DownloadTorrentFileAsync("hash", "0", destination.Object, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.Timeout);
+        }
+
+        [Fact]
+        public async Task GIVEN_CanceledTokenDuringResponseBody_WHEN_DownloadTorrentFile_THEN_ShouldPropagateCancellation()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent([1])
+            });
+            using var cancellationTokenSource = new CancellationTokenSource();
+            var destination = new Mock<Stream>();
+            destination.SetupGet(stream => stream.CanWrite).Returns(true);
+            destination
+                .Setup(stream => stream.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), cancellationTokenSource.Token))
+                .Returns(() =>
+                {
+                    cancellationTokenSource.Cancel();
+                    return ValueTask.FromException(new OperationCanceledException(cancellationTokenSource.Token));
+                });
+            destination
+                .Setup(stream => stream.WriteAsync(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), cancellationTokenSource.Token))
+                .Returns(() =>
+                {
+                    cancellationTokenSource.Cancel();
+                    return Task.FromException(new OperationCanceledException(cancellationTokenSource.Token));
+                });
+
+            var action = async () => await _target.DownloadTorrentFileAsync("hash", "0", destination.Object, cancellationTokenSource.Token);
+
+            await action.Should().ThrowAsync<OperationCanceledException>();
+        }
+
+        private static Mock<Stream> CreateFailingDestination(Exception exception)
+        {
+            var destination = new Mock<Stream>();
+            destination.SetupGet(stream => stream.CanWrite).Returns(true);
+            destination
+                .Setup(stream => stream.WriteAsync(It.IsAny<ReadOnlyMemory<byte>>(), It.IsAny<CancellationToken>()))
+                .Returns(ValueTask.FromException(exception));
+            destination
+                .Setup(stream => stream.WriteAsync(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
+            return destination;
         }
 
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)

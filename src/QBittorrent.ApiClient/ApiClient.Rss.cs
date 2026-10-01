@@ -170,5 +170,64 @@ namespace QBittorrent.ApiClient
                 readMatchingArticles,
                 cancellationToken: cancellationToken);
         }
+
+        public async Task<ApiResult<byte[]>> ExportRssAutoDownloadingRulesAsync(CancellationToken cancellationToken = default)
+        {
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(ExportRssAutoDownloadingRulesAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support exporting RSS auto-downloading rules.").ToResult<byte[]>();
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.GetAsync("rss/exportRules", ct),
+                (content, ct) => content.ReadAsByteArrayAsync(ct),
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult> ImportRssAutoDownloadingRulesAsync(Stream rules, string fileName = "rss-downloader-rules.json", CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(rules);
+            ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(ImportRssAutoDownloadingRulesAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support importing RSS auto-downloading rules.").ToResult();
+            }
+
+            using var content = new MultipartFormDataContent();
+            content.Add(await CreateOwnedTorrentContentAsync(rules, cancellationToken), "rules", fileName);
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("rss/importRules", content, ct), cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult> CloneRssAutoDownloadingRuleAsync(string sourceName, string cloneName, CancellationToken cancellationToken = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(sourceName);
+            ArgumentException.ThrowIfNullOrWhiteSpace(cloneName);
+
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(CloneRssAutoDownloadingRuleAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support cloning RSS auto-downloading rules.").ToResult();
+            }
+
+            var content = new FormUrlEncodedBuilder()
+                .Add("sourceName", sourceName)
+                .Add("cloneName", cloneName)
+                .ToFormUrlEncodedContent();
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("rss/cloneRule", content, ct), cancellationToken: cancellationToken);
+        }
     }
 }

@@ -1871,6 +1871,77 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(statusCode: HttpStatusCode.NotFound, userMessage: "missing");
         }
 
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndSeedMode_WHEN_AddTorrent_THEN_ShouldUseRenamedField()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var parts = request.Content.Should().BeOfType<MultipartFormDataContent>().Which.ToList();
+                parts.Any(part => part.Headers.ContentDisposition?.Name == "skip_checking").Should().BeFalse();
+                var seedMode = parts.Single(part => part.Headers.ContentDisposition?.Name == "seedMode");
+                (await seedMode.ReadAsStringAsync(cancellationToken)).Should().Be("true");
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{}")
+                };
+            };
+
+            (await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                SkipChecking = true
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_UninitializedCompatibilityAndSkipChecking_WHEN_AddTorrent_THEN_ShouldThrowUninitializedCompatibilityException()
+        {
+            var action = async () => await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                SkipChecking = true
+            }, TestContext.Current.CancellationToken);
+
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndShareLimitsMode_WHEN_AddTorrent_THEN_ShouldIncludeMode()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var part = request.Content.Should().BeOfType<MultipartFormDataContent>().Which
+                    .Single(item => item.Headers.ContentDisposition?.Name == "shareLimitsMode");
+                (await part.ReadAsStringAsync(cancellationToken)).Should().Be("MatchAny");
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{}")
+                };
+            };
+
+            (await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                ShareLimitsMode = ShareLimitsMode.MatchAny
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162AndShareLimitsMode_WHEN_AddTorrent_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                ShareLimitsMode = ShareLimitsMode.MatchAny
+            }, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
         {
             if (content is null)

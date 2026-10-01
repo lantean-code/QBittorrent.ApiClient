@@ -287,10 +287,30 @@ namespace QBittorrent.ApiClient
         {
             ArgumentNullException.ThrowIfNull(addTorrentParams);
 
+            ApiClientCompatibilityProfile? profile = null;
+
+            if ((addTorrentParams.ShareLimitsMode is not null)
+                || (addTorrentParams.Downloader is not null)
+                || (addTorrentParams.FilePriorities is not null)
+                || (addTorrentParams.SkipChecking is not null))
+            {
+                profile = CompatibilityProfile;
+            }
+
+            if (addTorrentParams.ShareLimitsMode is not null)
+            {
+                if (!profile!.SupportsQbittorrent530)
+                {
+                    return CreateUnsupportedCompatibilityFailure(
+                        nameof(AddTorrentAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support selecting a share-limits mode when adding torrents.").ToResult<AddTorrentResult, AddTorrentResult>();
+                }
+            }
+
             if ((addTorrentParams.Downloader is not null) || (addTorrentParams.FilePriorities is not null))
             {
-                var profile = CompatibilityProfile;
-                if ((addTorrentParams.Downloader is not null) && !profile.SupportsTorrentAddDownloader)
+                if ((addTorrentParams.Downloader is not null) && !profile!.SupportsTorrentAddDownloader)
                 {
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTorrentAsync),
@@ -298,7 +318,7 @@ namespace QBittorrent.ApiClient
                         $"qBittorrent Web API {profile.WebApiVersion} does not support add-torrent downloader selection.").ToResult<AddTorrentResult, AddTorrentResult>();
                 }
 
-                if ((addTorrentParams.FilePriorities is not null) && !profile.SupportsTorrentAddFilePriorities)
+                if ((addTorrentParams.FilePriorities is not null) && !profile!.SupportsTorrentAddFilePriorities)
                 {
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTorrentAsync),
@@ -324,7 +344,7 @@ namespace QBittorrent.ApiClient
 
             if (addTorrentParams.SkipChecking is not null)
             {
-                content.AddString("skip_checking", addTorrentParams.SkipChecking.Value);
+                content.AddString(profile!.SupportsQbittorrent530 ? "seedMode" : "skip_checking", addTorrentParams.SkipChecking.Value);
             }
             if (addTorrentParams.SequentialDownload is not null)
             {
@@ -393,6 +413,10 @@ namespace QBittorrent.ApiClient
             if (addTorrentParams.ShareLimitAction is not null)
             {
                 content.AddString("shareLimitAction", addTorrentParams.ShareLimitAction.Value);
+            }
+            if (addTorrentParams.ShareLimitsMode is not null)
+            {
+                content.AddString("shareLimitsMode", addTorrentParams.ShareLimitsMode.Value);
             }
             if (addTorrentParams.AutoTorrentManagement is not null)
             {
@@ -738,42 +762,91 @@ namespace QBittorrent.ApiClient
             ShareLimitAction? shareLimitAction = null,
             CancellationToken cancellationToken = default)
         {
-            ArgumentNullException.ThrowIfNull(selector);
+            return await SetTorrentShareLimitCoreAsync(
+                selector,
+                ratioLimit,
+                seedingTimeLimit,
+                inactiveSeedingTimeLimit,
+                shareLimitAction,
+                null,
+                cancellationToken);
+        }
+
+        public async Task<ApiResult> SetTorrentShareLimitAsync(
+            TorrentSelector selector,
+            float ratioLimit,
+            int seedingTimeLimit,
+            int inactiveSeedingTimeLimit,
+            ShareLimitAction shareLimitAction,
+            ShareLimitsMode shareLimitsMode,
+            CancellationToken cancellationToken = default)
+        {
+            return await SetTorrentShareLimitCoreAsync(
+                selector,
+                ratioLimit,
+                seedingTimeLimit,
+                inactiveSeedingTimeLimit,
+                shareLimitAction,
+                shareLimitsMode,
+                cancellationToken);
+        }
+
+        public async Task<ApiResult> DownloadTorrentFileAsync(string hash, string file, Stream destination, CancellationToken cancellationToken = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+            ArgumentException.ThrowIfNullOrWhiteSpace(file);
+            ArgumentNullException.ThrowIfNull(destination);
+            if (!destination.CanWrite)
+            {
+                throw new ArgumentException("Destination stream must be writable.", nameof(destination));
+            }
 
             var profile = CompatibilityProfile;
-            if (profile.RequiresTorrentShareLimitAction)
-            {
-                if (shareLimitAction is null)
-                {
-                    return CreateUnsupportedCompatibilityFailure(
-                        nameof(SetTorrentShareLimitAsync),
-                        profile,
-                        $"qBittorrent Web API {profile.WebApiVersion} requires shareLimitAction when setting share limits.").ToResult();
-                }
-            }
-            else if (shareLimitAction is not null)
+            if (!profile.SupportsQbittorrent530)
             {
                 return CreateUnsupportedCompatibilityFailure(
-                    nameof(SetTorrentShareLimitAsync),
+                    nameof(DownloadTorrentFileAsync),
                     profile,
-                    $"qBittorrent Web API {profile.WebApiVersion} does not support shareLimitAction when setting share limits.").ToResult();
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support downloading individual torrent files.").ToResult();
             }
 
-            var content = new FormUrlEncodedBuilder()
-                .AddTorrentSelector("hashes", selector)
-                .Add("ratioLimit", ratioLimit)
-                .Add("seedingTimeLimit", seedingTimeLimit)
-                .Add("inactiveSeedingTimeLimit", inactiveSeedingTimeLimit);
+            var query = new QueryBuilder()
+                .Add("hash", hash)
+                .Add("file", file);
 
-            if (shareLimitAction is not null)
+            async Task<ApiResult> copyFile(HttpResponseMessage response, string operation, CancellationToken currentCancellationToken)
             {
-                content.Add("shareLimitAction", shareLimitAction.Value.ToString());
-            }
+                using (response)
+                {
+                    var failure = await TryCreateFailureAsync(operation, response, currentCancellationToken);
+                    if (failure is not null)
+                    {
+                        return failure.ToResult();
+                    }
 
-            var form = content.ToFormUrlEncodedContent();
+                    try
+                    {
+                        await response.Content.CopyToAsync(destination, currentCancellationToken);
+                        return ApiResult.CreateSuccess();
+                    }
+                    catch (OperationCanceledException) when (currentCancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (OperationCanceledException exception)
+                    {
+                        return CreateTimeoutFailure(operation, exception).ToResult();
+                    }
+                    catch (HttpRequestException exception)
+                    {
+                        return CreateNoResponseFailure(operation, exception).ToResult();
+                    }
+                }
+            }
 
             return await ExecuteAsync(
-                ct => _httpClient.PostAsync("torrents/setShareLimits", form, ct),
+                ct => _httpClient.GetAsync($"torrents/downloadFile{query}", HttpCompletionOption.ResponseHeadersRead, ct),
+                copyFile,
                 cancellationToken: cancellationToken);
         }
 
@@ -1012,6 +1085,16 @@ namespace QBittorrent.ApiClient
             return ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/editCategory", builder.ToFormUrlEncodedContent(), ct),
                 cancellationToken: cancellationToken);
+        }
+
+        public Task<ApiResult> AddCategoryAsync(string category, TorrentCategoryOptions options, CancellationToken cancellationToken = default)
+        {
+            return SetCategoryOptionsAsync("torrents/createCategory", nameof(AddCategoryAsync), category, options, cancellationToken);
+        }
+
+        public Task<ApiResult> EditCategoryAsync(string category, TorrentCategoryOptions options, CancellationToken cancellationToken = default)
+        {
+            return SetCategoryOptionsAsync("torrents/editCategory", nameof(EditCategoryAsync), category, options, cancellationToken);
         }
 
         public Task<ApiResult> RemoveCategoriesAsync(IEnumerable<string> categories, CancellationToken cancellationToken = default)
@@ -1359,6 +1442,126 @@ namespace QBittorrent.ApiClient
             return await ExecuteAsync(
                 ct => _httpClient.PostAsync("torrents/saveMetadata", content, ct),
                 (httpContent, ct) => httpContent.ReadAsByteArrayAsync(ct),
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<ApiResult> SetTorrentShareLimitCoreAsync(
+            TorrentSelector selector,
+            float ratioLimit,
+            int seedingTimeLimit,
+            int inactiveSeedingTimeLimit,
+            ShareLimitAction? shareLimitAction,
+            ShareLimitsMode? shareLimitsMode,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(selector);
+
+            var profile = CompatibilityProfile;
+            if ((shareLimitsMode is not null) && !profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(SetTorrentShareLimitAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support shareLimitsMode when setting share limits.").ToResult();
+            }
+
+            if (profile.RequiresTorrentShareLimitAction)
+            {
+                if (shareLimitAction is null)
+                {
+                    return CreateUnsupportedCompatibilityFailure(
+                        nameof(SetTorrentShareLimitAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} requires shareLimitAction when setting share limits.").ToResult();
+                }
+            }
+            else if (shareLimitAction is not null)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(SetTorrentShareLimitAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support shareLimitAction when setting share limits.").ToResult();
+            }
+
+            var content = new FormUrlEncodedBuilder()
+                .AddTorrentSelector("hashes", selector)
+                .Add("ratioLimit", ratioLimit)
+                .Add("seedingTimeLimit", seedingTimeLimit)
+                .Add("inactiveSeedingTimeLimit", inactiveSeedingTimeLimit);
+
+            if (shareLimitAction is not null)
+            {
+                content.Add("shareLimitAction", shareLimitAction.Value.ToString());
+            }
+            if (profile.SupportsQbittorrent530)
+            {
+                content.Add("shareLimitsMode", (shareLimitsMode ?? ShareLimitsMode.Default).ToString());
+            }
+
+            var form = content.ToFormUrlEncodedContent();
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync("torrents/setShareLimits", form, ct),
+                cancellationToken: cancellationToken);
+        }
+
+        private async Task<ApiResult> SetCategoryOptionsAsync(
+            string endpoint,
+            string operation,
+            string category,
+            TorrentCategoryOptions options,
+            CancellationToken cancellationToken)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(category);
+            ArgumentNullException.ThrowIfNull(options);
+
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    operation,
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support category share-limit options.").ToResult();
+            }
+
+            var builder = new FormUrlEncodedBuilder()
+                .Add("category", category);
+
+            if (options.SavePath is not null)
+            {
+                builder.Add("savePath", options.SavePath);
+            }
+            if (options.DownloadPath is not null)
+            {
+                builder.Add("downloadPathEnabled", options.DownloadPath.Enabled);
+                if (!string.IsNullOrWhiteSpace(options.DownloadPath.Path))
+                {
+                    builder.Add("downloadPath", options.DownloadPath.Path);
+                }
+            }
+            if (options.RatioLimit is not null)
+            {
+                builder.Add("ratioLimit", options.RatioLimit.Value);
+            }
+            if (options.SeedingTimeLimit is not null)
+            {
+                builder.Add("seedingTimeLimit", options.SeedingTimeLimit.Value);
+            }
+            if (options.InactiveSeedingTimeLimit is not null)
+            {
+                builder.Add("inactiveSeedingTimeLimit", options.InactiveSeedingTimeLimit.Value);
+            }
+            if (options.ShareLimitsMode is not null)
+            {
+                builder.Add("shareLimitsMode", options.ShareLimitsMode.Value.ToString());
+            }
+            if (options.ShareLimitAction is not null)
+            {
+                builder.Add("shareLimitAction", options.ShareLimitAction.Value.ToString());
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.PostAsync(endpoint, builder.ToFormUrlEncodedContent(), ct),
                 cancellationToken: cancellationToken);
         }
 

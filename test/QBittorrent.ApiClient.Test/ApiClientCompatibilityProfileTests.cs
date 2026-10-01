@@ -157,7 +157,16 @@ namespace QBittorrent.ApiClient.Test
             target.SupportsTorrentMetadataArrayResponse.Should().BeTrue();
             target.RequiresTorrentShareLimitAction.Should().BeTrue();
             target.SupportsTrackerErrorFilters.Should().BeTrue();
+            target.SupportsQbittorrent530.Should().BeFalse();
             target.TrackerAllValue.Should().Be("all");
+        }
+
+        [Fact]
+        public void GIVEN_Version2162_WHEN_CreatingCompatibilityProfile_THEN_ShouldEnableQbittorrent530Features()
+        {
+            var target = new ApiClientCompatibilityProfile(new Version(2, 16, 2));
+
+            target.SupportsQbittorrent530.Should().BeTrue();
         }
 
         [Fact]

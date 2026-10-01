@@ -98,6 +98,11 @@ namespace QBittorrent.ApiClient
         public bool SupportsTrackerErrorFilters { get; }
 
         /// <summary>
+        /// Gets a value indicating whether qBittorrent 5.3 Web API features are supported.
+        /// </summary>
+        public bool SupportsQbittorrent530 { get; }
+
+        /// <summary>
         /// Initializes a new compatibility profile for the specified qBittorrent Web API version.
         /// </summary>
         /// <param name="webApiVersion">The qBittorrent Web API version.</param>
@@ -123,6 +128,7 @@ namespace QBittorrent.ApiClient
             SupportsTorrentMetadataArrayResponse = WebApiCompatibilityMap.SupportsTorrentMetadataArrayResponse(webApiVersion);
             RequiresTorrentShareLimitAction = WebApiCompatibilityMap.RequiresTorrentShareLimitAction(webApiVersion);
             SupportsTrackerErrorFilters = WebApiCompatibilityMap.SupportsTrackerErrorFilters(webApiVersion);
+            SupportsQbittorrent530 = WebApiCompatibilityMap.SupportsQbittorrent530(webApiVersion);
         }
 
         /// <summary>

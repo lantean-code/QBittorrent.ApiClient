@@ -256,7 +256,42 @@ namespace QBittorrent.ApiClient
 
         public Task<ApiResult> SetApplicationPreferencesAsync(UpdatePreferences preferences, CancellationToken cancellationToken = default)
         {
+            ArgumentNullException.ThrowIfNull(preferences);
             preferences.Validate();
+
+            var hasQbittorrent530Preferences = HasQbittorrent530Preferences(preferences);
+            var hasRenamedQbittorrent530Preferences = HasRenamedQbittorrent530Preferences(preferences);
+            ApiClientCompatibilityProfile? profile;
+            if (hasQbittorrent530Preferences || hasRenamedQbittorrent530Preferences)
+            {
+                profile = CompatibilityProfile;
+                if (hasQbittorrent530Preferences && !profile.SupportsQbittorrent530)
+                {
+                    return Task.FromResult(CreateUnsupportedCompatibilityFailure(
+                        nameof(SetApplicationPreferencesAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support qBittorrent 5.3 application preferences.").ToResult());
+                }
+            }
+            else
+            {
+                TryGetCompatibilityProfile(out profile);
+            }
+
+            if (profile?.SupportsQbittorrent530 == true)
+            {
+                preferences = preferences with
+                {
+                    TorrentFilesBackupEnabled = preferences.TorrentFilesBackupEnabled ?? (preferences.ExportDir is null ? null : !string.IsNullOrEmpty(preferences.ExportDir)),
+                    TorrentFilesBackupDirectory = preferences.TorrentFilesBackupDirectory ?? preferences.ExportDir,
+                    TorrentFilesFinishedBackupDirectoryEnabled = preferences.TorrentFilesFinishedBackupDirectoryEnabled ?? (preferences.ExportDirFin is null ? null : !string.IsNullOrEmpty(preferences.ExportDirFin)),
+                    TorrentFilesFinishedBackupDirectory = preferences.TorrentFilesFinishedBackupDirectory ?? preferences.ExportDirFin,
+                    MailNotificationEncryptionType = preferences.MailNotificationEncryptionType ?? (preferences.MailNotificationSslEnabled is null ? null : preferences.MailNotificationSslEnabled.Value ? SmtpEncryptionType.SMTPS : SmtpEncryptionType.None),
+                    ExportDir = null,
+                    ExportDirFin = null,
+                    MailNotificationSslEnabled = null
+                };
+            }
 
             var json = SerializeJson(preferences);
 
@@ -265,6 +300,28 @@ namespace QBittorrent.ApiClient
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(ct => _httpClient.PostAsync("app/setPreferences", content, ct), cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult<long>> GetFreeSpaceAtPathAsync(string path, CancellationToken cancellationToken = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(GetFreeSpaceAtPathAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support querying free space for a path.").ToResult<long>();
+            }
+
+            var query = new QueryBuilder()
+                .Add("path", path);
+
+            return await ExecuteAsync(
+                ct => _httpClient.GetAsync("app/getFreeSpaceAtPath", query, ct),
+                ReadInt64Async,
+                cancellationToken: cancellationToken);
         }
 
         public Task<ApiResult<IReadOnlyList<ApplicationCookie>>> GetApplicationCookiesAsync(CancellationToken cancellationToken = default)
@@ -394,6 +451,46 @@ namespace QBittorrent.ApiClient
                     DirectoryContentMode.Files => "files",
                     _ => "all"
                 });
+        }
+
+        private static bool HasQbittorrent530Preferences(UpdatePreferences preferences)
+        {
+            object?[] settings =
+            [
+                preferences.StoreSearchJobs,
+                preferences.StoreSearchJobResults,
+                preferences.TorrentFilesBackupEnabled,
+                preferences.TorrentFilesBackupDirectory,
+                preferences.TorrentFilesFinishedBackupDirectoryEnabled,
+                preferences.TorrentFilesFinishedBackupDirectory,
+                preferences.RemoveTorrentFileBackup,
+                preferences.MailNotificationEncryptionType,
+                preferences.I2pPexEnabled,
+                preferences.I2pInboundLengthVariance,
+                preferences.I2pOutboundLengthVariance,
+                preferences.ShareLimitsMode,
+                preferences.WebUiSessionsCountLimit,
+                preferences.StartPaused,
+                preferences.ShutdownTimeout,
+                preferences.SeedingOutgoingConnections,
+                preferences.EnableMultiConnectionsFromSamePeerId,
+                preferences.MaxOutstandingBlockRequests,
+                preferences.WebTorrentStunServer
+            ];
+
+            return settings.Any(static setting => setting is not null);
+        }
+
+        private static bool HasRenamedQbittorrent530Preferences(UpdatePreferences preferences)
+        {
+            object?[] settings =
+            [
+                preferences.ExportDir,
+                preferences.ExportDirFin,
+                preferences.MailNotificationSslEnabled
+            ];
+
+            return settings.Any(static setting => setting is not null);
         }
     }
 }

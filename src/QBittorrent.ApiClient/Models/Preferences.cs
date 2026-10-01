@@ -7,6 +7,10 @@ namespace QBittorrent.ApiClient.Models
     /// </summary>
     public record Preferences
     {
+        private readonly string? _exportDir;
+        private readonly string? _exportDirFin;
+        private readonly bool _mailNotificationSslEnabled;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Preferences" /> class.
         /// </summary>
@@ -302,8 +306,8 @@ namespace QBittorrent.ApiClient.Models
             Encryption = encryption;
             ExcludedFileNames = excludedFileNames;
             ExcludedFileNamesEnabled = excludedFileNamesEnabled;
-            ExportDir = exportDir;
-            ExportDirFin = exportDirFin;
+            _exportDir = exportDir;
+            _exportDirFin = exportDirFin;
             FileLogAge = fileLogAge;
             FileLogAgeType = fileLogAgeType;
             FileLogBackupEnabled = fileLogBackupEnabled;
@@ -341,7 +345,7 @@ namespace QBittorrent.ApiClient.Models
             MailNotificationPassword = mailNotificationPassword;
             MailNotificationSender = mailNotificationSender;
             MailNotificationSmtp = mailNotificationSmtp;
-            MailNotificationSslEnabled = mailNotificationSslEnabled;
+            _mailNotificationSslEnabled = mailNotificationSslEnabled;
             MailNotificationUsername = mailNotificationUsername;
             MarkOfTheWeb = markOfTheWeb;
             MaxActiveCheckingTorrents = maxActiveCheckingTorrents;
@@ -852,13 +856,13 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the export dir.
         /// </summary>
         [JsonPropertyName("export_dir")]
-        public string ExportDir { get; }
+        public string ExportDir => _exportDir ?? (TorrentFilesBackupEnabled ? TorrentFilesBackupDirectory : string.Empty);
 
         /// <summary>
         /// Gets the export dir fin.
         /// </summary>
         [JsonPropertyName("export_dir_fin")]
-        public string ExportDirFin { get; }
+        public string ExportDirFin => _exportDirFin ?? (TorrentFilesFinishedBackupDirectoryEnabled ? TorrentFilesFinishedBackupDirectory : string.Empty);
 
         /// <summary>
         /// Gets the backup log retention age in the units selected by <see cref="FileLogAgeType" />.
@@ -1086,7 +1090,7 @@ namespace QBittorrent.ApiClient.Models
         /// Gets a value indicating whether mail notification SSL is enabled.
         /// </summary>
         [JsonPropertyName("mail_notification_ssl_enabled")]
-        public bool MailNotificationSslEnabled { get; }
+        public bool MailNotificationSslEnabled => _mailNotificationSslEnabled || MailNotificationEncryptionType == SmtpEncryptionType.SMTPS;
 
         /// <summary>
         /// Gets the mail notification username.
@@ -1807,5 +1811,119 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("status_bar_external_ip")]
         public bool StatusBarExternalIp { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether search jobs are persisted.
+        /// </summary>
+        [JsonPropertyName("store_search_jobs")]
+        public bool StoreSearchJobs { get; init; }
+
+        /// <summary>
+        /// Gets a value indicating whether search job results are persisted.
+        /// </summary>
+        [JsonPropertyName("store_search_job_results")]
+        public bool StoreSearchJobResults { get; init; }
+
+        /// <summary>
+        /// Gets a value indicating whether torrent file backups are enabled.
+        /// </summary>
+        [JsonPropertyName("torrent_files_backup_enabled")]
+        public bool TorrentFilesBackupEnabled { get; init; }
+
+        /// <summary>
+        /// Gets the torrent file backup directory.
+        /// </summary>
+        [JsonPropertyName("torrent_files_backup_dir")]
+        public string TorrentFilesBackupDirectory { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Gets a value indicating whether finished torrent files use a separate backup directory.
+        /// </summary>
+        [JsonPropertyName("torrent_files_finished_backup_dir_enabled")]
+        public bool TorrentFilesFinishedBackupDirectoryEnabled { get; init; }
+
+        /// <summary>
+        /// Gets the finished torrent file backup directory.
+        /// </summary>
+        [JsonPropertyName("torrent_files_finished_backup_dir")]
+        public string TorrentFilesFinishedBackupDirectory { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Gets a value indicating whether torrent file backups are removed with their torrents.
+        /// </summary>
+        [JsonPropertyName("remove_torrent_file_backup")]
+        public bool RemoveTorrentFileBackup { get; init; }
+
+        /// <summary>
+        /// Gets the SMTP notification encryption type.
+        /// </summary>
+        [JsonPropertyName("mail_notification_encryption_type")]
+        public SmtpEncryptionType MailNotificationEncryptionType { get; init; }
+
+        /// <summary>
+        /// Gets a value indicating whether peer exchange is enabled for I2P torrents.
+        /// </summary>
+        [JsonPropertyName("i2p_pex_enabled")]
+        public bool I2pPexEnabled { get; init; }
+
+        /// <summary>
+        /// Gets the I2P inbound tunnel length variance.
+        /// </summary>
+        [JsonPropertyName("i2p_inbound_length_variance")]
+        public int I2pInboundLengthVariance { get; init; }
+
+        /// <summary>
+        /// Gets the I2P outbound tunnel length variance.
+        /// </summary>
+        [JsonPropertyName("i2p_outbound_length_variance")]
+        public int I2pOutboundLengthVariance { get; init; }
+
+        /// <summary>
+        /// Gets how enabled global share limits are combined.
+        /// </summary>
+        [JsonPropertyName("share_limits_mode")]
+        public ShareLimitsMode ShareLimitsMode { get; init; }
+
+        /// <summary>
+        /// Gets the maximum number of concurrent Web UI sessions.
+        /// </summary>
+        [JsonPropertyName("web_ui_sessions_count_limit")]
+        public int WebUiSessionsCountLimit { get; init; }
+
+        /// <summary>
+        /// Gets a value indicating whether the qBittorrent session is paused.
+        /// </summary>
+        [JsonPropertyName("start_paused")]
+        public bool StartPaused { get; init; }
+
+        /// <summary>
+        /// Gets the shutdown timeout in seconds.
+        /// </summary>
+        [JsonPropertyName("shutdown_timeout")]
+        public int ShutdownTimeout { get; init; }
+
+        /// <summary>
+        /// Gets a value indicating whether outgoing connections are permitted while seeding.
+        /// </summary>
+        [JsonPropertyName("seeding_outgoing_connections")]
+        public bool SeedingOutgoingConnections { get; init; }
+
+        /// <summary>
+        /// Gets a value indicating whether multiple connections from the same peer ID are permitted.
+        /// </summary>
+        [JsonPropertyName("enable_multi_connections_from_same_peer_id")]
+        public bool EnableMultiConnectionsFromSamePeerId { get; init; }
+
+        /// <summary>
+        /// Gets the maximum number of outstanding block requests.
+        /// </summary>
+        [JsonPropertyName("max_outstanding_block_requests")]
+        public int MaxOutstandingBlockRequests { get; init; }
+
+        /// <summary>
+        /// Gets the WebTorrent STUN server.
+        /// </summary>
+        [JsonPropertyName("webtorrent_stun_server")]
+        public string WebTorrentStunServer { get; init; } = string.Empty;
     }
 }

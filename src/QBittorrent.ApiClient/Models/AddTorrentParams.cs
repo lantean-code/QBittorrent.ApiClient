@@ -101,6 +101,11 @@ namespace QBittorrent.ApiClient.Models
         public ShareLimitAction? ShareLimitAction { get; set; }
 
         /// <summary>
+        /// Gets or sets how enabled share limits are combined.
+        /// </summary>
+        public ShareLimitsMode? ShareLimitsMode { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether automatic torrent management is enabled.
         /// </summary>
         public bool? AutoTorrentManagement { get; set; }

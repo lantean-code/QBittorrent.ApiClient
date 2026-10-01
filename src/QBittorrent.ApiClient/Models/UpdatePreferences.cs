@@ -1358,6 +1358,120 @@ namespace QBittorrent.ApiClient.Models
         public bool? StatusBarExternalIp { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether search jobs are persisted.
+        /// </summary>
+        [JsonPropertyName("store_search_jobs")]
+        public bool? StoreSearchJobs { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether search job results are persisted.
+        /// </summary>
+        [JsonPropertyName("store_search_job_results")]
+        public bool? StoreSearchJobResults { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether torrent file backups are enabled.
+        /// </summary>
+        [JsonPropertyName("torrent_files_backup_enabled")]
+        public bool? TorrentFilesBackupEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets the torrent file backup directory.
+        /// </summary>
+        [JsonPropertyName("torrent_files_backup_dir")]
+        public string? TorrentFilesBackupDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether finished torrent files use a separate backup directory.
+        /// </summary>
+        [JsonPropertyName("torrent_files_finished_backup_dir_enabled")]
+        public bool? TorrentFilesFinishedBackupDirectoryEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets the finished torrent file backup directory.
+        /// </summary>
+        [JsonPropertyName("torrent_files_finished_backup_dir")]
+        public string? TorrentFilesFinishedBackupDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether torrent file backups are removed with their torrents.
+        /// </summary>
+        [JsonPropertyName("remove_torrent_file_backup")]
+        public bool? RemoveTorrentFileBackup { get; set; }
+
+        /// <summary>
+        /// Gets or sets the SMTP notification encryption type.
+        /// </summary>
+        [JsonPropertyName("mail_notification_encryption_type")]
+        public SmtpEncryptionType? MailNotificationEncryptionType { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether peer exchange is enabled for I2P torrents.
+        /// </summary>
+        [JsonPropertyName("i2p_pex_enabled")]
+        public bool? I2pPexEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets the I2P inbound tunnel length variance.
+        /// </summary>
+        [JsonPropertyName("i2p_inbound_length_variance")]
+        public int? I2pInboundLengthVariance { get; set; }
+
+        /// <summary>
+        /// Gets or sets the I2P outbound tunnel length variance.
+        /// </summary>
+        [JsonPropertyName("i2p_outbound_length_variance")]
+        public int? I2pOutboundLengthVariance { get; set; }
+
+        /// <summary>
+        /// Gets or sets how enabled global share limits are combined.
+        /// </summary>
+        [JsonPropertyName("share_limits_mode")]
+        public ShareLimitsMode? ShareLimitsMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the maximum number of concurrent Web UI sessions.
+        /// </summary>
+        [JsonPropertyName("web_ui_sessions_count_limit")]
+        public int? WebUiSessionsCountLimit { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the qBittorrent session is paused.
+        /// </summary>
+        [JsonPropertyName("start_paused")]
+        public bool? StartPaused { get; set; }
+
+        /// <summary>
+        /// Gets or sets the shutdown timeout in seconds.
+        /// </summary>
+        [JsonPropertyName("shutdown_timeout")]
+        public int? ShutdownTimeout { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether outgoing connections are permitted while seeding.
+        /// </summary>
+        [JsonPropertyName("seeding_outgoing_connections")]
+        public bool? SeedingOutgoingConnections { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether multiple connections from the same peer ID are permitted.
+        /// </summary>
+        [JsonPropertyName("enable_multi_connections_from_same_peer_id")]
+        public bool? EnableMultiConnectionsFromSamePeerId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the maximum number of outstanding block requests.
+        /// </summary>
+        [JsonPropertyName("max_outstanding_block_requests")]
+        public int? MaxOutstandingBlockRequests { get; set; }
+
+        /// <summary>
+        /// Gets or sets the WebTorrent STUN server.
+        /// </summary>
+        [JsonPropertyName("webtorrent_stun_server")]
+        public string? WebTorrentStunServer { get; set; }
+
+        /// <summary>
         /// Validates the preference changes before they are sent to qBittorrent.
         /// </summary>
         public void Validate()

@@ -151,6 +151,12 @@ namespace QBittorrent.ApiClient
         /// <returns>A result with the default save path.</returns>
         Task<ApiResult<string>> GetDefaultSavePathAsync(CancellationToken cancellationToken = default);
 
+        /// <summary>Gets the free disk space available at a path on the qBittorrent host.</summary>
+        /// <param name="path">The path to query.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the available bytes.</returns>
+        Task<ApiResult<long>> GetFreeSpaceAtPathAsync(string path, CancellationToken cancellationToken = default);
+
         /// <summary>Gets the network interfaces visible to qBittorrent.</summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the available network interfaces.</returns>
@@ -251,6 +257,27 @@ namespace QBittorrent.ApiClient
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> BanPeersAsync(IEnumerable<PeerId> peers, CancellationToken cancellationToken = default);
+
+        /// <summary>Gets the normal and alternative global speed limits.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with all global speed limits.</returns>
+        Task<ApiResult<SpeedLimits>> GetSpeedLimitsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Sets the normal and alternative global speed limits.</summary>
+        /// <param name="speedLimits">The limits to apply.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> SetSpeedLimitsAsync(SpeedLimits speedLimits, CancellationToken cancellationToken = default);
+
+        /// <summary>Pauses the qBittorrent session.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> PauseSessionAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Resumes the qBittorrent session.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> ResumeSessionAsync(CancellationToken cancellationToken = default);
 
         #endregion Transfer info
 
@@ -465,6 +492,25 @@ namespace QBittorrent.ApiClient
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> SetTorrentShareLimitAsync(TorrentSelector selector, float ratioLimit, int seedingTimeLimit, int inactiveSeedingTimeLimit, ShareLimitAction? shareLimitAction = null, CancellationToken cancellationToken = default);
 
+        /// <summary>Sets per-torrent share limits and how enabled limits are combined.</summary>
+        /// <param name="selector">The torrent selection to target.</param>
+        /// <param name="ratioLimit">The ratio limit.</param>
+        /// <param name="seedingTimeLimit">The seeding-time limit in whole minutes.</param>
+        /// <param name="inactiveSeedingTimeLimit">The inactive-seeding-time limit in whole minutes.</param>
+        /// <param name="shareLimitAction">The action to take when limits are reached.</param>
+        /// <param name="shareLimitsMode">How enabled share limits are combined.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> SetTorrentShareLimitAsync(TorrentSelector selector, float ratioLimit, int seedingTimeLimit, int inactiveSeedingTimeLimit, ShareLimitAction shareLimitAction, ShareLimitsMode shareLimitsMode, CancellationToken cancellationToken = default);
+
+        /// <summary>Downloads an individual file from a torrent.</summary>
+        /// <param name="hash">The torrent hash.</param>
+        /// <param name="file">The zero-based file index or torrent-relative file path.</param>
+        /// <param name="destination">The writable stream that receives the file content.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the file was downloaded successfully.</returns>
+        Task<ApiResult> DownloadTorrentFileAsync(string hash, string file, Stream destination, CancellationToken cancellationToken = default);
+
         /// <summary>Gets per-torrent upload limits.</summary>
         /// <param name="selector">The torrent selection to query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -533,6 +579,13 @@ namespace QBittorrent.ApiClient
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> AddCategoryAsync(string category, string savePath, DownloadPathOption? downloadPathOption = null, CancellationToken cancellationToken = default);
 
+        /// <summary>Creates a torrent category with qBittorrent 5.3 category options.</summary>
+        /// <param name="category">The category name.</param>
+        /// <param name="options">The category options.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> AddCategoryAsync(string category, TorrentCategoryOptions options, CancellationToken cancellationToken = default);
+
         /// <summary>Updates a torrent category.</summary>
         /// <param name="category">The category name.</param>
         /// <param name="savePath">The category save path.</param>
@@ -540,6 +593,13 @@ namespace QBittorrent.ApiClient
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result indicating whether the operation succeeded.</returns>
         Task<ApiResult> EditCategoryAsync(string category, string savePath, DownloadPathOption? downloadPathOption = null, CancellationToken cancellationToken = default);
+
+        /// <summary>Updates qBittorrent 5.3 torrent category options.</summary>
+        /// <param name="category">The category name.</param>
+        /// <param name="options">The category options to update.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> EditCategoryAsync(string category, TorrentCategoryOptions options, CancellationToken cancellationToken = default);
 
         /// <summary>Removes one or more torrent categories.</summary>
         /// <param name="categories">The categories to remove.</param>
@@ -800,6 +860,25 @@ namespace QBittorrent.ApiClient
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A result with the matching article titles grouped by feed.</returns>
         Task<ApiResult<IReadOnlyDictionary<string, IReadOnlyList<string>>>> GetRssMatchingArticlesAsync(string ruleName, CancellationToken cancellationToken = default);
+
+        /// <summary>Exports RSS auto-downloading rules.</summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result with the exported JSON file bytes.</returns>
+        Task<ApiResult<byte[]>> ExportRssAutoDownloadingRulesAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>Imports RSS auto-downloading rules.</summary>
+        /// <param name="rules">The JSON rules file.</param>
+        /// <param name="fileName">The uploaded file name.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> ImportRssAutoDownloadingRulesAsync(Stream rules, string fileName = "rss-downloader-rules.json", CancellationToken cancellationToken = default);
+
+        /// <summary>Clones an RSS auto-downloading rule.</summary>
+        /// <param name="sourceName">The rule to clone.</param>
+        /// <param name="cloneName">The name for the cloned rule.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A result indicating whether the operation succeeded.</returns>
+        Task<ApiResult> CloneRssAutoDownloadingRuleAsync(string sourceName, string cloneName, CancellationToken cancellationToken = default);
 
         #endregion RSS
 

@@ -76,5 +76,73 @@ namespace QBittorrent.ApiClient
 
             return ExecuteAsync(ct => _httpClient.PostAsync("transfer/banPeers", content, ct), cancellationToken: cancellationToken);
         }
+
+        public async Task<ApiResult<SpeedLimits>> GetSpeedLimitsAsync(CancellationToken cancellationToken = default)
+        {
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(GetSpeedLimitsAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support retrieving all speed limits.").ToResult<SpeedLimits>();
+            }
+
+            return await ExecuteAsync(
+                ct => _httpClient.GetAsync("transfer/getSpeedLimits", ct),
+                GetJsonAsync<SpeedLimits>,
+                cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult> SetSpeedLimitsAsync(SpeedLimits speedLimits, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(speedLimits);
+
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(SetSpeedLimitsAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support setting all speed limits.").ToResult();
+            }
+
+            var content = new FormUrlEncodedBuilder()
+                .Add("up_limit", speedLimits.UploadLimit)
+                .Add("dl_limit", speedLimits.DownloadLimit)
+                .Add("alt_up_limit", speedLimits.AlternativeUploadLimit)
+                .Add("alt_dl_limit", speedLimits.AlternativeDownloadLimit)
+                .ToFormUrlEncodedContent();
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("transfer/setSpeedLimits", content, ct), cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult> PauseSessionAsync(CancellationToken cancellationToken = default)
+        {
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(PauseSessionAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support pausing the session.").ToResult();
+            }
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("transfer/pauseSession", null, ct), cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult> ResumeSessionAsync(CancellationToken cancellationToken = default)
+        {
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsQbittorrent530)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(ResumeSessionAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support resuming the session.").ToResult();
+            }
+
+            return await ExecuteAsync(ct => _httpClient.PostAsync("transfer/resumeSession", null, ct), cancellationToken: cancellationToken);
+        }
     }
 }

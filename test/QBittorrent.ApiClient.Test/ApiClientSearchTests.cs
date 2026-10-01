@@ -128,7 +128,10 @@ namespace QBittorrent.ApiClient.Test
                             {
                                 "id": 5,
                                 "status": "Running",
-                                "total": 12
+                                "total": 12,
+                                "pattern": "pattern",
+                                "category": "category",
+                                "plugins": ["plugin"]
                             }
                         ]
                         """)
@@ -140,6 +143,9 @@ namespace QBittorrent.ApiClient.Test
             status.Id.Should().Be(5);
             status.Status.Should().Be(SearchJobStatus.Running);
             status.Total.Should().Be(12);
+            status.Pattern.Should().Be("pattern");
+            status.Category.Should().Be("category");
+            status.Plugins.Should().Equal("plugin");
         }
 
         [Fact]

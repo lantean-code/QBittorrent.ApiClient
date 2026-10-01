@@ -455,6 +455,13 @@ namespace QBittorrent.ApiClient.Models
         public ShareLimitAction? ShareLimitAction { get; }
 
         /// <summary>
+        /// Gets how enabled share limits are combined.
+        /// </summary>
+        [JsonPropertyName("share_limits_mode")]
+        [JsonConverter(typeof(JsonStringEnumConverter<ShareLimitsMode>))]
+        public ShareLimitsMode? ShareLimitsMode { get; init; }
+
+        /// <summary>
         /// Gets the last seen-complete time as a Unix timestamp in seconds.
         /// </summary>
         [JsonPropertyName("seen_complete")]

@@ -48,7 +48,9 @@ namespace QBittorrent.ApiClient.Test
                         "up_info_speed": 15,
                         "up_rate_limit": 16,
                         "last_external_address_v4": "1.2.3.4",
-                        "last_external_address_v6": "::1"
+                        "last_external_address_v6": "::1",
+                        "queued_tracker_announces": 17,
+                        "request_latency": 18
                     }
                     """)
             });
@@ -65,6 +67,8 @@ namespace QBittorrent.ApiClient.Test
             result.UploadRateLimit.Should().Be(16);
             result.LastExternalAddressV4.Should().Be("1.2.3.4");
             result.LastExternalAddressV6.Should().Be("::1");
+            result.QueuedTrackerAnnounces.Should().Be(17);
+            result.RequestLatency.Should().Be(18);
         }
 
         [Fact]
@@ -326,6 +330,99 @@ namespace QBittorrent.ApiClient.Test
             var result = await _target.BanPeersAsync([], cancellationToken: TestContext.Current.CancellationToken);
 
             result.ShouldFailWith(statusCode: HttpStatusCode.Conflict, userMessage: "conflict");
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162_WHEN_GetSpeedLimits_THEN_ShouldDeserializeAllLimits()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (request, _) =>
+            {
+                request.RequestUri?.ToString().Should().Be("http://localhost/transfer/getSpeedLimits");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"up_limit":1,"dl_limit":2,"alt_up_limit":3,"alt_dl_limit":4}""")
+                });
+            };
+
+            var result = (await _target.GetSpeedLimitsAsync(TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Be(new SpeedLimits(1, 2, 3, 4));
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_GetSpeedLimits_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.GetSpeedLimitsAsync(TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndLimits_WHEN_SetSpeedLimits_THEN_ShouldPostAllLimits()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                request.RequestUri?.ToString().Should().Be("http://localhost/transfer/setSpeedLimits");
+                (await request.Content.ReadAsStringOrNullAsync(cancellationToken)).Should().Be("up_limit=1&dl_limit=2&alt_up_limit=3&alt_dl_limit=4");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.SetSpeedLimitsAsync(new SpeedLimits(1, 2, 3, 4), TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_NullLimits_WHEN_SetSpeedLimits_THEN_ShouldThrowArgumentNullException()
+        {
+            var action = async () => await _target.SetSpeedLimitsAsync(null!, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_SetSpeedLimits_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.SetSpeedLimitsAsync(new SpeedLimits(1, 2, 3, 4), TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Theory]
+        [InlineData(true, "pauseSession")]
+        [InlineData(false, "resumeSession")]
+        public async Task GIVEN_ApiVersion2162_WHEN_ChangingSessionPauseState_THEN_ShouldPostExpectedEndpoint(bool pause, string endpoint)
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (request, _) =>
+            {
+                request.RequestUri?.ToString().Should().Be($"http://localhost/transfer/{endpoint}");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            };
+
+            var result = pause
+                ? await _target.PauseSessionAsync(TestContext.Current.CancellationToken)
+                : await _target.ResumeSessionAsync(TestContext.Current.CancellationToken);
+
+            result.ShouldSucceed();
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_ChangingSessionPauseState_THEN_ShouldReturnUnsupportedVersion(bool pause)
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = pause
+                ? await _target.PauseSessionAsync(TestContext.Current.CancellationToken)
+                : await _target.ResumeSessionAsync(TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
         }
     }
 }

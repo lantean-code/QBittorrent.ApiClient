@@ -822,6 +822,115 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(statusCode: HttpStatusCode.BadGateway, userMessage: "fail");
         }
 
+        [Fact]
+        public async Task GIVEN_ApiVersion2162_WHEN_ExportRules_THEN_ShouldReturnFileBytes()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (request, _) =>
+            {
+                request.RequestUri?.ToString().Should().Be("http://localhost/rss/exportRules");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new ByteArrayContent([1, 2, 3])
+                });
+            };
+
+            var result = (await _target.ExportRssAutoDownloadingRulesAsync(TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Equal(1, 2, 3);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_ExportRules_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.ExportRssAutoDownloadingRulesAsync(TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndRulesFile_WHEN_ImportRules_THEN_ShouldPostMultipartFile()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                request.RequestUri?.ToString().Should().Be("http://localhost/rss/importRules");
+                var content = request.Content.Should().BeOfType<MultipartFormDataContent>().Which;
+                var part = content.Should().ContainSingle().Which;
+                part.Headers.ContentDisposition?.Name.Should().Be("rules");
+                part.Headers.ContentDisposition?.FileName.Should().Be("rules.json");
+                (await part.ReadAsStringAsync(cancellationToken)).Should().Be("{}");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            using var rules = new MemoryStream("{}"u8.ToArray());
+            (await _target.ImportRssAutoDownloadingRulesAsync(rules, "rules.json", TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_ImportRules_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+            using var rules = new MemoryStream([]);
+
+            var result = await _target.ImportRssAutoDownloadingRulesAsync(rules, cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_NullRules_WHEN_ImportRules_THEN_ShouldThrowArgumentNullException()
+        {
+            var action = async () => await _target.ImportRssAutoDownloadingRulesAsync(null!, cancellationToken: TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_EmptyFileName_WHEN_ImportRules_THEN_ShouldThrowArgumentException()
+        {
+            using var rules = new MemoryStream([]);
+            var action = async () => await _target.ImportRssAutoDownloadingRulesAsync(rules, " ", TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndRuleNames_WHEN_CloneRule_THEN_ShouldPostNames()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                request.RequestUri?.ToString().Should().Be("http://localhost/rss/cloneRule");
+                (await request.Content.ReadAsStringOrNullAsync(cancellationToken)).Should().Be("sourceName=source&cloneName=clone");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.CloneRssAutoDownloadingRuleAsync("source", "clone", TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_CloneRule_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.CloneRssAutoDownloadingRuleAsync("source", "clone", TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Theory]
+        [InlineData("", "clone")]
+        [InlineData("source", "")]
+        public async Task GIVEN_EmptyRuleName_WHEN_CloneRule_THEN_ShouldThrowArgumentException(string sourceName, string cloneName)
+        {
+            var action = async () => await _target.CloneRssAutoDownloadingRuleAsync(sourceName, cloneName, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>();
+        }
+
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
         {
             return new HttpResponseMessage(statusCode)

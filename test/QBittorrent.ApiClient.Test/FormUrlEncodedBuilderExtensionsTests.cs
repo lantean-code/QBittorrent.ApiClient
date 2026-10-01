@@ -119,6 +119,19 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_Double_WHEN_Add_THEN_ShouldSerializeInvariantly()
+        {
+            _target.Add("ratio", 1.5d);
+
+            var parameters = _target.GetParameters();
+            parameters.Should().ContainSingle();
+            parameters[0].Value.Should().Be("1.5");
+
+            using var content = _target.ToFormUrlEncodedContent();
+            (await content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("ratio=1.5");
+        }
+
+        [Fact]
         public async Task GIVEN_GenericByte_WHEN_Add_Generic_THEN_ShouldSerializeAsInt32String()
         {
             _target.Add<byte>("b", 7);

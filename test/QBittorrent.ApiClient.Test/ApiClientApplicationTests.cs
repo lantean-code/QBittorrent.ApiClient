@@ -1451,6 +1451,73 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_Qbittorrent530RenamedPreferences_WHEN_GetApplicationPreferences_THEN_ShouldPopulateDeprecatedAliases()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""
+                    {
+                        "torrent_files_backup_enabled": true,
+                        "torrent_files_backup_dir": "backup",
+                        "torrent_files_finished_backup_dir_enabled": false,
+                        "torrent_files_finished_backup_dir": "finished",
+                        "mail_notification_encryption_type": "SMTPS"
+                    }
+                    """)
+            });
+
+            var result = (await _target.GetApplicationPreferencesAsync(TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.ExportDir.Should().Be("backup");
+            result.ExportDirFin.Should().BeEmpty();
+            result.MailNotificationSslEnabled.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task GIVEN_DisabledQbittorrent530RenamedPreferences_WHEN_GetApplicationPreferences_THEN_ShouldPopulateEmptyDeprecatedAliases()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""
+                    {
+                        "torrent_files_backup_enabled": false,
+                        "torrent_files_backup_dir": "backup",
+                        "torrent_files_finished_backup_dir_enabled": true,
+                        "torrent_files_finished_backup_dir": "finished",
+                        "mail_notification_encryption_type": "STARTTLS"
+                    }
+                    """)
+            });
+
+            var result = (await _target.GetApplicationPreferencesAsync(TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.ExportDir.Should().BeEmpty();
+            result.ExportDirFin.Should().Be("finished");
+            result.MailNotificationSslEnabled.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task GIVEN_PreQbittorrent530PreferenceNames_WHEN_GetApplicationPreferences_THEN_ShouldPreserveValues()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""
+                    {
+                        "export_dir": "export_dir",
+                        "export_dir_fin": "export_dir_fin",
+                        "mail_notification_ssl_enabled": true
+                    }
+                    """)
+            });
+
+            var result = (await _target.GetApplicationPreferencesAsync(TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.ExportDir.Should().Be("export_dir");
+            result.ExportDirFin.Should().Be("export_dir_fin");
+            result.MailNotificationSslEnabled.Should().BeTrue();
+        }
+
+        [Fact]
         public async Task GIVEN_PreferencesWithScanDirs_WHEN_GetApplicationPreferences_THEN_ShouldMapSaveLocations()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
@@ -2214,6 +2281,215 @@ namespace QBittorrent.ApiClient.Test
             result.Count.Should().Be(2);
             result[0].Should().Be("192.168.1.10");
             result[1].Should().Be("fe80::1");
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndPath_WHEN_GetFreeSpaceAtPath_THEN_ShouldReturnBytes()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = (request, _) =>
+            {
+                request.RequestUri?.ToString().Should().Be("http://localhost/app/getFreeSpaceAtPath?path=%2Fdownloads");
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("12345")
+                });
+            };
+
+            var result = (await _target.GetFreeSpaceAtPathAsync("/downloads", TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.Should().Be(12345);
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_GetFreeSpaceAtPath_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.GetFreeSpaceAtPathAsync("/downloads", TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_EmptyPath_WHEN_GetFreeSpaceAtPath_THEN_ShouldThrowArgumentException()
+        {
+            var action = async () => await _target.GetFreeSpaceAtPathAsync(" ", TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_NullPreferences_WHEN_SetApplicationPreferences_THEN_ShouldThrowArgumentNullException()
+        {
+            var action = async () => await _target.SetApplicationPreferencesAsync(null!, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData(true, "SMTPS")]
+        [InlineData(false, "None")]
+        public async Task GIVEN_ApiVersion2162AndDeprecatedPreferences_WHEN_SetApplicationPreferences_THEN_ShouldTranslateRenamedSettings(bool sslEnabled, string encryptionType)
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var body = await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken);
+                using var document = JsonDocument.Parse(body!["json=".Length..]);
+                var json = document.RootElement;
+                json.TryGetProperty("export_dir", out _).Should().BeFalse();
+                json.TryGetProperty("export_dir_fin", out _).Should().BeFalse();
+                json.TryGetProperty("mail_notification_ssl_enabled", out _).Should().BeFalse();
+                json.GetProperty("torrent_files_backup_enabled").GetBoolean().Should().BeTrue();
+                json.GetProperty("torrent_files_backup_dir").GetString().Should().Be("backup");
+                json.GetProperty("torrent_files_finished_backup_dir_enabled").GetBoolean().Should().BeFalse();
+                json.GetProperty("torrent_files_finished_backup_dir").GetString().Should().BeEmpty();
+                json.GetProperty("mail_notification_encryption_type").GetString().Should().Be(encryptionType);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            var preferences = new UpdatePreferences
+            {
+                ExportDir = "backup",
+                ExportDirFin = string.Empty,
+                MailNotificationSslEnabled = sslEnabled
+            };
+
+            (await _target.SetApplicationPreferencesAsync(preferences, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndCurrentPreferences_WHEN_SetApplicationPreferences_THEN_ShouldPreserveCurrentSettings()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var body = await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken);
+                using var document = JsonDocument.Parse(body!["json=".Length..]);
+                var json = document.RootElement;
+                json.GetProperty("torrent_files_backup_enabled").GetBoolean().Should().BeFalse();
+                json.GetProperty("torrent_files_backup_dir").GetString().Should().Be("current");
+                json.GetProperty("torrent_files_finished_backup_dir_enabled").GetBoolean().Should().BeTrue();
+                json.GetProperty("torrent_files_finished_backup_dir").GetString().Should().Be("finished");
+                json.GetProperty("mail_notification_encryption_type").GetString().Should().Be("STARTTLS");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            var preferences = new UpdatePreferences
+            {
+                ExportDir = "deprecated",
+                ExportDirFin = "deprecated",
+                MailNotificationSslEnabled = true,
+                TorrentFilesBackupEnabled = false,
+                TorrentFilesBackupDirectory = "current",
+                TorrentFilesFinishedBackupDirectoryEnabled = true,
+                TorrentFilesFinishedBackupDirectory = "finished",
+                MailNotificationEncryptionType = SmtpEncryptionType.STARTTLS
+            };
+
+            (await _target.SetApplicationPreferencesAsync(preferences, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndNoRenamedPreferences_WHEN_SetApplicationPreferences_THEN_ShouldOmitRenamedSettings()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var body = await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken);
+                using var document = JsonDocument.Parse(body!["json=".Length..]);
+                document.RootElement.EnumerateObject().Should().BeEmpty();
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.SetApplicationPreferencesAsync(new UpdatePreferences(), TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162AndQbittorrent530Preference_WHEN_SetApplicationPreferences_THEN_ShouldReturnValidationFailure()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                StartPaused = true
+            }, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_UninitializedCompatibilityAndQbittorrent530Preference_WHEN_SetApplicationPreferences_THEN_ShouldThrowUninitializedCompatibilityException()
+        {
+            var action = async () => await _target.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                StartPaused = true
+            }, TestContext.Current.CancellationToken);
+
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
+        }
+
+        [Fact]
+        public async Task GIVEN_UninitializedCompatibilityAndRenamedQbittorrent530Preference_WHEN_SetApplicationPreferences_THEN_ShouldThrowUninitializedCompatibilityException()
+        {
+            var action = async () => await _target.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                ExportDir = "backup"
+            }, TestContext.Current.CancellationToken);
+
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162AndDeprecatedPreference_WHEN_SetApplicationPreferences_THEN_ShouldPreservePreviousSettingName()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var body = await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken);
+                using var document = JsonDocument.Parse(body!["json=".Length..]);
+                document.RootElement.GetProperty("export_dir").GetString().Should().Be("backup");
+                document.RootElement.TryGetProperty("torrent_files_backup_dir", out _).Should().BeFalse();
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                ExportDir = "backup"
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_SharedQbittorrent530CompatibilityProfileAndDeprecatedPreference_WHEN_SetApplicationPreferences_THEN_ShouldTranslateSettingName()
+        {
+            var cache = new ApiClientCompatibilityProfileCache();
+            using var firstHttpClient = new HttpClient(new StubHttpMessageHandler())
+            {
+                BaseAddress = new Uri("http://shared/")
+            };
+            var firstTarget = new ApiClient(firstHttpClient, cache);
+            firstTarget.Initialize(new Version(2, 16, 2));
+
+            var secondHandler = new StubHttpMessageHandler();
+            using var secondHttpClient = new HttpClient(secondHandler)
+            {
+                BaseAddress = new Uri("http://shared/")
+            };
+            var secondTarget = new ApiClient(secondHttpClient, cache);
+            secondHandler.Responder = async (request, cancellationToken) =>
+            {
+                var body = await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken);
+                using var document = JsonDocument.Parse(body!["json=".Length..]);
+                document.RootElement.TryGetProperty("export_dir", out _).Should().BeFalse();
+                document.RootElement.GetProperty("torrent_files_backup_dir").GetString().Should().Be("backup");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await secondTarget.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                ExportDir = "backup"
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)

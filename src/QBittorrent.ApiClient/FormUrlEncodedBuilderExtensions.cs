@@ -30,6 +30,11 @@ namespace QBittorrent.ApiClient
             return builder.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
+        public static FormUrlEncodedBuilder Add(this FormUrlEncodedBuilder builder, string key, double value)
+        {
+            return builder.Add(key, value.ToString(CultureInfo.InvariantCulture));
+        }
+
         public static FormUrlEncodedBuilder Add<T>(this FormUrlEncodedBuilder builder, string key, T value) where T : struct, IConvertible
         {
             return builder.Add(key, value.ToInt32(CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture));

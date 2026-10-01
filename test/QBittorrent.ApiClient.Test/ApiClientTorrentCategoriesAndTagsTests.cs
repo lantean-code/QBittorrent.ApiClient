@@ -263,5 +263,91 @@ namespace QBittorrent.ApiClient.Test
 
             await _target.DeleteTagsAsync(tags: ["a", "b"], cancellationToken: TestContext.Current.CancellationToken);
         }
+
+        [Theory]
+        [InlineData(true, "createCategory")]
+        [InlineData(false, "editCategory")]
+        public async Task GIVEN_ApiVersion2162AndCategoryOptions_WHEN_SetCategoryOptions_THEN_ShouldPostAllFields(bool add, string endpoint)
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                request.RequestUri?.ToString().Should().Be($"http://localhost/torrents/{endpoint}");
+                (await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken)).Should().Be(
+                    "category=Category&savePath=/save&downloadPathEnabled=true&downloadPath=/download&ratioLimit=1.5&seedingTimeLimit=2&inactiveSeedingTimeLimit=3&shareLimitsMode=MatchAll&shareLimitAction=Remove");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+            var options = new TorrentCategoryOptions
+            {
+                SavePath = "/save",
+                DownloadPath = new DownloadPathOption(true, "/download"),
+                RatioLimit = 1.5,
+                SeedingTimeLimit = 2,
+                InactiveSeedingTimeLimit = 3,
+                ShareLimitsMode = ShareLimitsMode.MatchAll,
+                ShareLimitAction = ShareLimitAction.Remove
+            };
+
+            var result = add
+                ? await _target.AddCategoryAsync("Category", options, TestContext.Current.CancellationToken)
+                : await _target.EditCategoryAsync("Category", options, TestContext.Current.CancellationToken);
+
+            result.ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndEmptyCategoryOptions_WHEN_EditCategory_THEN_ShouldOnlyPostCategory()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                (await request.Content.ReadAsStringOrNullAsync(cancellationToken)).Should().Be("category=Category");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.EditCategoryAsync("Category", new TorrentCategoryOptions(), TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersion2162AndWhitespaceDownloadPath_WHEN_EditCategory_THEN_ShouldOmitDownloadPath()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                (await request.Content.ReadAsStringOrNullAsync(cancellationToken)).Should().Be("category=Category&downloadPathEnabled=true");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.EditCategoryAsync("Category", new TorrentCategoryOptions
+            {
+                DownloadPath = new DownloadPathOption(true, " ")
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiVersionBefore2162_WHEN_SetCategoryOptions_THEN_ShouldReturnValidationFailure()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.AddCategoryAsync("Category", new TorrentCategoryOptions(), TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Fact]
+        public async Task GIVEN_EmptyCategory_WHEN_SetCategoryOptions_THEN_ShouldThrowArgumentException()
+        {
+            var action = async () => await _target.AddCategoryAsync(" ", new TorrentCategoryOptions(), TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentException>();
+        }
+
+        [Fact]
+        public async Task GIVEN_NullCategoryOptions_WHEN_SetCategoryOptions_THEN_ShouldThrowArgumentNullException()
+        {
+            var action = async () => await _target.AddCategoryAsync("Category", null!, TestContext.Current.CancellationToken);
+
+            await action.Should().ThrowAsync<ArgumentNullException>();
+        }
     }
 }

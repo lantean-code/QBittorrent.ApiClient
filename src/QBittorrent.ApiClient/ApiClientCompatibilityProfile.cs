@@ -40,6 +40,8 @@ namespace QBittorrent.ApiClient
 
         public bool SupportsTrackerErrorFilters { get; }
 
+        public bool SupportsQbittorrent530 { get; }
+
         public string TrackerAllValue { get; }
 
         internal ApiClientCompatibilityProfile(Version webApiVersion)
@@ -64,6 +66,7 @@ namespace QBittorrent.ApiClient
             SupportsTorrentMetadataArrayResponse = WebApiCompatibilityMap.SupportsTorrentMetadataArrayResponse(webApiVersion);
             RequiresTorrentShareLimitAction = WebApiCompatibilityMap.RequiresTorrentShareLimitAction(webApiVersion);
             SupportsTrackerErrorFilters = WebApiCompatibilityMap.SupportsTrackerErrorFilters(webApiVersion);
+            SupportsQbittorrent530 = WebApiCompatibilityMap.SupportsQbittorrent530(webApiVersion);
             TrackerAllValue = WebApiCompatibilityMap.GetTrackerAllValue(webApiVersion);
         }
 

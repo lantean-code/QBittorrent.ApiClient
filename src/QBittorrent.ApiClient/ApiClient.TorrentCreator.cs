@@ -13,6 +13,18 @@ namespace QBittorrent.ApiClient
                 throw new ArgumentException("SourcePath is required.", nameof(request));
             }
 
+            if (request.IgnoreDotfiles is not null)
+            {
+                var profile = CompatibilityProfile;
+                if (!profile.SupportsQbittorrent530)
+                {
+                    return Task.FromResult(CreateUnsupportedCompatibilityFailure(
+                        nameof(AddTorrentCreationTaskAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support configuring dotfile handling for torrent creation.").ToResult<string>());
+                }
+            }
+
             var builder = new FormUrlEncodedBuilder()
                 .Add("sourcePath", request.SourcePath);
 
@@ -64,6 +76,10 @@ namespace QBittorrent.ApiClient
             if (request.PaddedFileSizeLimit.HasValue)
             {
                 builder.Add("paddedFileSizeLimit", request.PaddedFileSizeLimit.Value);
+            }
+            if (request.IgnoreDotfiles.HasValue)
+            {
+                builder.Add("ignoreDotfiles", request.IgnoreDotfiles.Value);
             }
 
             static async Task<string> readTaskId(HttpContent content, CancellationToken currentCancellationToken)

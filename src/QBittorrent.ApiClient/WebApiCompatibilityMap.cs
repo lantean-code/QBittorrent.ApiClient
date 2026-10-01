@@ -22,6 +22,7 @@ namespace QBittorrent.ApiClient
         private static readonly Version _processInfoMinimumVersion = new(2, 15, 1);
         private static readonly Version _torrentPieceAvailabilityMinimumVersion = new(2, 15, 1);
         private static readonly Version _trackerErrorFiltersMinimumVersion = new(2, 15, 1);
+        private static readonly Version _qbittorrent530MinimumVersion = new(2, 16, 2);
 
         public static bool TryParseVersion(string? webApiVersion, [NotNullWhen(true)] out Version? parsedApiVersion)
         {
@@ -158,6 +159,13 @@ namespace QBittorrent.ApiClient
             ArgumentNullException.ThrowIfNull(webApiVersion);
 
             return webApiVersion >= _trackerErrorFiltersMinimumVersion;
+        }
+
+        public static bool SupportsQbittorrent530(Version webApiVersion)
+        {
+            ArgumentNullException.ThrowIfNull(webApiVersion);
+
+            return webApiVersion >= _qbittorrent530MinimumVersion;
         }
 
         public static string GetTrackerAllValue(Version webApiVersion)
