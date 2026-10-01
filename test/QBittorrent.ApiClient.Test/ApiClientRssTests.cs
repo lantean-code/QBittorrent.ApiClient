@@ -823,7 +823,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162_WHEN_ExportRules_THEN_ShouldReturnFileBytes()
+        public async Task GIVEN_RssRuleExportImportSupport_WHEN_ExportRules_THEN_ShouldReturnFileBytes()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = (request, _) =>
@@ -841,7 +841,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_ExportRules_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutRssRuleExportImportSupport_WHEN_ExportRules_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 
@@ -851,7 +851,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndRulesFile_WHEN_ImportRules_THEN_ShouldPostMultipartFile()
+        public async Task GIVEN_RssRuleExportImportSupportAndRulesFile_WHEN_ImportRules_THEN_ShouldPostMultipartFile()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -870,7 +870,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_ImportRules_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutRssRuleExportImportSupport_WHEN_ImportRules_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
             using var rules = new MemoryStream([]);
@@ -898,7 +898,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndRuleNames_WHEN_CloneRule_THEN_ShouldPostNames()
+        public async Task GIVEN_RssRuleCloningSupportAndRuleNames_WHEN_CloneRule_THEN_ShouldPostNames()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -912,7 +912,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_CloneRule_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutRssRuleCloningSupport_WHEN_CloneRule_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 

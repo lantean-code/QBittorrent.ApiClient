@@ -333,7 +333,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162_WHEN_GetSpeedLimits_THEN_ShouldDeserializeAllLimits()
+        public async Task GIVEN_SpeedLimitBatchOperationsSupport_WHEN_GetSpeedLimits_THEN_ShouldDeserializeAllLimits()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = (request, _) =>
@@ -351,7 +351,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_GetSpeedLimits_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutSpeedLimitBatchOperationsSupport_WHEN_GetSpeedLimits_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 
@@ -361,7 +361,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndLimits_WHEN_SetSpeedLimits_THEN_ShouldPostAllLimits()
+        public async Task GIVEN_SpeedLimitBatchOperationsSupportAndLimits_WHEN_SetSpeedLimits_THEN_ShouldPostAllLimits()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -383,7 +383,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_SetSpeedLimits_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutSpeedLimitBatchOperationsSupport_WHEN_SetSpeedLimits_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 
@@ -395,7 +395,7 @@ namespace QBittorrent.ApiClient.Test
         [Theory]
         [InlineData(true, "pauseSession")]
         [InlineData(false, "resumeSession")]
-        public async Task GIVEN_ApiVersion2162_WHEN_ChangingSessionPauseState_THEN_ShouldPostExpectedEndpoint(bool pause, string endpoint)
+        public async Task GIVEN_SessionPauseResumeSupport_WHEN_ChangingSessionPauseState_THEN_ShouldPostExpectedEndpoint(bool pause, string endpoint)
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = (request, _) =>
@@ -414,7 +414,7 @@ namespace QBittorrent.ApiClient.Test
         [Theory]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_ChangingSessionPauseState_THEN_ShouldReturnUnsupportedVersion(bool pause)
+        public async Task GIVEN_ApiWithoutSessionPauseResumeSupport_WHEN_ChangingSessionPauseState_THEN_ShouldReturnUnsupportedVersion(bool pause)
         {
             _target.Initialize(new Version(2, 15, 1));
 

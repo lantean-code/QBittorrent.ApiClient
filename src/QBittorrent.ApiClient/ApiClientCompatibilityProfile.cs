@@ -40,7 +40,47 @@ namespace QBittorrent.ApiClient
 
         public bool SupportsTrackerErrorFilters { get; }
 
-        public bool SupportsQbittorrent530 { get; }
+        public bool SupportsApplicationFreeSpace { get; }
+
+        public bool SupportsSearchJobPersistencePreferences { get; }
+
+        public bool SupportsTorrentFileBackupPreferences { get; }
+
+        public bool SupportsMailNotificationEncryptionPreference { get; }
+
+        public bool SupportsAdvancedI2pPreferences { get; }
+
+        public bool SupportsShareLimitsMode { get; }
+
+        public bool SupportsWebUiSessionCountLimitPreference { get; }
+
+        public bool SupportsStartPausedPreference { get; }
+
+        public bool SupportsShutdownTimeoutPreference { get; }
+
+        public bool SupportsSeedingOutgoingConnectionsPreference { get; }
+
+        public bool SupportsMultipleConnectionsFromSamePeerIdPreference { get; }
+
+        public bool SupportsMaxOutstandingBlockRequestsPreference { get; }
+
+        public bool SupportsWebTorrentStunServerPreference { get; }
+
+        public bool SupportsRssRuleExportImport { get; }
+
+        public bool SupportsRssRuleCloning { get; }
+
+        public bool UsesTorrentAddSeedMode { get; }
+
+        public bool SupportsTorrentFileDownload { get; }
+
+        public bool SupportsCategoryShareLimitOptions { get; }
+
+        public bool SupportsSpeedLimitBatchOperations { get; }
+
+        public bool SupportsSessionPauseResume { get; }
+
+        public bool SupportsTorrentCreationIgnoreDotfiles { get; }
 
         public string TrackerAllValue { get; }
 
@@ -66,7 +106,27 @@ namespace QBittorrent.ApiClient
             SupportsTorrentMetadataArrayResponse = WebApiCompatibilityMap.SupportsTorrentMetadataArrayResponse(webApiVersion);
             RequiresTorrentShareLimitAction = WebApiCompatibilityMap.RequiresTorrentShareLimitAction(webApiVersion);
             SupportsTrackerErrorFilters = WebApiCompatibilityMap.SupportsTrackerErrorFilters(webApiVersion);
-            SupportsQbittorrent530 = WebApiCompatibilityMap.SupportsQbittorrent530(webApiVersion);
+            SupportsApplicationFreeSpace = WebApiCompatibilityMap.SupportsApplicationFreeSpace(webApiVersion);
+            SupportsSearchJobPersistencePreferences = WebApiCompatibilityMap.SupportsSearchJobPersistencePreferences(webApiVersion);
+            SupportsTorrentFileBackupPreferences = WebApiCompatibilityMap.SupportsTorrentFileBackupPreferences(webApiVersion);
+            SupportsMailNotificationEncryptionPreference = WebApiCompatibilityMap.SupportsMailNotificationEncryptionPreference(webApiVersion);
+            SupportsAdvancedI2pPreferences = WebApiCompatibilityMap.SupportsAdvancedI2pPreferences(webApiVersion);
+            SupportsShareLimitsMode = WebApiCompatibilityMap.SupportsShareLimitsMode(webApiVersion);
+            SupportsWebUiSessionCountLimitPreference = WebApiCompatibilityMap.SupportsWebUiSessionCountLimitPreference(webApiVersion);
+            SupportsStartPausedPreference = WebApiCompatibilityMap.SupportsStartPausedPreference(webApiVersion);
+            SupportsShutdownTimeoutPreference = WebApiCompatibilityMap.SupportsShutdownTimeoutPreference(webApiVersion);
+            SupportsSeedingOutgoingConnectionsPreference = WebApiCompatibilityMap.SupportsSeedingOutgoingConnectionsPreference(webApiVersion);
+            SupportsMultipleConnectionsFromSamePeerIdPreference = WebApiCompatibilityMap.SupportsMultipleConnectionsFromSamePeerIdPreference(webApiVersion);
+            SupportsMaxOutstandingBlockRequestsPreference = WebApiCompatibilityMap.SupportsMaxOutstandingBlockRequestsPreference(webApiVersion);
+            SupportsWebTorrentStunServerPreference = WebApiCompatibilityMap.SupportsWebTorrentStunServerPreference(webApiVersion);
+            SupportsRssRuleExportImport = WebApiCompatibilityMap.SupportsRssRuleExportImport(webApiVersion);
+            SupportsRssRuleCloning = WebApiCompatibilityMap.SupportsRssRuleCloning(webApiVersion);
+            UsesTorrentAddSeedMode = WebApiCompatibilityMap.UsesTorrentAddSeedMode(webApiVersion);
+            SupportsTorrentFileDownload = WebApiCompatibilityMap.SupportsTorrentFileDownload(webApiVersion);
+            SupportsCategoryShareLimitOptions = WebApiCompatibilityMap.SupportsCategoryShareLimitOptions(webApiVersion);
+            SupportsSpeedLimitBatchOperations = WebApiCompatibilityMap.SupportsSpeedLimitBatchOperations(webApiVersion);
+            SupportsSessionPauseResume = WebApiCompatibilityMap.SupportsSessionPauseResume(webApiVersion);
+            SupportsTorrentCreationIgnoreDotfiles = WebApiCompatibilityMap.SupportsTorrentCreationIgnoreDotfiles(webApiVersion);
             TrackerAllValue = WebApiCompatibilityMap.GetTrackerAllValue(webApiVersion);
         }
 

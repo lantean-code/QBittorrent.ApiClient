@@ -96,6 +96,20 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_DownloadPathOptionWithoutPath_WHEN_AddCategory_THEN_ShouldOmitDownloadPath()
+        {
+            _handler.Responder = async (req, ct) =>
+            {
+                req.RequestUri?.ToString().Should().Be("http://localhost/torrents/createCategory");
+                var body = await req.Content.ReadAsStringOrNullAsync(ct);
+                body.Should().Be("category=Shows&savePath=%2Ftv&downloadPathEnabled=false");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            await _target.AddCategoryAsync("Shows", "/tv", new DownloadPathOption(false, " "), cancellationToken: TestContext.Current.CancellationToken);
+        }
+
+        [Fact]
         public async Task GIVEN_CategoryAndPath_WHEN_EditCategory_THEN_ShouldPOSTForm()
         {
             _handler.Responder = async (req, ct) =>
@@ -267,7 +281,7 @@ namespace QBittorrent.ApiClient.Test
         [Theory]
         [InlineData(true, "createCategory")]
         [InlineData(false, "editCategory")]
-        public async Task GIVEN_ApiVersion2162AndCategoryOptions_WHEN_SetCategoryOptions_THEN_ShouldPostAllFields(bool add, string endpoint)
+        public async Task GIVEN_CategoryShareLimitOptionsSupportAndOptions_WHEN_SetCategoryOptions_THEN_ShouldPostAllFields(bool add, string endpoint)
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -296,7 +310,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndEmptyCategoryOptions_WHEN_EditCategory_THEN_ShouldOnlyPostCategory()
+        public async Task GIVEN_CategoryShareLimitOptionsSupportAndEmptyOptions_WHEN_EditCategory_THEN_ShouldOnlyPostCategory()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -309,7 +323,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndWhitespaceDownloadPath_WHEN_EditCategory_THEN_ShouldOmitDownloadPath()
+        public async Task GIVEN_CategoryShareLimitOptionsSupportAndWhitespaceDownloadPath_WHEN_EditCategory_THEN_ShouldOmitDownloadPath()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -325,7 +339,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_SetCategoryOptions_THEN_ShouldReturnValidationFailure()
+        public async Task GIVEN_ApiWithoutCategoryShareLimitOptionsSupport_WHEN_SetCategoryOptions_THEN_ShouldReturnValidationFailure()
         {
             _target.Initialize(new Version(2, 15, 1));
 

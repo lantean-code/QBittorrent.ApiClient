@@ -373,7 +373,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndNoMode_WHEN_SetTorrentShareLimit_THEN_ShouldIncludeDefaultMode()
+        public async Task GIVEN_ShareLimitsModeSupportAndNoMode_WHEN_SetTorrentShareLimit_THEN_ShouldIncludeDefaultMode()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -386,7 +386,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndMode_WHEN_SetTorrentShareLimit_THEN_ShouldIncludeRequestedMode()
+        public async Task GIVEN_ShareLimitsModeSupportAndMode_WHEN_SetTorrentShareLimit_THEN_ShouldIncludeRequestedMode()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -399,7 +399,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162AndMode_WHEN_SetTorrentShareLimit_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutShareLimitsModeSupportAndMode_WHEN_SetTorrentShareLimit_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 
@@ -418,7 +418,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndFilePath_WHEN_DownloadTorrentFile_THEN_ShouldStreamContentToDestination()
+        public async Task GIVEN_TorrentFileDownloadSupportAndFilePath_WHEN_DownloadTorrentFile_THEN_ShouldStreamContentToDestination()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = (request, _) =>
@@ -438,7 +438,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_DownloadTorrentFile_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutTorrentFileDownloadSupport_WHEN_DownloadTorrentFile_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
             using var destination = new MemoryStream();
@@ -477,7 +477,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndNonSuccessResponse_WHEN_DownloadTorrentFile_THEN_ShouldReturnFailure()
+        public async Task GIVEN_TorrentFileDownloadSupportAndNonSuccessResponse_WHEN_DownloadTorrentFile_THEN_ShouldReturnFailure()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict)

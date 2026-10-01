@@ -80,7 +80,7 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult<SpeedLimits>> GetSpeedLimitsAsync(CancellationToken cancellationToken = default)
         {
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsSpeedLimitBatchOperations)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(GetSpeedLimitsAsync),
@@ -99,7 +99,7 @@ namespace QBittorrent.ApiClient
             ArgumentNullException.ThrowIfNull(speedLimits);
 
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsSpeedLimitBatchOperations)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(SetSpeedLimitsAsync),
@@ -120,7 +120,7 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult> PauseSessionAsync(CancellationToken cancellationToken = default)
         {
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsSessionPauseResume)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(PauseSessionAsync),
@@ -134,7 +134,7 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult> ResumeSessionAsync(CancellationToken cancellationToken = default)
         {
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsSessionPauseResume)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(ResumeSessionAsync),

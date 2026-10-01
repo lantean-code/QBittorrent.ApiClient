@@ -160,15 +160,55 @@ namespace QBittorrent.ApiClient.Test
             target.SupportsTorrentMetadataArrayResponse.Should().BeTrue();
             target.RequiresTorrentShareLimitAction.Should().BeTrue();
             target.SupportsTrackerErrorFilters.Should().BeTrue();
-            target.SupportsQbittorrent530.Should().BeFalse();
+            target.SupportsApplicationFreeSpace.Should().BeFalse();
+            target.SupportsSearchJobPersistencePreferences.Should().BeFalse();
+            target.SupportsTorrentFileBackupPreferences.Should().BeFalse();
+            target.SupportsMailNotificationEncryptionPreference.Should().BeFalse();
+            target.SupportsAdvancedI2pPreferences.Should().BeFalse();
+            target.SupportsShareLimitsMode.Should().BeFalse();
+            target.SupportsWebUiSessionCountLimitPreference.Should().BeFalse();
+            target.SupportsStartPausedPreference.Should().BeFalse();
+            target.SupportsShutdownTimeoutPreference.Should().BeFalse();
+            target.SupportsSeedingOutgoingConnectionsPreference.Should().BeFalse();
+            target.SupportsMultipleConnectionsFromSamePeerIdPreference.Should().BeFalse();
+            target.SupportsMaxOutstandingBlockRequestsPreference.Should().BeFalse();
+            target.SupportsWebTorrentStunServerPreference.Should().BeFalse();
+            target.SupportsRssRuleExportImport.Should().BeFalse();
+            target.SupportsRssRuleCloning.Should().BeFalse();
+            target.UsesTorrentAddSeedMode.Should().BeFalse();
+            target.SupportsTorrentFileDownload.Should().BeFalse();
+            target.SupportsCategoryShareLimitOptions.Should().BeFalse();
+            target.SupportsSpeedLimitBatchOperations.Should().BeFalse();
+            target.SupportsSessionPauseResume.Should().BeFalse();
+            target.SupportsTorrentCreationIgnoreDotfiles.Should().BeFalse();
         }
 
         [Fact]
-        public void GIVEN_Version2162_WHEN_CreatingCompatibilityProfile_THEN_ShouldEnableQbittorrent530Features()
+        public void GIVEN_ApiWithAllKnownCapabilities_WHEN_CreatingCompatibilityProfile_THEN_ShouldEnableSupportedCapabilities()
         {
             var target = new WebApiCompatibilityProfile(new Version(2, 16, 2));
 
-            target.SupportsQbittorrent530.Should().BeTrue();
+            target.SupportsApplicationFreeSpace.Should().BeTrue();
+            target.SupportsSearchJobPersistencePreferences.Should().BeTrue();
+            target.SupportsTorrentFileBackupPreferences.Should().BeTrue();
+            target.SupportsMailNotificationEncryptionPreference.Should().BeTrue();
+            target.SupportsAdvancedI2pPreferences.Should().BeTrue();
+            target.SupportsShareLimitsMode.Should().BeTrue();
+            target.SupportsWebUiSessionCountLimitPreference.Should().BeTrue();
+            target.SupportsStartPausedPreference.Should().BeTrue();
+            target.SupportsShutdownTimeoutPreference.Should().BeTrue();
+            target.SupportsSeedingOutgoingConnectionsPreference.Should().BeTrue();
+            target.SupportsMultipleConnectionsFromSamePeerIdPreference.Should().BeTrue();
+            target.SupportsMaxOutstandingBlockRequestsPreference.Should().BeTrue();
+            target.SupportsWebTorrentStunServerPreference.Should().BeTrue();
+            target.SupportsRssRuleExportImport.Should().BeTrue();
+            target.SupportsRssRuleCloning.Should().BeTrue();
+            target.UsesTorrentAddSeedMode.Should().BeTrue();
+            target.SupportsTorrentFileDownload.Should().BeTrue();
+            target.SupportsCategoryShareLimitOptions.Should().BeTrue();
+            target.SupportsSpeedLimitBatchOperations.Should().BeTrue();
+            target.SupportsSessionPauseResume.Should().BeTrue();
+            target.SupportsTorrentCreationIgnoreDotfiles.Should().BeTrue();
         }
 
         [Fact]

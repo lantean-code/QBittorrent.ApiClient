@@ -299,7 +299,7 @@ namespace QBittorrent.ApiClient
 
             if (addTorrentParams.ShareLimitsMode is not null)
             {
-                if (!profile!.SupportsQbittorrent530)
+                if (!profile!.SupportsShareLimitsMode)
                 {
                     return CreateUnsupportedCompatibilityFailure(
                         nameof(AddTorrentAsync),
@@ -344,7 +344,7 @@ namespace QBittorrent.ApiClient
 
             if (addTorrentParams.SkipChecking is not null)
             {
-                content.AddString(profile!.SupportsQbittorrent530 ? "seedMode" : "skip_checking", addTorrentParams.SkipChecking.Value);
+                content.AddString(profile!.UsesTorrentAddSeedMode ? "seedMode" : "skip_checking", addTorrentParams.SkipChecking.Value);
             }
             if (addTorrentParams.SequentialDownload is not null)
             {
@@ -802,7 +802,7 @@ namespace QBittorrent.ApiClient
             }
 
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsTorrentFileDownload)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(DownloadTorrentFileAsync),
@@ -1457,7 +1457,7 @@ namespace QBittorrent.ApiClient
             ArgumentNullException.ThrowIfNull(selector);
 
             var profile = CompatibilityProfile;
-            if ((shareLimitsMode is not null) && !profile.SupportsQbittorrent530)
+            if ((shareLimitsMode is not null) && !profile.SupportsShareLimitsMode)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(SetTorrentShareLimitAsync),
@@ -1493,7 +1493,7 @@ namespace QBittorrent.ApiClient
             {
                 content.Add("shareLimitAction", shareLimitAction.Value.ToString());
             }
-            if (profile.SupportsQbittorrent530)
+            if (profile.SupportsShareLimitsMode)
             {
                 content.Add("shareLimitsMode", (shareLimitsMode ?? ShareLimitsMode.Default).ToString());
             }
@@ -1516,7 +1516,7 @@ namespace QBittorrent.ApiClient
             ArgumentNullException.ThrowIfNull(options);
 
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsCategoryShareLimitOptions)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     operation,

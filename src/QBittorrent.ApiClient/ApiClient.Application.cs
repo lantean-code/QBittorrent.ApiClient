@@ -259,18 +259,19 @@ namespace QBittorrent.ApiClient
             ArgumentNullException.ThrowIfNull(preferences);
             preferences.Validate();
 
-            var hasQbittorrent530Preferences = HasQbittorrent530Preferences(preferences);
-            var hasRenamedQbittorrent530Preferences = HasRenamedQbittorrent530Preferences(preferences);
+            var specifiedWebApiVersionDependentPreferenceNames = GetSpecifiedWebApiVersionDependentPreferenceNames(preferences);
+            var specifiedRenamedPreferenceNames = GetSpecifiedRenamedPreferenceNames(preferences);
             ApiClientCompatibilityProfile? profile;
-            if (hasQbittorrent530Preferences || hasRenamedQbittorrent530Preferences)
+            if ((specifiedWebApiVersionDependentPreferenceNames.Length > 0) || (specifiedRenamedPreferenceNames.Length > 0))
             {
                 profile = CompatibilityProfile;
-                if (hasQbittorrent530Preferences && !profile.SupportsQbittorrent530)
+                var unsupportedPreferenceNames = GetUnsupportedPreferenceNames(preferences, profile);
+                if (unsupportedPreferenceNames.Length > 0)
                 {
                     return Task.FromResult(CreateUnsupportedCompatibilityFailure(
                         nameof(SetApplicationPreferencesAsync),
                         profile,
-                        $"qBittorrent Web API {profile.WebApiVersion} does not support qBittorrent 5.3 application preferences.").ToResult());
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support the requested application preferences: {string.Join(", ", unsupportedPreferenceNames)}.").ToResult());
                 }
             }
             else
@@ -278,7 +279,7 @@ namespace QBittorrent.ApiClient
                 TryGetCompatibilityProfile(out profile);
             }
 
-            if (profile?.SupportsQbittorrent530 == true)
+            if (profile?.SupportsTorrentFileBackupPreferences == true)
             {
                 preferences = preferences with
                 {
@@ -286,9 +287,16 @@ namespace QBittorrent.ApiClient
                     TorrentFilesBackupDirectory = preferences.TorrentFilesBackupDirectory ?? preferences.ExportDir,
                     TorrentFilesFinishedBackupDirectoryEnabled = preferences.TorrentFilesFinishedBackupDirectoryEnabled ?? (preferences.ExportDirFin is null ? null : !string.IsNullOrEmpty(preferences.ExportDirFin)),
                     TorrentFilesFinishedBackupDirectory = preferences.TorrentFilesFinishedBackupDirectory ?? preferences.ExportDirFin,
-                    MailNotificationEncryptionType = preferences.MailNotificationEncryptionType ?? (preferences.MailNotificationSslEnabled is null ? null : preferences.MailNotificationSslEnabled.Value ? SmtpEncryptionType.SMTPS : SmtpEncryptionType.None),
                     ExportDir = null,
-                    ExportDirFin = null,
+                    ExportDirFin = null
+                };
+            }
+
+            if (profile?.SupportsMailNotificationEncryptionPreference == true)
+            {
+                preferences = preferences with
+                {
+                    MailNotificationEncryptionType = preferences.MailNotificationEncryptionType ?? (preferences.MailNotificationSslEnabled is null ? null : preferences.MailNotificationSslEnabled.Value ? SmtpEncryptionType.SMTPS : SmtpEncryptionType.None),
                     MailNotificationSslEnabled = null
                 };
             }
@@ -307,7 +315,7 @@ namespace QBittorrent.ApiClient
             ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsApplicationFreeSpace)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(GetFreeSpaceAtPathAsync),
@@ -453,44 +461,81 @@ namespace QBittorrent.ApiClient
                 });
         }
 
-        private static bool HasQbittorrent530Preferences(UpdatePreferences preferences)
+        private static string[] GetSpecifiedWebApiVersionDependentPreferenceNames(UpdatePreferences preferences)
         {
-            object?[] settings =
+            (string Name, object? Value)[] settings =
             [
-                preferences.StoreSearchJobs,
-                preferences.StoreSearchJobResults,
-                preferences.TorrentFilesBackupEnabled,
-                preferences.TorrentFilesBackupDirectory,
-                preferences.TorrentFilesFinishedBackupDirectoryEnabled,
-                preferences.TorrentFilesFinishedBackupDirectory,
-                preferences.RemoveTorrentFileBackup,
-                preferences.MailNotificationEncryptionType,
-                preferences.I2pPexEnabled,
-                preferences.I2pInboundLengthVariance,
-                preferences.I2pOutboundLengthVariance,
-                preferences.ShareLimitsMode,
-                preferences.WebUiSessionsCountLimit,
-                preferences.StartPaused,
-                preferences.ShutdownTimeout,
-                preferences.SeedingOutgoingConnections,
-                preferences.EnableMultiConnectionsFromSamePeerId,
-                preferences.MaxOutstandingBlockRequests,
-                preferences.WebTorrentStunServer
+                (nameof(UpdatePreferences.StoreSearchJobs), preferences.StoreSearchJobs),
+                (nameof(UpdatePreferences.StoreSearchJobResults), preferences.StoreSearchJobResults),
+                (nameof(UpdatePreferences.TorrentFilesBackupEnabled), preferences.TorrentFilesBackupEnabled),
+                (nameof(UpdatePreferences.TorrentFilesBackupDirectory), preferences.TorrentFilesBackupDirectory),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectoryEnabled), preferences.TorrentFilesFinishedBackupDirectoryEnabled),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectory), preferences.TorrentFilesFinishedBackupDirectory),
+                (nameof(UpdatePreferences.RemoveTorrentFileBackup), preferences.RemoveTorrentFileBackup),
+                (nameof(UpdatePreferences.MailNotificationEncryptionType), preferences.MailNotificationEncryptionType),
+                (nameof(UpdatePreferences.I2pPexEnabled), preferences.I2pPexEnabled),
+                (nameof(UpdatePreferences.I2pInboundLengthVariance), preferences.I2pInboundLengthVariance),
+                (nameof(UpdatePreferences.I2pOutboundLengthVariance), preferences.I2pOutboundLengthVariance),
+                (nameof(UpdatePreferences.ShareLimitsMode), preferences.ShareLimitsMode),
+                (nameof(UpdatePreferences.WebUiSessionsCountLimit), preferences.WebUiSessionsCountLimit),
+                (nameof(UpdatePreferences.StartPaused), preferences.StartPaused),
+                (nameof(UpdatePreferences.ShutdownTimeout), preferences.ShutdownTimeout),
+                (nameof(UpdatePreferences.SeedingOutgoingConnections), preferences.SeedingOutgoingConnections),
+                (nameof(UpdatePreferences.EnableMultiConnectionsFromSamePeerId), preferences.EnableMultiConnectionsFromSamePeerId),
+                (nameof(UpdatePreferences.MaxOutstandingBlockRequests), preferences.MaxOutstandingBlockRequests),
+                (nameof(UpdatePreferences.WebTorrentStunServer), preferences.WebTorrentStunServer)
             ];
 
-            return settings.Any(static setting => setting is not null);
+            return settings
+                .Where(static setting => setting.Value is not null)
+                .Select(static setting => setting.Name)
+                .ToArray();
         }
 
-        private static bool HasRenamedQbittorrent530Preferences(UpdatePreferences preferences)
+        private static string[] GetSpecifiedRenamedPreferenceNames(UpdatePreferences preferences)
         {
-            object?[] settings =
+            (string Name, object? Value)[] settings =
             [
-                preferences.ExportDir,
-                preferences.ExportDirFin,
-                preferences.MailNotificationSslEnabled
+                (nameof(UpdatePreferences.ExportDir), preferences.ExportDir),
+                (nameof(UpdatePreferences.ExportDirFin), preferences.ExportDirFin),
+                (nameof(UpdatePreferences.MailNotificationSslEnabled), preferences.MailNotificationSslEnabled)
             ];
 
-            return settings.Any(static setting => setting is not null);
+            return settings
+                .Where(static setting => setting.Value is not null)
+                .Select(static setting => setting.Name)
+                .ToArray();
+        }
+
+        private static string[] GetUnsupportedPreferenceNames(UpdatePreferences preferences, ApiClientCompatibilityProfile profile)
+        {
+            (string Name, object? Value, bool IsSupported)[] settings =
+            [
+                (nameof(UpdatePreferences.StoreSearchJobs), preferences.StoreSearchJobs, profile.SupportsSearchJobPersistencePreferences),
+                (nameof(UpdatePreferences.StoreSearchJobResults), preferences.StoreSearchJobResults, profile.SupportsSearchJobPersistencePreferences),
+                (nameof(UpdatePreferences.TorrentFilesBackupEnabled), preferences.TorrentFilesBackupEnabled, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.TorrentFilesBackupDirectory), preferences.TorrentFilesBackupDirectory, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectoryEnabled), preferences.TorrentFilesFinishedBackupDirectoryEnabled, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectory), preferences.TorrentFilesFinishedBackupDirectory, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.RemoveTorrentFileBackup), preferences.RemoveTorrentFileBackup, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.MailNotificationEncryptionType), preferences.MailNotificationEncryptionType, profile.SupportsMailNotificationEncryptionPreference),
+                (nameof(UpdatePreferences.I2pPexEnabled), preferences.I2pPexEnabled, profile.SupportsAdvancedI2pPreferences),
+                (nameof(UpdatePreferences.I2pInboundLengthVariance), preferences.I2pInboundLengthVariance, profile.SupportsAdvancedI2pPreferences),
+                (nameof(UpdatePreferences.I2pOutboundLengthVariance), preferences.I2pOutboundLengthVariance, profile.SupportsAdvancedI2pPreferences),
+                (nameof(UpdatePreferences.ShareLimitsMode), preferences.ShareLimitsMode, profile.SupportsShareLimitsMode),
+                (nameof(UpdatePreferences.WebUiSessionsCountLimit), preferences.WebUiSessionsCountLimit, profile.SupportsWebUiSessionCountLimitPreference),
+                (nameof(UpdatePreferences.StartPaused), preferences.StartPaused, profile.SupportsStartPausedPreference),
+                (nameof(UpdatePreferences.ShutdownTimeout), preferences.ShutdownTimeout, profile.SupportsShutdownTimeoutPreference),
+                (nameof(UpdatePreferences.SeedingOutgoingConnections), preferences.SeedingOutgoingConnections, profile.SupportsSeedingOutgoingConnectionsPreference),
+                (nameof(UpdatePreferences.EnableMultiConnectionsFromSamePeerId), preferences.EnableMultiConnectionsFromSamePeerId, profile.SupportsMultipleConnectionsFromSamePeerIdPreference),
+                (nameof(UpdatePreferences.MaxOutstandingBlockRequests), preferences.MaxOutstandingBlockRequests, profile.SupportsMaxOutstandingBlockRequestsPreference),
+                (nameof(UpdatePreferences.WebTorrentStunServer), preferences.WebTorrentStunServer, profile.SupportsWebTorrentStunServerPreference)
+            ];
+
+            return settings
+                .Where(static setting => setting.Value is not null && !setting.IsSupported)
+                .Select(static setting => setting.Name)
+                .ToArray();
         }
     }
 }

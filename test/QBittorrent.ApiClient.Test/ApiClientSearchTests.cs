@@ -548,6 +548,22 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_ConflictWithMessage_WHEN_GetSearchPlugins_THEN_ShouldUseGenericConflictFailure()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict)
+            {
+                Content = new StringContent("conflict")
+            });
+
+            var result = await _target.GetSearchPluginsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(
+                kind: ApiFailureKind.Conflict,
+                statusCode: HttpStatusCode.Conflict,
+                userMessage: "conflict");
+        }
+
+        [Fact]
         public async Task GIVEN_Sources_WHEN_InstallSearchPlugins_THEN_ShouldPOSTPipeSeparatedSources()
         {
             _handler.Responder = async (req, ct) =>

@@ -98,9 +98,109 @@ namespace QBittorrent.ApiClient
         public bool SupportsTrackerErrorFilters { get; }
 
         /// <summary>
-        /// Gets a value indicating whether qBittorrent 5.3 Web API features are supported.
+        /// Gets a value indicating whether querying free space for a path is supported.
         /// </summary>
-        public bool SupportsQbittorrent530 { get; }
+        public bool SupportsApplicationFreeSpace { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether search-job persistence preferences are supported.
+        /// </summary>
+        public bool SupportsSearchJobPersistencePreferences { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether torrent-file backup preferences are supported.
+        /// </summary>
+        public bool SupportsTorrentFileBackupPreferences { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether selecting the mail-notification encryption type is supported.
+        /// </summary>
+        public bool SupportsMailNotificationEncryptionPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether advanced I2P preferences are supported.
+        /// </summary>
+        public bool SupportsAdvancedI2pPreferences { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether selecting how share limits are combined is supported.
+        /// </summary>
+        public bool SupportsShareLimitsMode { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether limiting concurrent Web UI sessions is supported.
+        /// </summary>
+        public bool SupportsWebUiSessionCountLimitPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the start-paused application preference is supported.
+        /// </summary>
+        public bool SupportsStartPausedPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether configuring the shutdown timeout is supported.
+        /// </summary>
+        public bool SupportsShutdownTimeoutPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether configuring outgoing connections while seeding is supported.
+        /// </summary>
+        public bool SupportsSeedingOutgoingConnectionsPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether multiple connections from the same peer ID can be enabled.
+        /// </summary>
+        public bool SupportsMultipleConnectionsFromSamePeerIdPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the maximum outstanding block-request count can be configured.
+        /// </summary>
+        public bool SupportsMaxOutstandingBlockRequestsPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether a WebTorrent STUN server can be configured.
+        /// </summary>
+        public bool SupportsWebTorrentStunServerPreference { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether RSS auto-downloading rules can be exported and imported.
+        /// </summary>
+        public bool SupportsRssRuleExportImport { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether RSS auto-downloading rules can be cloned.
+        /// </summary>
+        public bool SupportsRssRuleCloning { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether add-torrent requests use the seed-mode field.
+        /// </summary>
+        public bool UsesTorrentAddSeedMode { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether individual files can be downloaded from torrents.
+        /// </summary>
+        public bool SupportsTorrentFileDownload { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether category share-limit options are supported.
+        /// </summary>
+        public bool SupportsCategoryShareLimitOptions { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether global speed limits can be read and written as a batch.
+        /// </summary>
+        public bool SupportsSpeedLimitBatchOperations { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the entire transfer session can be paused and resumed.
+        /// </summary>
+        public bool SupportsSessionPauseResume { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether torrent creation can configure dotfile exclusion.
+        /// </summary>
+        public bool SupportsTorrentCreationIgnoreDotfiles { get; }
 
         /// <summary>
         /// Initializes a new compatibility profile for the specified qBittorrent Web API version.
@@ -128,7 +228,27 @@ namespace QBittorrent.ApiClient
             SupportsTorrentMetadataArrayResponse = WebApiCompatibilityMap.SupportsTorrentMetadataArrayResponse(webApiVersion);
             RequiresTorrentShareLimitAction = WebApiCompatibilityMap.RequiresTorrentShareLimitAction(webApiVersion);
             SupportsTrackerErrorFilters = WebApiCompatibilityMap.SupportsTrackerErrorFilters(webApiVersion);
-            SupportsQbittorrent530 = WebApiCompatibilityMap.SupportsQbittorrent530(webApiVersion);
+            SupportsApplicationFreeSpace = WebApiCompatibilityMap.SupportsApplicationFreeSpace(webApiVersion);
+            SupportsSearchJobPersistencePreferences = WebApiCompatibilityMap.SupportsSearchJobPersistencePreferences(webApiVersion);
+            SupportsTorrentFileBackupPreferences = WebApiCompatibilityMap.SupportsTorrentFileBackupPreferences(webApiVersion);
+            SupportsMailNotificationEncryptionPreference = WebApiCompatibilityMap.SupportsMailNotificationEncryptionPreference(webApiVersion);
+            SupportsAdvancedI2pPreferences = WebApiCompatibilityMap.SupportsAdvancedI2pPreferences(webApiVersion);
+            SupportsShareLimitsMode = WebApiCompatibilityMap.SupportsShareLimitsMode(webApiVersion);
+            SupportsWebUiSessionCountLimitPreference = WebApiCompatibilityMap.SupportsWebUiSessionCountLimitPreference(webApiVersion);
+            SupportsStartPausedPreference = WebApiCompatibilityMap.SupportsStartPausedPreference(webApiVersion);
+            SupportsShutdownTimeoutPreference = WebApiCompatibilityMap.SupportsShutdownTimeoutPreference(webApiVersion);
+            SupportsSeedingOutgoingConnectionsPreference = WebApiCompatibilityMap.SupportsSeedingOutgoingConnectionsPreference(webApiVersion);
+            SupportsMultipleConnectionsFromSamePeerIdPreference = WebApiCompatibilityMap.SupportsMultipleConnectionsFromSamePeerIdPreference(webApiVersion);
+            SupportsMaxOutstandingBlockRequestsPreference = WebApiCompatibilityMap.SupportsMaxOutstandingBlockRequestsPreference(webApiVersion);
+            SupportsWebTorrentStunServerPreference = WebApiCompatibilityMap.SupportsWebTorrentStunServerPreference(webApiVersion);
+            SupportsRssRuleExportImport = WebApiCompatibilityMap.SupportsRssRuleExportImport(webApiVersion);
+            SupportsRssRuleCloning = WebApiCompatibilityMap.SupportsRssRuleCloning(webApiVersion);
+            UsesTorrentAddSeedMode = WebApiCompatibilityMap.UsesTorrentAddSeedMode(webApiVersion);
+            SupportsTorrentFileDownload = WebApiCompatibilityMap.SupportsTorrentFileDownload(webApiVersion);
+            SupportsCategoryShareLimitOptions = WebApiCompatibilityMap.SupportsCategoryShareLimitOptions(webApiVersion);
+            SupportsSpeedLimitBatchOperations = WebApiCompatibilityMap.SupportsSpeedLimitBatchOperations(webApiVersion);
+            SupportsSessionPauseResume = WebApiCompatibilityMap.SupportsSessionPauseResume(webApiVersion);
+            SupportsTorrentCreationIgnoreDotfiles = WebApiCompatibilityMap.SupportsTorrentCreationIgnoreDotfiles(webApiVersion);
         }
 
         /// <summary>

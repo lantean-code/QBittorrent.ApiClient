@@ -112,6 +112,16 @@ namespace QBittorrent.ApiClient.Test.Converters
         }
 
         [Fact]
+        public void GIVEN_FeedWithoutUidOrUrl_WHEN_Serialize_THEN_ShouldOmitUidAndUrl()
+        {
+            var value = new RssFeedItem(null, null, null, null, null, null, null!, null!);
+
+            var json = JsonSerializer.Serialize<RssItem>(value);
+
+            json.Should().Be("{}");
+        }
+
+        [Fact]
         public void GIVEN_FolderNode_WHEN_Serialize_THEN_ShouldWriteNestedTree()
         {
             var value = new RssFolderItem(

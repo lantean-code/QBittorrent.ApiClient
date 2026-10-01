@@ -16,7 +16,7 @@ namespace QBittorrent.ApiClient
             if (request.IgnoreDotfiles is not null)
             {
                 var profile = CompatibilityProfile;
-                if (!profile.SupportsQbittorrent530)
+                if (!profile.SupportsTorrentCreationIgnoreDotfiles)
                 {
                     return Task.FromResult(CreateUnsupportedCompatibilityFailure(
                         nameof(AddTorrentCreationTaskAsync),

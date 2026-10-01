@@ -17,16 +17,23 @@
 ## Build, test, publish
 - Prerequisites: .NET SDK version pinned by `global.json`.
   - Agents must verify the pinned SDK is available in the current environment before running restore/build/test commands.
-  - Agents must include `--artifacts-path=/tmp/artifacts/qbittorrent-apiclient` on all `dotnet` commands.
-- Restore & build:
+  - Agents must identify whether commands are running under WSL or native Windows before choosing command paths.
+  - Under WSL, agents must include `--artifacts-path=/tmp/artifacts/qbittorrent-apiclient` on all `dotnet` commands.
+  - Under native Windows, agents must omit the WSL-only `--artifacts-path` value and use the repository's default build and test output locations.
+- Under WSL, restore & build:
   - `dotnet restore --artifacts-path=/tmp/artifacts/qbittorrent-apiclient`
   - `dotnet build --artifacts-path=/tmp/artifacts/qbittorrent-apiclient`
-- Run tests:
+- Under WSL, run tests:
   - `dotnet test --artifacts-path=/tmp/artifacts/qbittorrent-apiclient`
-- Create packages:
+- Under WSL, create packages:
   - `dotnet pack --artifacts-path=/tmp/artifacts/qbittorrent-apiclient`
+- Under native Windows:
+  - `dotnet restore`
+  - `dotnet build`
+  - `dotnet test`
+  - `dotnet pack`
 - After each behavior-affecting set of changes:
-  - Run `dotnet test --artifacts-path=/tmp/artifacts/qbittorrent-apiclient`.
+  - Run the environment-appropriate `dotnet test` command listed above.
   - Behavior-affecting includes edits to production code, test code, project/package/build configuration, or other runtime-impacting assets.
   - Docs-only/report-only/markdown-only edits do not require restore/build/test unless explicitly requested.
 

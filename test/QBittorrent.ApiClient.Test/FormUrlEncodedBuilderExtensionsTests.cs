@@ -247,6 +247,15 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public async Task GIVEN_NullSeparatedValue_WHEN_AddCommaSeparated_THEN_ShouldUseEmptyValue()
+        {
+            _target.AddCommaSeparated<string?>("items", ["first", null, "last"]);
+
+            using var content = _target.ToFormUrlEncodedContent();
+            (await content.ReadAsStringAsync(TestContext.Current.CancellationToken)).Should().Be("items=first%2C%2Clast");
+        }
+
+        [Fact]
         public async Task GIVEN_MultipleAdds_WHEN_Chained_THEN_ShouldPreserveOrder()
         {
             var returned = _target

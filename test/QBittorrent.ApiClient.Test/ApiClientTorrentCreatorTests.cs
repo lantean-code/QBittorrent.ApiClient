@@ -488,7 +488,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndIgnoreDotfiles_WHEN_AddTorrentCreationTask_THEN_ShouldPostOption()
+        public async Task GIVEN_IgnoreDotfilesSupportAndOption_WHEN_AddTorrentCreationTask_THEN_ShouldPostOption()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -510,7 +510,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162AndIgnoreDotfiles_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutIgnoreDotfilesSupportAndOption_WHEN_AddTorrentCreationTask_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 
@@ -524,7 +524,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162NumericTimestamps_WHEN_GetTorrentCreationTasks_THEN_ShouldPreserveTimestampValues()
+        public async Task GIVEN_NumericTimestamps_WHEN_GetTorrentCreationTasks_THEN_ShouldPreserveTimestampValues()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {

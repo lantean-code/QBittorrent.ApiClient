@@ -1451,7 +1451,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_Qbittorrent530RenamedPreferences_WHEN_GetApplicationPreferences_THEN_ShouldPopulateDeprecatedAliases()
+        public async Task GIVEN_TorrentFileBackupAndSmtpEncryptionPreferences_WHEN_GetApplicationPreferences_THEN_ShouldPopulateDeprecatedAliases()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -1474,7 +1474,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_DisabledQbittorrent530RenamedPreferences_WHEN_GetApplicationPreferences_THEN_ShouldPopulateEmptyDeprecatedAliases()
+        public async Task GIVEN_DisabledTorrentFileBackupAndStartTlsPreferences_WHEN_GetApplicationPreferences_THEN_ShouldPopulateDeprecatedAliases()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -1497,7 +1497,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_PreQbittorrent530PreferenceNames_WHEN_GetApplicationPreferences_THEN_ShouldPreserveValues()
+        public async Task GIVEN_DeprecatedPreferenceFields_WHEN_GetApplicationPreferences_THEN_ShouldPreserveValues()
         {
             _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -2284,7 +2284,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndPath_WHEN_GetFreeSpaceAtPath_THEN_ShouldReturnBytes()
+        public async Task GIVEN_FreeSpaceLookupSupportAndPath_WHEN_GetFreeSpaceAtPath_THEN_ShouldReturnBytes()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = (request, _) =>
@@ -2302,7 +2302,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162_WHEN_GetFreeSpaceAtPath_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutFreeSpaceLookupSupport_WHEN_GetFreeSpaceAtPath_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 
@@ -2330,7 +2330,7 @@ namespace QBittorrent.ApiClient.Test
         [Theory]
         [InlineData(true, "SMTPS")]
         [InlineData(false, "None")]
-        public async Task GIVEN_ApiVersion2162AndDeprecatedPreferences_WHEN_SetApplicationPreferences_THEN_ShouldTranslateRenamedSettings(bool sslEnabled, string encryptionType)
+        public async Task GIVEN_TorrentFileBackupAndMailEncryptionSupportWithDeprecatedPreferences_WHEN_SetApplicationPreferences_THEN_ShouldTranslateRenamedSettings(bool sslEnabled, string encryptionType)
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -2360,7 +2360,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndCurrentPreferences_WHEN_SetApplicationPreferences_THEN_ShouldPreserveCurrentSettings()
+        public async Task GIVEN_TorrentFileBackupAndMailEncryptionSupportWithCurrentPreferences_WHEN_SetApplicationPreferences_THEN_ShouldPreserveCurrentSettings()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -2392,7 +2392,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndNoRenamedPreferences_WHEN_SetApplicationPreferences_THEN_ShouldOmitRenamedSettings()
+        public async Task GIVEN_TorrentFileBackupAndMailEncryptionSupportWithoutRenamedPreferences_WHEN_SetApplicationPreferences_THEN_ShouldOmitRenamedSettings()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -2407,20 +2407,23 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162AndQbittorrent530Preference_WHEN_SetApplicationPreferences_THEN_ShouldReturnValidationFailure()
+        public async Task GIVEN_ApiWithoutRequestedPreferenceSupport_WHEN_SetApplicationPreferences_THEN_ShouldIdentifyUnsupportedProperties()
         {
             _target.Initialize(new Version(2, 15, 1));
 
             var result = await _target.SetApplicationPreferencesAsync(new UpdatePreferences
             {
-                StartPaused = true
+                StartPaused = true,
+                ShutdownTimeout = 30
             }, TestContext.Current.CancellationToken);
 
-            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+            result.ShouldFailWith(
+                kind: ApiFailureKind.ValidationFailed,
+                userMessage: "qBittorrent Web API 2.15.1 does not support the requested application preferences: StartPaused, ShutdownTimeout.");
         }
 
         [Fact]
-        public async Task GIVEN_UninitializedCompatibilityAndQbittorrent530Preference_WHEN_SetApplicationPreferences_THEN_ShouldThrowUninitializedCompatibilityException()
+        public async Task GIVEN_UninitializedCompatibilityAndStartPausedPreference_WHEN_SetApplicationPreferences_THEN_ShouldThrowUninitializedCompatibilityException()
         {
             var action = async () => await _target.SetApplicationPreferencesAsync(new UpdatePreferences
             {
@@ -2431,7 +2434,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_UninitializedCompatibilityAndRenamedQbittorrent530Preference_WHEN_SetApplicationPreferences_THEN_ShouldThrowUninitializedCompatibilityException()
+        public async Task GIVEN_UninitializedCompatibilityAndDeprecatedTorrentFileBackupPreference_WHEN_SetApplicationPreferences_THEN_ShouldThrowUninitializedCompatibilityException()
         {
             var action = async () => await _target.SetApplicationPreferencesAsync(new UpdatePreferences
             {
@@ -2442,7 +2445,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162AndDeprecatedPreference_WHEN_SetApplicationPreferences_THEN_ShouldPreservePreviousSettingName()
+        public async Task GIVEN_ApiWithoutTorrentFileBackupPreferenceSupportAndDeprecatedPreference_WHEN_SetApplicationPreferences_THEN_ShouldPreservePreviousSettingName()
         {
             _target.Initialize(new Version(2, 15, 1));
             _handler.Responder = async (request, cancellationToken) =>
@@ -2461,7 +2464,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_SharedQbittorrent530CompatibilityProfileAndDeprecatedPreference_WHEN_SetApplicationPreferences_THEN_ShouldTranslateSettingName()
+        public async Task GIVEN_SharedProfileSupportingTorrentFileBackupPreferencesAndDeprecatedPreference_WHEN_SetApplicationPreferences_THEN_ShouldTranslateSettingName()
         {
             var cache = new ApiClientCompatibilityProfileCache();
             using var firstHttpClient = new HttpClient(new StubHttpMessageHandler())

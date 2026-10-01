@@ -1872,7 +1872,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndSeedMode_WHEN_AddTorrent_THEN_ShouldUseRenamedField()
+        public async Task GIVEN_SeedModeWireContractAndSkipChecking_WHEN_AddTorrent_THEN_ShouldUseSeedModeField()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -1907,7 +1907,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersion2162AndShareLimitsMode_WHEN_AddTorrent_THEN_ShouldIncludeMode()
+        public async Task GIVEN_ShareLimitsModeSupportAndMode_WHEN_AddTorrent_THEN_ShouldIncludeMode()
         {
             _target.Initialize(new Version(2, 16, 2));
             _handler.Responder = async (request, cancellationToken) =>
@@ -1929,7 +1929,7 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
-        public async Task GIVEN_ApiVersionBefore2162AndShareLimitsMode_WHEN_AddTorrent_THEN_ShouldReturnUnsupportedVersion()
+        public async Task GIVEN_ApiWithoutShareLimitsModeSupportAndMode_WHEN_AddTorrent_THEN_ShouldReturnUnsupportedVersion()
         {
             _target.Initialize(new Version(2, 15, 1));
 

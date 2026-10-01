@@ -174,7 +174,7 @@ namespace QBittorrent.ApiClient
         public async Task<ApiResult<byte[]>> ExportRssAutoDownloadingRulesAsync(CancellationToken cancellationToken = default)
         {
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsRssRuleExportImport)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(ExportRssAutoDownloadingRulesAsync),
@@ -194,7 +194,7 @@ namespace QBittorrent.ApiClient
             ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
 
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsRssRuleExportImport)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(ImportRssAutoDownloadingRulesAsync),
@@ -214,7 +214,7 @@ namespace QBittorrent.ApiClient
             ArgumentException.ThrowIfNullOrWhiteSpace(cloneName);
 
             var profile = CompatibilityProfile;
-            if (!profile.SupportsQbittorrent530)
+            if (!profile.SupportsRssRuleCloning)
             {
                 return CreateUnsupportedCompatibilityFailure(
                     nameof(CloneRssAutoDownloadingRuleAsync),
