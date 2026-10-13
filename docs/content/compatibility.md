@@ -1,6 +1,6 @@
 # Version compatibility
 
-The client handles request and response differences between qBittorrent Web API versions. The documented qBittorrent release lines are **5.1.x and 5.2.x**. Support for 5.3.0 is not claimed by these guides.
+The client handles request and response differences between qBittorrent Web API versions. The library supports qBittorrent **5.1.x and 5.2.x**.
 
 ## Initialize from the server
 
