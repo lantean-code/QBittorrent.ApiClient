@@ -8,8 +8,6 @@ It provides a result-based client surface, structured API failures, and version-
 
 The documentation site sources are in [docs/content](docs/content/index.md), covering getting started, authentication and sessions, results and failures, version compatibility, common operations, and release notes.
 
-See [docs/README.md](docs/README.md) to build and preview the MkDocs Material site or configure GitHub Pages deployment.
-
 ## qBittorrent Support
  - 5.1.x
  - 5.2.x
