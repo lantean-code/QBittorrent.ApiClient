@@ -12,8 +12,9 @@ validation:
 theme:
   name: material
   font: false
-  icon:
-    logo: material/code-braces
+  custom_dir: overrides
+  logo: assets/images/qbtmud-icon-transparent.svg
+  favicon: assets/images/qbtmud-icon-transparent-32.png
   palette:
     - media: "(prefers-color-scheme)"
       primary: custom
