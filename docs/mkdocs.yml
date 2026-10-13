@@ -1,0 +1,70 @@
+site_name: QBittorrent.ApiClient
+site_url: https://lantean-code.github.io/QBittorrent.ApiClient/
+site_description: Documentation for the QBittorrent.ApiClient .NET library.
+repo_name: lantean-code/QBittorrent.ApiClient
+repo_url: https://github.com/lantean-code/QBittorrent.ApiClient
+edit_uri: edit/develop/docs/content/
+docs_dir: content
+site_dir: ../site
+validation:
+  links:
+    anchors: warn
+theme:
+  name: material
+  font: false
+  icon:
+    logo: material/code-braces
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - search.suggest
+extra_css:
+  - stylesheets/brand.css
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+nav:
+  - Home: index.md
+  - Guides:
+      - Getting started:
+          - Add to your app: getting-started.md
+          - Console examples: examples/console.md
+          - WebAssembly example: examples/webassembly.md
+      - Authentication and sessions: authentication.md
+      - Results and failures: results-and-failures.md
+      - Version compatibility: compatibility.md
+      - Common operations: common-operations.md
+  - Release notes: release-notes.md

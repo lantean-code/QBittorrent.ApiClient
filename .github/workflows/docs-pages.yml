@@ -1,0 +1,73 @@
+name: Build and Deploy Docs Site
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - docs/**
+      - .github/workflows/docs-pages.yml
+  push:
+    branches:
+      - develop
+    paths:
+      - docs/**
+      - .github/workflows/docs-pages.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-pages-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install docs dependencies
+        working-directory: docs
+        run: pip install -r docs-requirements.txt
+
+      - name: Build docs
+        working-directory: docs
+        run: mkdocs build --strict
+
+      - name: Setup Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -4,6 +4,12 @@
 
 It provides a result-based client surface, structured API failures, and version-aware compatibility handling for qBittorrent Web API differences such as the 5.1.x and 5.2.x lines.
 
+## Documentation
+
+The documentation site sources are in [docs/content](docs/content/index.md), covering getting started, authentication and sessions, results and failures, version compatibility, common operations, and release notes.
+
+See [docs/README.md](docs/README.md) to build and preview the MkDocs Material site or configure GitHub Pages deployment.
+
 ## qBittorrent Support
  - 5.1.x
  - 5.2.x
@@ -21,36 +27,47 @@ Register the client through dependency injection, resolve `IApiClient`, authenti
 ```csharp
 using QBittorrent.ApiClient;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 
 var services = new ServiceCollection();
-
-services.AddQBittorrentApiClient(
-    httpClient =>
-    {
-        httpClient.BaseAddress = new Uri("http://localhost:8080/api/v2/");
-    });
+var cookies = new CookieContainer();
+services.AddHttpClient("API", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8080/api/v2/");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    UseCookies = true,
+    CookieContainer = cookies
+});
+services.AddQBittorrentApiClient("API");
 
 using var serviceProvider = services.BuildServiceProvider();
 
 var apiClient = serviceProvider.GetRequiredService<IApiClient>();
 
 var loginResult = await apiClient.LoginAsync("admin", "password");
-if (!loginResult.IsSuccess)
+if (loginResult.IsFailure)
 {
+    Console.Error.WriteLine(loginResult.Failure.UserMessage);
     return;
 }
 
 var initializeResult = await apiClient.InitializeAsync();
-if (!initializeResult.IsSuccess)
+if (initializeResult.IsFailure)
 {
+    Console.Error.WriteLine(initializeResult.Failure.UserMessage);
     return;
 }
 
 var versionResult = await apiClient.GetApplicationVersionAsync();
-if (versionResult.TryGetValue(out var version))
+if (versionResult.IsFailure)
 {
-    Console.WriteLine(version);
+    Console.Error.WriteLine(versionResult.Failure.UserMessage);
+    return;
 }
+
+Console.WriteLine(versionResult.Value);
 ```
 
 ## Compatibility Initialization
@@ -96,8 +113,13 @@ If you need compatibility checks outside `IApiClient`, use `WebApiCompatibilityP
 
 ```csharp
 var apiVersionResult = await apiClient.GetAPIVersionAsync();
-if (!apiVersionResult.TryGetValue(out var rawApiVersion) ||
-    !WebApiCompatibilityProfile.TryCreate(rawApiVersion, out var compatibilityProfile))
+if (apiVersionResult.IsFailure)
+{
+    Console.Error.WriteLine(apiVersionResult.Failure.UserMessage);
+    return;
+}
+
+if (!WebApiCompatibilityProfile.TryCreate(apiVersionResult.Value, out var compatibilityProfile))
 {
     return;
 }
@@ -105,6 +127,13 @@ if (!apiVersionResult.TryGetValue(out var rawApiVersion) ||
 if (compatibilityProfile.SupportsClientData)
 {
     var clientDataResult = await apiClient.LoadClientDataAsync();
+    if (clientDataResult.IsFailure)
+    {
+        Console.Error.WriteLine(clientDataResult.Failure.UserMessage);
+        return;
+    }
+
+    Console.WriteLine($"Stored keys: {clientDataResult.Value.Count}");
 }
 ```
 
