@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using QBittorrent.ApiClient.Converters;
 
 namespace QBittorrent.ApiClient.Models
 {
@@ -79,7 +80,14 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the time added.
         /// </summary>
         [JsonPropertyName("timeAdded")]
+        [JsonConverter(typeof(StringOrNumberJsonConverter))]
         public string? TimeAdded { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether dotfiles are excluded.
+        /// </summary>
+        [JsonPropertyName("ignoreDotfiles")]
+        public bool? IgnoreDotfiles { get; init; }
 
         /// <summary>
         /// Gets the format.
@@ -139,12 +147,14 @@ namespace QBittorrent.ApiClient.Models
         /// Gets the time started.
         /// </summary>
         [JsonPropertyName("timeStarted")]
+        [JsonConverter(typeof(StringOrNumberJsonConverter))]
         public string? TimeStarted { get; }
 
         /// <summary>
         /// Gets the time finished.
         /// </summary>
         [JsonPropertyName("timeFinished")]
+        [JsonConverter(typeof(StringOrNumberJsonConverter))]
         public string? TimeFinished { get; }
 
         /// <summary>

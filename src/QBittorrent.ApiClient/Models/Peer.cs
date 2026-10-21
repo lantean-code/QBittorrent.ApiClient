@@ -29,7 +29,8 @@ namespace QBittorrent.ApiClient.Models
             double? progress,
             double? relevance,
             int? uploadSpeed,
-            long? uploaded)
+            long? uploaded,
+            double? contribution = null)
         {
             Client = client;
             Connection = connection;
@@ -49,6 +50,7 @@ namespace QBittorrent.ApiClient.Models
             Relevance = relevance;
             UploadSpeed = uploadSpeed;
             Uploaded = uploaded;
+            Contribution = contribution;
         }
 
         /// <summary>
@@ -158,5 +160,11 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("uploaded")]
         public long? Uploaded { get; }
+
+        /// <summary>
+        /// Gets the peer's contribution ratio.
+        /// </summary>
+        [JsonPropertyName("contribution")]
+        public double? Contribution { get; }
     }
 }

@@ -31,5 +31,11 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("length")]
         public long Length { get; }
+
+        /// <summary>
+        /// Gets the priority assigned by the server's filename filter, or null when no filter priority is supplied.
+        /// </summary>
+        [JsonPropertyName("priority")]
+        public Priority? Priority { get; init; }
     }
 }

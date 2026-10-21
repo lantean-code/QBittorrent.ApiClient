@@ -30,6 +30,11 @@ namespace QBittorrent.ApiClient
             return builder.Add(key, value.ToString(CultureInfo.InvariantCulture));
         }
 
+        public static FormUrlEncodedBuilder Add(this FormUrlEncodedBuilder builder, string key, double value)
+        {
+            return builder.Add(key, value.ToString(CultureInfo.InvariantCulture));
+        }
+
         public static FormUrlEncodedBuilder Add<T>(this FormUrlEncodedBuilder builder, string key, T value) where T : struct, IConvertible
         {
             return builder.Add(key, value.ToInt32(CultureInfo.InvariantCulture).ToString(CultureInfo.InvariantCulture));
@@ -59,7 +64,7 @@ namespace QBittorrent.ApiClient
 
         private static string JoinWithInvariant<T>(IEnumerable<T> values, char separator)
         {
-            return string.Join(separator, values.Select(value => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty));
+            return string.Join(separator, values.Select(value => Convert.ToString(value, CultureInfo.InvariantCulture)));
         }
     }
 }

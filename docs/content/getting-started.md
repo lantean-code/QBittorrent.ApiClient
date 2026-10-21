@@ -1,6 +1,6 @@
 # Getting started
 
-Add the library to your application, configure its HTTP client, and register `IApiClient`. This guide covers console and Blazor WebAssembly applications targeting .NET 10, with qBittorrent 5.1.x or 5.2.x.
+Add the library to your application, configure its HTTP client, and register `IApiClient`. This guide covers console and Blazor WebAssembly applications targeting .NET 10, with qBittorrent 5.1.x, 5.2.x, or 5.3.x.
 
 ## Install
 

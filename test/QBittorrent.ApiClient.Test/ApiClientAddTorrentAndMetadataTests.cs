@@ -1871,6 +1871,123 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(statusCode: HttpStatusCode.NotFound, userMessage: "missing");
         }
 
+        [Fact]
+        public async Task GIVEN_SeedModeWireContractAndSkipChecking_WHEN_AddTorrent_THEN_ShouldUseSeedModeField()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var parts = request.Content.Should().BeOfType<MultipartFormDataContent>().Which.ToList();
+                parts.Any(part => part.Headers.ContentDisposition?.Name == "skip_checking").Should().BeFalse();
+                var seedMode = parts.Single(part => part.Headers.ContentDisposition?.Name == "seedMode");
+                (await seedMode.ReadAsStringAsync(cancellationToken)).Should().Be("true");
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{}")
+                };
+            };
+
+            (await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                SkipChecking = true
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_UninitializedCompatibilityAndSkipChecking_WHEN_AddTorrent_THEN_ShouldThrowUninitializedCompatibilityException()
+        {
+            var action = async () => await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                SkipChecking = true
+            }, TestContext.Current.CancellationToken);
+
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
+        }
+
+        [Fact]
+        public async Task GIVEN_ShareLimitsModeSupportAndMode_WHEN_AddTorrent_THEN_ShouldIncludeMode()
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                var part = request.Content.Should().BeOfType<MultipartFormDataContent>().Which
+                    .Single(item => item.Headers.ContentDisposition?.Name == "shareLimitsMode");
+                (await part.ReadAsStringAsync(cancellationToken)).Should().Be("MatchAny");
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("{}")
+                };
+            };
+
+            (await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                ShareLimitsMode = ShareLimitsMode.MatchAny
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_ApiWithoutShareLimitsModeSupportAndMode_WHEN_AddTorrent_THEN_ShouldReturnUnsupportedVersion()
+        {
+            _target.Initialize(new Version(2, 15, 1));
+
+            var result = await _target.AddTorrentAsync(new AddTorrentParams
+            {
+                Urls = ["url"],
+                ShareLimitsMode = ShareLimitsMode.MatchAny
+            }, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
+        }
+
+        [Theory]
+        [InlineData(false, null)]
+        [InlineData(false, 0)]
+        [InlineData(false, 1)]
+        [InlineData(false, 6)]
+        [InlineData(false, 7)]
+        [InlineData(true, null)]
+        [InlineData(true, 0)]
+        [InlineData(true, 1)]
+        [InlineData(true, 6)]
+        [InlineData(true, 7)]
+        public async Task GIVEN_MetadataWithOptionalFilenameFilterPriority_WHEN_ReadingMetadata_THEN_ShouldPreservePriority(bool parse, int? priority)
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            var priorityField = priority.HasValue ? $", \"priority\": {priority.Value}" : string.Empty;
+            var payload = $$"""
+                {
+                    "hash": "Hash",
+                    "info":
+                    {
+                        "name": "Name",
+                        "length": 99,
+                        "piece_length": 16,
+                        "pieces_num": 7,
+                        "private": false,
+                        "files": [{ "path": "Path", "length": 99{{priorityField}} }]
+                    }
+                }
+                """;
+            _handler.Responder = (request, _) =>
+            {
+                request.RequestUri?.AbsolutePath.Should().Be(parse ? "/torrents/parseMetadata" : "/torrents/fetchMetadata");
+                return Task.FromResult(CreateResponse(HttpStatusCode.OK, parse ? $"[{payload}]" : payload));
+            };
+            using var stream = new MemoryStream([1, 2]);
+
+            var result = parse
+                ? (await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["Torrent.torrent"] = stream }, TestContext.Current.CancellationToken)).GetValueOrThrow()[0]
+                : (await _target.FetchTorrentMetadataAsync("Source", cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
+
+            result.Info.Files.Should().ContainSingle();
+            result.Info.Files[0].Path.Should().Be("Path");
+            result.Info.Files[0].Length.Should().Be(99);
+            result.Info.Files[0].Priority.Should().Be((Priority?)priority);
+        }
+
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
         {
             if (content is null)

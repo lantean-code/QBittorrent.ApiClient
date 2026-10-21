@@ -31,6 +31,7 @@ namespace QBittorrent.ApiClient
     [JsonSerializable(typeof(SearchStartResult))]
     [JsonSerializable(typeof(SearchStatus))]
     [JsonSerializable(typeof(SslParameters))]
+    [JsonSerializable(typeof(SpeedLimits))]
     [JsonSerializable(typeof(Torrent))]
     [JsonSerializable(typeof(TorrentCreationTaskIdentifier))]
     [JsonSerializable(typeof(TorrentCreationTaskStatus))]

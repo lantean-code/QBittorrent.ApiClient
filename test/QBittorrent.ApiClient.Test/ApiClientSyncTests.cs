@@ -160,7 +160,10 @@ namespace QBittorrent.ApiClient.Test
                                 "total_wasted_session": 53,
                                 "use_alt_speed_limits": false,
                                 "use_subcategories": true,
-                                "write_cache_overload": 0.6
+                                "write_cache_overload": 0.6,
+                                "queued_tracker_announces": 54,
+                                "request_latency": 55,
+                                "session_state": true
                             }
                         }
                         """)
@@ -275,6 +278,9 @@ namespace QBittorrent.ApiClient.Test
             result.ServerState?.UseAltSpeedLimits.Should().BeFalse();
             result.ServerState?.UseSubcategories.Should().BeTrue();
             result.ServerState?.WriteCacheOverload.Should().Be(0.6);
+            result.ServerState?.QueuedTrackerAnnounces.Should().Be(54);
+            result.ServerState?.RequestLatency.Should().Be(55);
+            result.ServerState?.SessionState.Should().BeTrue();
         }
 
         [Fact]
@@ -398,7 +404,8 @@ namespace QBittorrent.ApiClient.Test
                                     "progress": 0.5,
                                     "relevance": 0.7,
                                     "up_speed": 200,
-                                    "uploaded": 201
+                                    "uploaded": 201,
+                                    "contribution": 0.8
                                 }
                             },
                             "peers_removed": [ "peer-old" ],
@@ -435,6 +442,7 @@ namespace QBittorrent.ApiClient.Test
             peer?.Relevance.Should().Be(0.7);
             peer?.UploadSpeed.Should().Be(200);
             peer?.Uploaded.Should().Be(201);
+            peer?.Contribution.Should().Be(0.8);
         }
 
         [Fact]
