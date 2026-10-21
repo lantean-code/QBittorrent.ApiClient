@@ -4,14 +4,15 @@ Use [GitHub releases](https://github.com/lantean-code/QBittorrent.ApiClient/rele
 
 The repository also contains release-note source files. They use placeholders that the release workflow replaces; a source file does not by itself mean that version has been published.
 
-## Unreleased
+## 1.3.0
 
-The next package adds qBittorrent 5.3.0 support, validated against its final release tag and Web API `2.16.2`. See [version compatibility](compatibility.md#qbittorrent-530) for the supported operations and automatic request handling, and the [changelog](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/CHANGELOG.md) for the release overview.
+The `1.3.0` release line adds qBittorrent 5.3.0 support, validated against its final release tag and Web API `2.16.2`. See [version compatibility](compatibility.md#qbittorrent-530) for the supported operations and automatic request handling, and the [changelog](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/CHANGELOG.md) for the release overview. The notes below are release preparation sources; use GitHub releases or NuGet to check publication status.
 
 ## Release-note sources
 
 | Release line | Notes |
 | --- | --- |
+| 1.3.0 | [Stable notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/release/1.3.0/release-notes/1.3.0.md), [release candidate notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/release/1.3.0/release-notes/1.3.0-rc.md) |
 | 1.2.0 | [Stable notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/release-notes/1.2.0.md), [release candidate notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/release-notes/1.2.0-rc.md) |
 | 1.1.0 | [Stable notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/release-notes/1.1.0.md), [release candidate notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/release-notes/1.1.0-rc.md) |
 | 1.0.0 | [Stable notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/release-notes/1.0.0.md), [release candidate notes](https://github.com/lantean-code/QBittorrent.ApiClient/blob/develop/release-notes/1.0.0-rc.md) |
