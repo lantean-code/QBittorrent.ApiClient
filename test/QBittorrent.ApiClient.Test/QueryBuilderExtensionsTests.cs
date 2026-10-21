@@ -135,6 +135,14 @@ namespace QBittorrent.ApiClient.Test
         }
 
         [Fact]
+        public void GIVEN_NullSeparatedValue_WHEN_AddCommaSeparated_THEN_ShouldUseEmptyValue()
+        {
+            _target.AddCommaSeparated<string?>("items", ["first", null, "last"]);
+
+            _target.ToQueryString().Should().Be("?items=first%2C%2Clast");
+        }
+
+        [Fact]
         public void GIVEN_MultipleExtensionAdds_WHEN_Chained_THEN_ShouldPreserveOrderInQuery()
         {
             _target

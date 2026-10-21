@@ -128,7 +128,10 @@ namespace QBittorrent.ApiClient.Test
                             {
                                 "id": 5,
                                 "status": "Running",
-                                "total": 12
+                                "total": 12,
+                                "pattern": "pattern",
+                                "category": "category",
+                                "plugins": ["plugin"]
                             }
                         ]
                         """)
@@ -140,6 +143,9 @@ namespace QBittorrent.ApiClient.Test
             status.Id.Should().Be(5);
             status.Status.Should().Be(SearchJobStatus.Running);
             status.Total.Should().Be(12);
+            status.Pattern.Should().Be("pattern");
+            status.Category.Should().Be("category");
+            status.Plugins.Should().Equal("plugin");
         }
 
         [Fact]
@@ -539,6 +545,22 @@ namespace QBittorrent.ApiClient.Test
                 kind: ApiFailureKind.AuthenticationRequired,
                 statusCode: HttpStatusCode.Forbidden,
                 userMessage: "Authentication is required.");
+        }
+
+        [Fact]
+        public async Task GIVEN_ConflictWithMessage_WHEN_GetSearchPlugins_THEN_ShouldUseGenericConflictFailure()
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Conflict)
+            {
+                Content = new StringContent("conflict")
+            });
+
+            var result = await _target.GetSearchPluginsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(
+                kind: ApiFailureKind.Conflict,
+                statusCode: HttpStatusCode.Conflict,
+                userMessage: "conflict");
         }
 
         [Fact]

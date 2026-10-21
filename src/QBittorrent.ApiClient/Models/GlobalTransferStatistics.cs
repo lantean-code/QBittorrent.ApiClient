@@ -21,7 +21,9 @@ namespace QBittorrent.ApiClient.Models
             long? uploadInfoSpeed,
             int? uploadRateLimit,
             string? lastExternalAddressV4 = null,
-            string? lastExternalAddressV6 = null)
+            string? lastExternalAddressV6 = null,
+            long? queuedTrackerAnnounces = null,
+            long? requestLatency = null)
         {
             ConnectionStatus = connectionStatus;
             DHTNodes = dHTNodes;
@@ -33,6 +35,8 @@ namespace QBittorrent.ApiClient.Models
             UploadRateLimit = uploadRateLimit;
             LastExternalAddressV4 = lastExternalAddressV4;
             LastExternalAddressV6 = lastExternalAddressV6;
+            QueuedTrackerAnnounces = queuedTrackerAnnounces;
+            RequestLatency = requestLatency;
         }
 
         /// <summary>
@@ -94,5 +98,17 @@ namespace QBittorrent.ApiClient.Models
         /// </summary>
         [JsonPropertyName("last_external_address_v6")]
         public string? LastExternalAddressV6 { get; }
+
+        /// <summary>
+        /// Gets the number of queued tracker announces.
+        /// </summary>
+        [JsonPropertyName("queued_tracker_announces")]
+        public long? QueuedTrackerAnnounces { get; }
+
+        /// <summary>
+        /// Gets the disk request latency in microseconds.
+        /// </summary>
+        [JsonPropertyName("request_latency")]
+        public long? RequestLatency { get; }
     }
 }

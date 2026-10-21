@@ -41,7 +41,7 @@ namespace QBittorrent.ApiClient
 
         private static string JoinWithInvariant<T>(IEnumerable<T> values, char separator)
         {
-            return string.Join(separator, values.Select(value => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty));
+            return string.Join(separator, values.Select(value => Convert.ToString(value, CultureInfo.InvariantCulture)));
         }
     }
 }

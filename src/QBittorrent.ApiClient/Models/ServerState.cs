@@ -39,7 +39,10 @@ namespace QBittorrent.ApiClient.Models
             bool? useSubcategories,
             double? writeCacheOverload,
             string? lastExternalAddressV4 = null,
-            string? lastExternalAddressV6 = null) : base(connectionStatus, dHTNodes, downloadInfoData, downloadInfoSpeed, downloadRateLimit, uploadInfoData, uploadInfoSpeed, uploadRateLimit, lastExternalAddressV4, lastExternalAddressV6)
+            string? lastExternalAddressV6 = null,
+            bool? sessionState = null,
+            long? queuedTrackerAnnounces = null,
+            long? requestLatency = null) : base(connectionStatus, dHTNodes, downloadInfoData, downloadInfoSpeed, downloadRateLimit, uploadInfoData, uploadInfoSpeed, uploadRateLimit, lastExternalAddressV4, lastExternalAddressV6, queuedTrackerAnnounces, requestLatency)
         {
             AllTimeDownloaded = allTimeDownloaded;
             AllTimeUploaded = allTimeUploaded;
@@ -58,6 +61,7 @@ namespace QBittorrent.ApiClient.Models
             UseAltSpeedLimits = useAltSpeedLimits;
             UseSubcategories = useSubcategories;
             WriteCacheOverload = writeCacheOverload;
+            SessionState = sessionState;
         }
 
         /// <summary>
@@ -165,5 +169,11 @@ namespace QBittorrent.ApiClient.Models
         [JsonConverter(typeof(NullableStringDoubleJsonConverter))]
         [JsonPropertyName("write_cache_overload")]
         public double? WriteCacheOverload { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the BitTorrent session is paused.
+        /// </summary>
+        [JsonPropertyName("session_state")]
+        public bool? SessionState { get; }
     }
 }

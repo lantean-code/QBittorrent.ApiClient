@@ -451,10 +451,13 @@ namespace QBittorrent.ApiClient.Test
             exception.Which.ParamName.Should().Be("parameters");
         }
 
-        [Fact]
-        public async Task GIVEN_MissingRequiredSslFields_WHEN_SetTorrentSslParameters_THEN_ShouldThrowArgumentException()
+        [Theory]
+        [InlineData("", "key", "dh")]
+        [InlineData("cert", "", "dh")]
+        [InlineData("cert", "key", "")]
+        public async Task GIVEN_MissingRequiredSslFields_WHEN_SetTorrentSslParameters_THEN_ShouldThrowArgumentException(string certificate, string privateKey, string dhParams)
         {
-            var action = async () => await _target.SetTorrentSslParametersAsync("abc", new SslParameters("", "key", "dh"), cancellationToken: TestContext.Current.CancellationToken);
+            var action = async () => await _target.SetTorrentSslParametersAsync("abc", new SslParameters(certificate, privateKey, dhParams), cancellationToken: TestContext.Current.CancellationToken);
 
             var exception = await action.Should().ThrowAsync<ArgumentException>();
             exception.Which.ParamName.Should().Be("parameters");

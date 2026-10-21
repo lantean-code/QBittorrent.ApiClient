@@ -21,6 +21,11 @@ namespace QBittorrent.ApiClient.Models
         public int? PieceSize { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether dotfiles are excluded.
+        /// </summary>
+        public bool? IgnoreDotfiles { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the torrent is private.
         /// </summary>
         public bool? Private { get; set; }

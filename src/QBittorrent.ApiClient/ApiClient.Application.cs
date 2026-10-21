@@ -256,7 +256,50 @@ namespace QBittorrent.ApiClient
 
         public Task<ApiResult> SetApplicationPreferencesAsync(UpdatePreferences preferences, CancellationToken cancellationToken = default)
         {
+            ArgumentNullException.ThrowIfNull(preferences);
             preferences.Validate();
+
+            var specifiedWebApiVersionDependentPreferenceNames = GetSpecifiedWebApiVersionDependentPreferenceNames(preferences);
+            var specifiedRenamedPreferenceNames = GetSpecifiedRenamedPreferenceNames(preferences);
+            ApiClientCompatibilityProfile? profile;
+            if ((specifiedWebApiVersionDependentPreferenceNames.Length > 0) || (specifiedRenamedPreferenceNames.Length > 0))
+            {
+                profile = CompatibilityProfile;
+                var unsupportedPreferenceNames = GetUnsupportedPreferenceNames(preferences, profile);
+                if (unsupportedPreferenceNames.Length > 0)
+                {
+                    return Task.FromResult(CreateUnsupportedCompatibilityFailure(
+                        nameof(SetApplicationPreferencesAsync),
+                        profile,
+                        $"qBittorrent Web API {profile.WebApiVersion} does not support the requested application preferences: {string.Join(", ", unsupportedPreferenceNames)}.").ToResult());
+                }
+            }
+            else
+            {
+                TryGetCompatibilityProfile(out profile);
+            }
+
+            if (profile?.SupportsTorrentFileBackupPreferences == true)
+            {
+                preferences = preferences with
+                {
+                    TorrentFilesBackupEnabled = preferences.TorrentFilesBackupEnabled ?? (preferences.ExportDir is null ? null : !string.IsNullOrEmpty(preferences.ExportDir)),
+                    TorrentFilesBackupDirectory = preferences.TorrentFilesBackupDirectory ?? preferences.ExportDir,
+                    TorrentFilesFinishedBackupDirectoryEnabled = preferences.TorrentFilesFinishedBackupDirectoryEnabled ?? (preferences.ExportDirFin is null ? null : !string.IsNullOrEmpty(preferences.ExportDirFin)),
+                    TorrentFilesFinishedBackupDirectory = preferences.TorrentFilesFinishedBackupDirectory ?? preferences.ExportDirFin,
+                    ExportDir = null,
+                    ExportDirFin = null
+                };
+            }
+
+            if (profile?.SupportsMailNotificationEncryptionPreference == true)
+            {
+                preferences = preferences with
+                {
+                    MailNotificationEncryptionType = preferences.MailNotificationEncryptionType ?? (preferences.MailNotificationSslEnabled is null ? null : preferences.MailNotificationSslEnabled.Value ? SmtpEncryptionType.SMTPS : SmtpEncryptionType.None),
+                    MailNotificationSslEnabled = null
+                };
+            }
 
             var json = SerializeJson(preferences);
 
@@ -265,6 +308,28 @@ namespace QBittorrent.ApiClient
                 .ToFormUrlEncodedContent();
 
             return ExecuteAsync(ct => _httpClient.PostAsync("app/setPreferences", content, ct), cancellationToken: cancellationToken);
+        }
+
+        public async Task<ApiResult<long>> GetFreeSpaceAtPathAsync(string path, CancellationToken cancellationToken = default)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+            var profile = CompatibilityProfile;
+            if (!profile.SupportsApplicationFreeSpace)
+            {
+                return CreateUnsupportedCompatibilityFailure(
+                    nameof(GetFreeSpaceAtPathAsync),
+                    profile,
+                    $"qBittorrent Web API {profile.WebApiVersion} does not support querying free space for a path.").ToResult<long>();
+            }
+
+            var query = new QueryBuilder()
+                .Add("path", path);
+
+            return await ExecuteAsync(
+                ct => _httpClient.GetAsync("app/getFreeSpaceAtPath", query, ct),
+                ReadInt64Async,
+                cancellationToken: cancellationToken);
         }
 
         public Task<ApiResult<IReadOnlyList<ApplicationCookie>>> GetApplicationCookiesAsync(CancellationToken cancellationToken = default)
@@ -394,6 +459,87 @@ namespace QBittorrent.ApiClient
                     DirectoryContentMode.Files => "files",
                     _ => "all"
                 });
+        }
+
+        private static string[] GetSpecifiedWebApiVersionDependentPreferenceNames(UpdatePreferences preferences)
+        {
+            (string Name, object? Value)[] settings =
+            [
+                (nameof(UpdatePreferences.StoreSearchJobs), preferences.StoreSearchJobs),
+                (nameof(UpdatePreferences.ConfirmRemoveAllTags), preferences.ConfirmRemoveAllTags),
+                (nameof(UpdatePreferences.ConfirmRemoveTrackerFromAllTorrents), preferences.ConfirmRemoveTrackerFromAllTorrents),
+                (nameof(UpdatePreferences.StoreSearchJobResults), preferences.StoreSearchJobResults),
+                (nameof(UpdatePreferences.TorrentFilesBackupEnabled), preferences.TorrentFilesBackupEnabled),
+                (nameof(UpdatePreferences.TorrentFilesBackupDirectory), preferences.TorrentFilesBackupDirectory),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectoryEnabled), preferences.TorrentFilesFinishedBackupDirectoryEnabled),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectory), preferences.TorrentFilesFinishedBackupDirectory),
+                (nameof(UpdatePreferences.RemoveTorrentFileBackup), preferences.RemoveTorrentFileBackup),
+                (nameof(UpdatePreferences.MailNotificationEncryptionType), preferences.MailNotificationEncryptionType),
+                (nameof(UpdatePreferences.I2pPexEnabled), preferences.I2pPexEnabled),
+                (nameof(UpdatePreferences.I2pInboundLengthVariance), preferences.I2pInboundLengthVariance),
+                (nameof(UpdatePreferences.I2pOutboundLengthVariance), preferences.I2pOutboundLengthVariance),
+                (nameof(UpdatePreferences.ShareLimitsMode), preferences.ShareLimitsMode),
+                (nameof(UpdatePreferences.WebUiSessionsCountLimit), preferences.WebUiSessionsCountLimit),
+                (nameof(UpdatePreferences.StartPaused), preferences.StartPaused),
+                (nameof(UpdatePreferences.ShutdownTimeout), preferences.ShutdownTimeout),
+                (nameof(UpdatePreferences.SeedingOutgoingConnections), preferences.SeedingOutgoingConnections),
+                (nameof(UpdatePreferences.EnableMultiConnectionsFromSamePeerId), preferences.EnableMultiConnectionsFromSamePeerId),
+                (nameof(UpdatePreferences.MaxOutstandingBlockRequests), preferences.MaxOutstandingBlockRequests),
+                (nameof(UpdatePreferences.WebTorrentStunServer), preferences.WebTorrentStunServer)
+            ];
+
+            return settings
+                .Where(static setting => setting.Value is not null)
+                .Select(static setting => setting.Name)
+                .ToArray();
+        }
+
+        private static string[] GetSpecifiedRenamedPreferenceNames(UpdatePreferences preferences)
+        {
+            (string Name, object? Value)[] settings =
+            [
+                (nameof(UpdatePreferences.ExportDir), preferences.ExportDir),
+                (nameof(UpdatePreferences.ExportDirFin), preferences.ExportDirFin),
+                (nameof(UpdatePreferences.MailNotificationSslEnabled), preferences.MailNotificationSslEnabled)
+            ];
+
+            return settings
+                .Where(static setting => setting.Value is not null)
+                .Select(static setting => setting.Name)
+                .ToArray();
+        }
+
+        private static string[] GetUnsupportedPreferenceNames(UpdatePreferences preferences, ApiClientCompatibilityProfile profile)
+        {
+            (string Name, object? Value, bool IsSupported)[] settings =
+            [
+                (nameof(UpdatePreferences.StoreSearchJobs), preferences.StoreSearchJobs, profile.SupportsSearchJobPersistencePreferences),
+                (nameof(UpdatePreferences.ConfirmRemoveAllTags), preferences.ConfirmRemoveAllTags, profile.SupportsRemoveAllTagsConfirmationPreference),
+                (nameof(UpdatePreferences.ConfirmRemoveTrackerFromAllTorrents), preferences.ConfirmRemoveTrackerFromAllTorrents, profile.SupportsRemoveTrackerFromAllTorrentsConfirmationPreference),
+                (nameof(UpdatePreferences.StoreSearchJobResults), preferences.StoreSearchJobResults, profile.SupportsSearchJobPersistencePreferences),
+                (nameof(UpdatePreferences.TorrentFilesBackupEnabled), preferences.TorrentFilesBackupEnabled, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.TorrentFilesBackupDirectory), preferences.TorrentFilesBackupDirectory, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectoryEnabled), preferences.TorrentFilesFinishedBackupDirectoryEnabled, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.TorrentFilesFinishedBackupDirectory), preferences.TorrentFilesFinishedBackupDirectory, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.RemoveTorrentFileBackup), preferences.RemoveTorrentFileBackup, profile.SupportsTorrentFileBackupPreferences),
+                (nameof(UpdatePreferences.MailNotificationEncryptionType), preferences.MailNotificationEncryptionType, profile.SupportsMailNotificationEncryptionPreference),
+                (nameof(UpdatePreferences.I2pPexEnabled), preferences.I2pPexEnabled, profile.SupportsAdvancedI2pPreferences),
+                (nameof(UpdatePreferences.I2pInboundLengthVariance), preferences.I2pInboundLengthVariance, profile.SupportsAdvancedI2pPreferences),
+                (nameof(UpdatePreferences.I2pOutboundLengthVariance), preferences.I2pOutboundLengthVariance, profile.SupportsAdvancedI2pPreferences),
+                (nameof(UpdatePreferences.ShareLimitsMode), preferences.ShareLimitsMode, profile.SupportsShareLimitsMode),
+                (nameof(UpdatePreferences.WebUiSessionsCountLimit), preferences.WebUiSessionsCountLimit, profile.SupportsWebUiSessionCountLimitPreference),
+                (nameof(UpdatePreferences.StartPaused), preferences.StartPaused, profile.SupportsStartPausedPreference),
+                (nameof(UpdatePreferences.ShutdownTimeout), preferences.ShutdownTimeout, profile.SupportsShutdownTimeoutPreference),
+                (nameof(UpdatePreferences.SeedingOutgoingConnections), preferences.SeedingOutgoingConnections, profile.SupportsSeedingOutgoingConnectionsPreference),
+                (nameof(UpdatePreferences.EnableMultiConnectionsFromSamePeerId), preferences.EnableMultiConnectionsFromSamePeerId, profile.SupportsMultipleConnectionsFromSamePeerIdPreference),
+                (nameof(UpdatePreferences.MaxOutstandingBlockRequests), preferences.MaxOutstandingBlockRequests, profile.SupportsMaxOutstandingBlockRequestsPreference),
+                (nameof(UpdatePreferences.WebTorrentStunServer), preferences.WebTorrentStunServer, profile.SupportsWebTorrentStunServerPreference)
+            ];
+
+            return settings
+                .Where(static setting => setting.Value is not null && !setting.IsSupported)
+                .Select(static setting => setting.Name)
+                .ToArray();
         }
     }
 }
