@@ -363,5 +363,38 @@ namespace QBittorrent.ApiClient.Test
 
             await action.Should().ThrowAsync<ArgumentNullException>();
         }
+
+        [Theory]
+        [InlineData(true, "createCategory")]
+        [InlineData(false, "editCategory")]
+        public async Task GIVEN_InheritedCategoryDownloadPath_WHEN_SetCategoryOptions_THEN_ShouldSendEmptyDownloadPathEnabled(bool add, string endpoint)
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                request.RequestUri?.AbsolutePath.Should().Be($"/torrents/{endpoint}");
+                (await request.Content.ReadAsStringOrNullAsync(cancellationToken)).Should().Be("category=Category&downloadPathEnabled=");
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+            var options = new TorrentCategoryOptions { InheritDownloadPath = true };
+
+            var result = add
+                ? await _target.AddCategoryAsync("Category", options, TestContext.Current.CancellationToken)
+                : await _target.EditCategoryAsync("Category", options, TestContext.Current.CancellationToken);
+
+            result.ShouldSucceed();
+        }
+
+        [Fact]
+        public async Task GIVEN_InheritedAndExplicitCategoryDownloadPaths_WHEN_SetCategoryOptions_THEN_ShouldThrowArgumentException()
+        {
+            var action = async () => await _target.EditCategoryAsync("Category", new TorrentCategoryOptions
+            {
+                InheritDownloadPath = true,
+                DownloadPath = new DownloadPathOption(true, "/download")
+            }, TestContext.Current.CancellationToken);
+
+            (await action.Should().ThrowAsync<ArgumentException>()).Which.ParamName.Should().Be("options");
+        }
     }
 }

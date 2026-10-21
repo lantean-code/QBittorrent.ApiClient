@@ -1364,6 +1364,18 @@ namespace QBittorrent.ApiClient.Models
         public bool? StoreSearchJobs { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether removing all tags requires confirmation.
+        /// </summary>
+        [JsonPropertyName("confirm_remove_all_tags")]
+        public bool? ConfirmRemoveAllTags { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether removing a tracker from all torrents requires confirmation.
+        /// </summary>
+        [JsonPropertyName("confirm_remove_tracker_from_all_torrents")]
+        public bool? ConfirmRemoveTrackerFromAllTorrents { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether search job results are persisted.
         /// </summary>
         [JsonPropertyName("store_search_job_results")]

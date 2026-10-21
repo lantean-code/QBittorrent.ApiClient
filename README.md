@@ -2,7 +2,7 @@
 
 `QBittorrent.ApiClient` is a .NET client library for the qBittorrent Web API.
 
-It provides a result-based client surface, structured API failures, and version-aware compatibility handling for qBittorrent Web API differences such as the 5.1.x and 5.2.x lines.
+It provides a result-based client surface, structured API failures, and version-aware compatibility handling for qBittorrent Web API differences across the 5.1.x, 5.2.x, and 5.3.x lines.
 
 ## Documentation
 
@@ -11,6 +11,7 @@ The documentation site sources are in [docs/content](docs/content/index.md), cov
 ## qBittorrent Support
  - 5.1.x
  - 5.2.x
+ - 5.3.x
 
 ## Installation
 

@@ -2495,6 +2495,91 @@ namespace QBittorrent.ApiClient.Test
             }, TestContext.Current.CancellationToken)).ShouldSucceed();
         }
 
+        [Theory]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        public async Task GIVEN_RemovalConfirmationPreferences_WHEN_GetApplicationPreferences_THEN_ShouldPopulateSettings(bool confirmRemoveAllTags, bool confirmRemoveTrackerFromAllTorrents)
+        {
+            _handler.Responder = (_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(JsonSerializer.Serialize(new
+                {
+                    confirm_remove_all_tags = confirmRemoveAllTags,
+                    confirm_remove_tracker_from_all_torrents = confirmRemoveTrackerFromAllTorrents
+                }))
+            });
+
+            var result = (await _target.GetApplicationPreferencesAsync(TestContext.Current.CancellationToken)).GetValueOrThrow();
+
+            result.ConfirmRemoveAllTags.Should().Be(confirmRemoveAllTags);
+            result.ConfirmRemoveTrackerFromAllTorrents.Should().Be(confirmRemoveTrackerFromAllTorrents);
+        }
+
+        [Theory]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        public async Task GIVEN_RemovalConfirmationPreferenceSupport_WHEN_SetApplicationPreferences_THEN_ShouldSendSpecifiedValues(bool confirmRemoveAllTags, bool confirmRemoveTrackerFromAllTorrents)
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            _handler.Responder = async (request, cancellationToken) =>
+            {
+                request.RequestUri?.AbsolutePath.Should().Be("/app/setPreferences");
+                var body = await request.Content.ReadAsUnescapedStringOrNullAsync(cancellationToken);
+                using var document = JsonDocument.Parse(body!["json=".Length..]);
+                var json = document.RootElement;
+                json.GetProperty("confirm_remove_all_tags").GetBoolean().Should().Be(confirmRemoveAllTags);
+                json.GetProperty("confirm_remove_tracker_from_all_torrents").GetBoolean().Should().Be(confirmRemoveTrackerFromAllTorrents);
+                json.EnumerateObject().Should().HaveCount(2);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            };
+
+            (await _target.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                ConfirmRemoveAllTags = confirmRemoveAllTags,
+                ConfirmRemoveTrackerFromAllTorrents = confirmRemoveTrackerFromAllTorrents
+            }, TestContext.Current.CancellationToken)).ShouldSucceed();
+        }
+
+        [Theory]
+        [InlineData(true, null, "ConfirmRemoveAllTags")]
+        [InlineData(null, false, "ConfirmRemoveTrackerFromAllTorrents")]
+        [InlineData(false, true, "ConfirmRemoveAllTags, ConfirmRemoveTrackerFromAllTorrents")]
+        public async Task GIVEN_ApiWithoutRemovalConfirmationPreferenceSupport_WHEN_SetApplicationPreferences_THEN_ShouldIdentifyUnsupportedProperties(bool? confirmRemoveAllTags, bool? confirmRemoveTrackerFromAllTorrents, string propertyNames)
+        {
+            _target.Initialize(new Version(2, 16, 1));
+            var requestCount = 0;
+            _handler.Responder = (_, _) =>
+            {
+                requestCount++;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            };
+
+            var result = await _target.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                ConfirmRemoveAllTags = confirmRemoveAllTags,
+                ConfirmRemoveTrackerFromAllTorrents = confirmRemoveTrackerFromAllTorrents
+            }, TestContext.Current.CancellationToken);
+
+            result.ShouldFailWith(
+                kind: ApiFailureKind.ValidationFailed,
+                userMessage: $"qBittorrent Web API 2.16.1 does not support the requested application preferences: {propertyNames}.");
+            requestCount.Should().Be(0);
+        }
+
+        [Theory]
+        [InlineData(true, null)]
+        [InlineData(null, false)]
+        public async Task GIVEN_UninitializedCompatibilityAndRemovalConfirmationPreference_WHEN_SetApplicationPreferences_THEN_ShouldThrowUninitializedCompatibilityException(bool? confirmRemoveAllTags, bool? confirmRemoveTrackerFromAllTorrents)
+        {
+            var action = async () => await _target.SetApplicationPreferencesAsync(new UpdatePreferences
+            {
+                ConfirmRemoveAllTags = confirmRemoveAllTags,
+                ConfirmRemoveTrackerFromAllTorrents = confirmRemoveTrackerFromAllTorrents
+            }, TestContext.Current.CancellationToken);
+
+            await action.ShouldThrowUninitializedCompatibilityExceptionAsync();
+        }
+
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
         {
             if (content is null)

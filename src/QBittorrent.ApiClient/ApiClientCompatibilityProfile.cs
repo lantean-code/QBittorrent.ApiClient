@@ -82,6 +82,10 @@ namespace QBittorrent.ApiClient
 
         public bool SupportsTorrentCreationIgnoreDotfiles { get; }
 
+        public bool SupportsRemoveAllTagsConfirmationPreference { get; }
+
+        public bool SupportsRemoveTrackerFromAllTorrentsConfirmationPreference { get; }
+
         public string TrackerAllValue { get; }
 
         internal ApiClientCompatibilityProfile(Version webApiVersion)
@@ -127,6 +131,8 @@ namespace QBittorrent.ApiClient
             SupportsSpeedLimitBatchOperations = WebApiCompatibilityMap.SupportsSpeedLimitBatchOperations(webApiVersion);
             SupportsSessionPauseResume = WebApiCompatibilityMap.SupportsSessionPauseResume(webApiVersion);
             SupportsTorrentCreationIgnoreDotfiles = WebApiCompatibilityMap.SupportsTorrentCreationIgnoreDotfiles(webApiVersion);
+            SupportsRemoveAllTagsConfirmationPreference = WebApiCompatibilityMap.SupportsRemoveAllTagsConfirmationPreference(webApiVersion);
+            SupportsRemoveTrackerFromAllTorrentsConfirmationPreference = WebApiCompatibilityMap.SupportsRemoveTrackerFromAllTorrentsConfirmationPreference(webApiVersion);
             TrackerAllValue = WebApiCompatibilityMap.GetTrackerAllValue(webApiVersion);
         }
 

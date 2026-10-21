@@ -1942,6 +1942,52 @@ namespace QBittorrent.ApiClient.Test
             result.ShouldFailWith(kind: ApiFailureKind.ValidationFailed);
         }
 
+        [Theory]
+        [InlineData(false, null)]
+        [InlineData(false, 0)]
+        [InlineData(false, 1)]
+        [InlineData(false, 6)]
+        [InlineData(false, 7)]
+        [InlineData(true, null)]
+        [InlineData(true, 0)]
+        [InlineData(true, 1)]
+        [InlineData(true, 6)]
+        [InlineData(true, 7)]
+        public async Task GIVEN_MetadataWithOptionalFilenameFilterPriority_WHEN_ReadingMetadata_THEN_ShouldPreservePriority(bool parse, int? priority)
+        {
+            _target.Initialize(new Version(2, 16, 2));
+            var priorityField = priority.HasValue ? $", \"priority\": {priority.Value}" : string.Empty;
+            var payload = $$"""
+                {
+                    "hash": "Hash",
+                    "info":
+                    {
+                        "name": "Name",
+                        "length": 99,
+                        "piece_length": 16,
+                        "pieces_num": 7,
+                        "private": false,
+                        "files": [{ "path": "Path", "length": 99{{priorityField}} }]
+                    }
+                }
+                """;
+            _handler.Responder = (request, _) =>
+            {
+                request.RequestUri?.AbsolutePath.Should().Be(parse ? "/torrents/parseMetadata" : "/torrents/fetchMetadata");
+                return Task.FromResult(CreateResponse(HttpStatusCode.OK, parse ? $"[{payload}]" : payload));
+            };
+            using var stream = new MemoryStream([1, 2]);
+
+            var result = parse
+                ? (await _target.ParseTorrentMetadataAsync(new Dictionary<string, Stream> { ["Torrent.torrent"] = stream }, TestContext.Current.CancellationToken)).GetValueOrThrow()[0]
+                : (await _target.FetchTorrentMetadataAsync("Source", cancellationToken: TestContext.Current.CancellationToken)).GetSuccessValueOrThrow();
+
+            result.Info.Files.Should().ContainSingle();
+            result.Info.Files[0].Path.Should().Be("Path");
+            result.Info.Files[0].Length.Should().Be(99);
+            result.Info.Files[0].Priority.Should().Be((Priority?)priority);
+        }
+
         private static HttpResponseMessage CreateResponse(HttpStatusCode statusCode, string? content)
         {
             if (content is null)

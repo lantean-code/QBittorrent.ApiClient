@@ -43,6 +43,8 @@ namespace QBittorrent.ApiClient
         private static readonly Version _speedLimitBatchOperationsMinimumVersion = new(2, 16, 2);
         private static readonly Version _sessionPauseResumeMinimumVersion = new(2, 16, 2);
         private static readonly Version _torrentCreationIgnoreDotfilesMinimumVersion = new(2, 16, 2);
+        private static readonly Version _removeAllTagsConfirmationMinimumVersion = new(2, 16, 2);
+        private static readonly Version _removeTrackerFromAllTorrentsConfirmationMinimumVersion = new(2, 16, 2);
 
         public static bool TryParseVersion(string? webApiVersion, [NotNullWhen(true)] out Version? parsedApiVersion)
         {
@@ -326,6 +328,20 @@ namespace QBittorrent.ApiClient
             ArgumentNullException.ThrowIfNull(webApiVersion);
 
             return webApiVersion >= _torrentCreationIgnoreDotfilesMinimumVersion;
+        }
+
+        public static bool SupportsRemoveAllTagsConfirmationPreference(Version webApiVersion)
+        {
+            ArgumentNullException.ThrowIfNull(webApiVersion);
+
+            return webApiVersion >= _removeAllTagsConfirmationMinimumVersion;
+        }
+
+        public static bool SupportsRemoveTrackerFromAllTorrentsConfirmationPreference(Version webApiVersion)
+        {
+            ArgumentNullException.ThrowIfNull(webApiVersion);
+
+            return webApiVersion >= _removeTrackerFromAllTorrentsConfirmationMinimumVersion;
         }
 
         public static string GetTrackerAllValue(Version webApiVersion)

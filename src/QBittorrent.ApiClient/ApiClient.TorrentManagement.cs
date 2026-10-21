@@ -1515,6 +1515,11 @@ namespace QBittorrent.ApiClient
             ArgumentException.ThrowIfNullOrWhiteSpace(category);
             ArgumentNullException.ThrowIfNull(options);
 
+            if (options.InheritDownloadPath && options.DownloadPath is not null)
+            {
+                throw new ArgumentException("Specify either InheritDownloadPath or DownloadPath, not both.", nameof(options));
+            }
+
             var profile = CompatibilityProfile;
             if (!profile.SupportsCategoryShareLimitOptions)
             {
@@ -1531,7 +1536,11 @@ namespace QBittorrent.ApiClient
             {
                 builder.Add("savePath", options.SavePath);
             }
-            if (options.DownloadPath is not null)
+            if (options.InheritDownloadPath)
+            {
+                builder.Add("downloadPathEnabled", string.Empty);
+            }
+            else if (options.DownloadPath is not null)
             {
                 builder.Add("downloadPathEnabled", options.DownloadPath.Enabled);
                 if (!string.IsNullOrWhiteSpace(options.DownloadPath.Path))

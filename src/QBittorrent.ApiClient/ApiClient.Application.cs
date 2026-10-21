@@ -466,6 +466,8 @@ namespace QBittorrent.ApiClient
             (string Name, object? Value)[] settings =
             [
                 (nameof(UpdatePreferences.StoreSearchJobs), preferences.StoreSearchJobs),
+                (nameof(UpdatePreferences.ConfirmRemoveAllTags), preferences.ConfirmRemoveAllTags),
+                (nameof(UpdatePreferences.ConfirmRemoveTrackerFromAllTorrents), preferences.ConfirmRemoveTrackerFromAllTorrents),
                 (nameof(UpdatePreferences.StoreSearchJobResults), preferences.StoreSearchJobResults),
                 (nameof(UpdatePreferences.TorrentFilesBackupEnabled), preferences.TorrentFilesBackupEnabled),
                 (nameof(UpdatePreferences.TorrentFilesBackupDirectory), preferences.TorrentFilesBackupDirectory),
@@ -512,6 +514,8 @@ namespace QBittorrent.ApiClient
             (string Name, object? Value, bool IsSupported)[] settings =
             [
                 (nameof(UpdatePreferences.StoreSearchJobs), preferences.StoreSearchJobs, profile.SupportsSearchJobPersistencePreferences),
+                (nameof(UpdatePreferences.ConfirmRemoveAllTags), preferences.ConfirmRemoveAllTags, profile.SupportsRemoveAllTagsConfirmationPreference),
+                (nameof(UpdatePreferences.ConfirmRemoveTrackerFromAllTorrents), preferences.ConfirmRemoveTrackerFromAllTorrents, profile.SupportsRemoveTrackerFromAllTorrentsConfirmationPreference),
                 (nameof(UpdatePreferences.StoreSearchJobResults), preferences.StoreSearchJobResults, profile.SupportsSearchJobPersistencePreferences),
                 (nameof(UpdatePreferences.TorrentFilesBackupEnabled), preferences.TorrentFilesBackupEnabled, profile.SupportsTorrentFileBackupPreferences),
                 (nameof(UpdatePreferences.TorrentFilesBackupDirectory), preferences.TorrentFilesBackupDirectory, profile.SupportsTorrentFileBackupPreferences),

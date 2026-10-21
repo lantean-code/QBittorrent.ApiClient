@@ -11,9 +11,15 @@ namespace QBittorrent.ApiClient.Models
         public string? SavePath { get; set; }
 
         /// <summary>
-        /// Gets or sets the category download-path behavior.
+        /// Gets or sets the category download-path behavior. Null leaves the existing setting unchanged when editing.
         /// </summary>
         public DownloadPathOption? DownloadPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to inherit the download path from the parent category or global settings.
+        /// Cannot be combined with <see cref="DownloadPath" />.
+        /// </summary>
+        public bool InheritDownloadPath { get; set; }
 
         /// <summary>
         /// Gets or sets the category share-ratio limit.

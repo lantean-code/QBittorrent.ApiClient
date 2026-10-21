@@ -178,6 +178,8 @@ namespace QBittorrent.ApiClient.Test
             target.SupportsSpeedLimitBatchOperations.Should().BeFalse();
             target.SupportsSessionPauseResume.Should().BeFalse();
             target.SupportsTorrentCreationIgnoreDotfiles.Should().BeFalse();
+            target.SupportsRemoveAllTagsConfirmationPreference.Should().BeFalse();
+            target.SupportsRemoveTrackerFromAllTorrentsConfirmationPreference.Should().BeFalse();
             target.TrackerAllValue.Should().Be("all");
         }
 
@@ -207,6 +209,20 @@ namespace QBittorrent.ApiClient.Test
             target.SupportsSpeedLimitBatchOperations.Should().BeTrue();
             target.SupportsSessionPauseResume.Should().BeTrue();
             target.SupportsTorrentCreationIgnoreDotfiles.Should().BeTrue();
+            target.SupportsRemoveAllTagsConfirmationPreference.Should().BeTrue();
+            target.SupportsRemoveTrackerFromAllTorrentsConfirmationPreference.Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData("2.16.1", false)]
+        [InlineData("2.16.2", true)]
+        [InlineData("2.17.0", true)]
+        public void GIVEN_RemovalConfirmationPreferenceVersionBoundary_WHEN_CreatingCompatibilityProfile_THEN_ShouldReportSupport(string webApiVersion, bool supported)
+        {
+            var target = new ApiClientCompatibilityProfile(Version.Parse(webApiVersion));
+
+            target.SupportsRemoveAllTagsConfirmationPreference.Should().Be(supported);
+            target.SupportsRemoveTrackerFromAllTorrentsConfirmationPreference.Should().Be(supported);
         }
 
         [Fact]
