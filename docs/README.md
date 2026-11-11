@@ -41,7 +41,7 @@ Open `http://127.0.0.1:8000/QBittorrent.ApiClient/`. Build output goes to the ig
 
 In the repository's **Settings > Pages**, select **GitHub Actions** as the build and deployment source. The `docs-pages.yml` workflow validates documentation pull requests targeting `develop` and deploys documentation changes pushed to `develop`. It can also be run manually from `develop`.
 
-The published address is `https://lantean-code.github.io/QBittorrent.ApiClient/`. Deployment requires the workflow to be pushed and GitHub Pages to be enabled; a local build does not publish anything.
+The published address is `https://lantean-code.dev/QBittorrent.ApiClient/`. Deployment requires the workflow to be pushed and GitHub Pages to be enabled; a local build does not publish anything.
 
 ## Editing
 
